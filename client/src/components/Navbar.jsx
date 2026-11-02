@@ -1,8 +1,27 @@
-import React, { useState } from 'react';
-import { Copy, Check, LogOut, Plus, Music2, ArrowUpRight } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Copy, Check, LogOut, Plus, Music2, ArrowUpRight, History, Download } from 'lucide-react';
 
-export default function Navbar({ room, onLeaveRoom, onCopyInvite, onOpenImport }) {
+export default function Navbar({ room, onLeaveRoom, onCopyInvite, onOpenImport, onOpenHistory, historyCount = 0 }) {
   const [copied, setCopied] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+
+  useEffect(() => {
+    const handleBeforeInstall = (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+    window.addEventListener('beforeinstallprompt', handleBeforeInstall);
+    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
+  }, []);
+
+  const handleInstallApp = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      setDeferredPrompt(null);
+    }
+  };
 
   const handleCopy = () => {
     onCopyInvite();
@@ -41,6 +60,31 @@ export default function Navbar({ room, onLeaveRoom, onCopyInvite, onOpenImport }
         {/* Right Actions: Compact on mobile, expanded on desktop */}
         {room ? (
           <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+            {/* Install PWA Prompt */}
+            {deferredPrompt && (
+              <button
+                onClick={handleInstallApp}
+                className="w-9 h-9 sm:w-auto px-0 sm:px-3 py-0 sm:py-1.5 rounded-full bg-purple-600/30 text-purple-200 border border-purple-500/40 text-xs font-medium flex items-center justify-center gap-1.5 transition-all active:scale-95 shrink-0"
+                title="Install MusicRoom App on this device"
+              >
+                <Download className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
+                <span className="hidden sm:inline">Install App</span>
+              </button>
+            )}
+
+            {/* History Pill */}
+            {onOpenHistory && (
+              <button
+                onClick={onOpenHistory}
+                className="w-9 h-9 sm:w-auto px-0 sm:px-3 py-0 sm:py-1.5 rounded-full liquid-glass text-xs font-medium text-white/90 hover:text-white transition-all active:scale-95 flex items-center justify-center gap-1.5 shrink-0"
+                title="View all songs played in this session"
+                aria-label="Session History"
+              >
+                <History className="w-4 h-4 sm:w-3.5 sm:h-3.5 text-purple-400" />
+                <span className="hidden sm:inline">History {historyCount > 0 ? `(${historyCount})` : ''}</span>
+              </button>
+            )}
+
             {/* Import Playlist: Primary Pill */}
             <button
               onClick={onOpenImport}

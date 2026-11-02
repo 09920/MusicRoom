@@ -8,10 +8,11 @@ import QueueList from '../components/QueueList';
 import SongSearch from '../components/SongSearch';
 import ChatBox from '../components/ChatBox';
 import ImportPlaylistModal from '../components/ImportPlaylistModal';
+import SessionHistoryModal from '../components/SessionHistoryModal';
 import Toast from '../components/Toast';
 import TapToJoin from '../components/TapToJoin';
 import FadingVideo from '../components/FadingVideo';
-import { Shield, Users, MessageSquare, Copy, LogOut, Music2 } from 'lucide-react';
+import { Shield, Users, MessageSquare, Copy, LogOut, Music2, History } from 'lucide-react';
 
 export default function Room({ initialRoom, currentSocketId, userId, onLeaveRoom }) {
   const [room, setRoom] = useState(initialRoom);
@@ -27,6 +28,7 @@ export default function Room({ initialRoom, currentSocketId, userId, onLeaveRoom
   const [isMuted, setIsMuted] = useState(false);
   const [autoMode, setAutoMode] = useState(initialRoom?.autoMode ?? true);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const playerRef = useRef(null);
 
   const addToast = (message, type = 'info') => {
@@ -53,7 +55,8 @@ export default function Room({ initialRoom, currentSocketId, userId, onLeaveRoom
       setRoom((prev) => ({
         ...prev,
         currentSong: data.currentSong,
-        playback: data.playback
+        playback: data.playback,
+        playedHistory: data.playedHistory || prev.playedHistory
       }));
     };
 
@@ -247,6 +250,14 @@ export default function Room({ initialRoom, currentSocketId, userId, onLeaveRoom
         onImportSuccess={(count, msg) => addToast(msg || `Added ${count} songs to queue!`, 'success')}
       />
 
+      <SessionHistoryModal
+        isOpen={isHistoryOpen}
+        onClose={() => setIsHistoryOpen(false)}
+        history={room?.playedHistory || []}
+        onPlaySong={(song) => handlePlayQueueItem(song)}
+        canControl={canControl}
+      />
+
       <Toast toasts={toasts} />
 
       <Navbar
@@ -254,6 +265,8 @@ export default function Room({ initialRoom, currentSocketId, userId, onLeaveRoom
         onLeaveRoom={onLeaveRoom}
         onCopyInvite={handleCopyInvite}
         onOpenImport={() => setIsImportModalOpen(true)}
+        onOpenHistory={() => setIsHistoryOpen(true)}
+        historyCount={room?.playedHistory?.length || 0}
       />
 
       <main className="max-w-6xl mx-auto px-3 sm:px-6 pt-3 sm:pt-8">

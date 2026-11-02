@@ -44,6 +44,7 @@ class RoomManager {
         lastUpdated: Date.now()
       },
       history: [],
+      playedHistory: [],
       queue: [],
       messages: [], // In-room live chat messages
       autoMode: true, // Radio on by default
@@ -309,6 +310,18 @@ class RoomManager {
       room.history.pop();
     }
 
+    if (!room.playedHistory) room.playedHistory = [];
+    if (!room.playedHistory.some(s => s.videoId === song.videoId)) {
+      room.playedHistory.unshift({
+        videoId: song.videoId,
+        title: room.currentSong.title,
+        channelTitle: room.currentSong.channelTitle,
+        thumbnail: room.currentSong.thumbnail,
+        playedAt: Date.now()
+      });
+      if (room.playedHistory.length > 80) room.playedHistory.pop();
+    }
+
     // Reset playback to start of new song
     room.playback = {
       isPlaying: true,
@@ -547,6 +560,7 @@ class RoomManager {
         lastUpdated: room.playback.lastUpdated
       },
       queue: room.queue,
+      playedHistory: room.playedHistory || [],
       messages: room.messages || []
     };
   }

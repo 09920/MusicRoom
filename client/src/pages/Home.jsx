@@ -54,6 +54,18 @@ export default function Home({ onRoomJoined, initialRoomId, userId }) {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [recentSession, setRecentSession] = useState(() => {
+    try {
+      const raw = localStorage.getItem('musicroom_recent_session');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed?.roomId && Date.now() - (parsed.timestamp || 0) < 24 * 60 * 60 * 1000) {
+          return parsed;
+        }
+      }
+    } catch {}
+    return null;
+  });
 
   useEffect(() => {
     if (initialRoomId) {
@@ -61,6 +73,41 @@ export default function Home({ onRoomJoined, initialRoomId, userId }) {
       setTab('join');
     }
   }, [initialRoomId]);
+
+  const handleQuickRejoin = (roomId) => {
+    setJoinData(prev => ({ ...prev, roomId }));
+    setTab('join');
+    const savedName = localStorage.getItem('musicroom_user_name') || joinData.name;
+    if (savedName && savedName.trim()) {
+      setLoading(true);
+      setError('');
+      socket.emit('room:join', {
+        roomId,
+        name: savedName.trim(),
+        pin: '',
+        userId
+      }, (res) => {
+        setLoading(false);
+        if (res?.success && res.room) {
+          try {
+            localStorage.setItem('musicroom_recent_session', JSON.stringify({
+              roomId: res.room.id,
+              name: res.room.name,
+              mood: res.room.mood,
+              timestamp: Date.now()
+            }));
+          } catch {}
+          onRoomJoined(res.room, res.yourSocketId || socket.id);
+        } else if (res?.needPin) {
+          setError('PIN required. Please enter room PIN below to rejoin.');
+        } else {
+          setError(res?.error || 'Could not rejoin room. It may have expired.');
+          setRecentSession(null);
+          try { localStorage.removeItem('musicroom_recent_session'); } catch {}
+        }
+      });
+    }
+  };
 
   const handleCreate = (e) => {
     e.preventDefault();
@@ -79,6 +126,14 @@ export default function Home({ onRoomJoined, initialRoomId, userId }) {
     socket.emit('room:create', { ...createData, userId }, (res) => {
       setLoading(false);
       if (res?.success && res.room) {
+        try {
+          localStorage.setItem('musicroom_recent_session', JSON.stringify({
+            roomId: res.room.id,
+            name: res.room.name,
+            mood: res.room.mood,
+            timestamp: Date.now()
+          }));
+        } catch {}
         onRoomJoined(res.room, res.room.hostSocketId);
       } else {
         setError(res?.error || 'Failed to create room. Please try again.');
@@ -121,6 +176,14 @@ export default function Home({ onRoomJoined, initialRoomId, userId }) {
     }, (res) => {
       setLoading(false);
       if (res?.success && res.room) {
+        try {
+          localStorage.setItem('musicroom_recent_session', JSON.stringify({
+            roomId: res.room.id,
+            name: res.room.name,
+            mood: res.room.mood,
+            timestamp: Date.now()
+          }));
+        } catch {}
         onRoomJoined(res.room, res.yourSocketId);
       } else {
         setError(res?.error || 'Failed to join room. Check code or PIN.');
@@ -184,6 +247,32 @@ export default function Home({ onRoomJoined, initialRoomId, userId }) {
             transition={{ duration: 0.7, delay: 1.0, ease: 'easeOut' }}
             className="w-full max-w-md liquid-glass-strong rounded-[2rem] p-6 sm:p-7 shadow-2xl mt-8 text-left relative"
           >
+            {/* Quick Rejoin Banner */}
+            {recentSession && (
+              <div className="mb-5 p-3.5 rounded-2xl liquid-glass border border-white/10 flex items-center justify-between gap-3 bg-white/[0.03]">
+                <div className="min-w-0">
+                  <span className="text-[10px] text-white/50 uppercase tracking-wider font-semibold font-body flex items-center gap-1">
+                    <Sparkles className="w-2.5 h-2.5 text-purple-400" />
+                    Recent Session
+                  </span>
+                  <p className="font-heading italic text-sm text-white truncate leading-tight mt-0.5">
+                    {recentSession.name || 'Last Room'}
+                  </p>
+                  <p className="text-[10px] text-white/40 font-mono truncate">
+                    ID: {recentSession.roomId}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleQuickRejoin(recentSession.roomId)}
+                  className="px-3.5 py-1.5 rounded-full bg-white text-black hover:bg-white/90 text-xs font-semibold flex items-center gap-1 transition-all active:scale-95 shadow-md shrink-0"
+                >
+                  <Zap className="w-3 h-3 fill-black" />
+                  <span>Rejoin</span>
+                </button>
+              </div>
+            )}
+
             {/* Tab Switcher */}
             <div className="grid grid-cols-2 p-1 liquid-glass rounded-full mb-5">
               <button

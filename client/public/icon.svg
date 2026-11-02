@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a0a0c"/>
+      <stop offset="50%" stop-color="#18181b"/>
+      <stop offset="100%" stop-color="#050505"/>
+    </linearGradient>
+    <linearGradient id="glow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#a855f7"/>
+      <stop offset="50%" stop-color="#6366f1"/>
+      <stop offset="100%" stop-color="#ec4899"/>
+    </linearGradient>
+    <radialGradient id="disc" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#27272a"/>
+      <stop offset="70%" stop-color="#18181b"/>
+      <stop offset="100%" stop-color="#09090b"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Background rounded squircle -->
+  <rect width="512" height="512" rx="128" fill="url(#bg)"/>
+  
+  <!-- Subtle border highlight -->
+  <rect x="2" y="2" width="508" height="508" rx="126" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="4"/>
+
+  <!-- Glowing vinyl disc -->
+  <circle cx="256" cy="256" r="160" fill="url(#disc)" stroke="url(#glow)" stroke-width="6"/>
+  <circle cx="256" cy="256" r="120" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="2"/>
+  <circle cx="256" cy="256" r="80" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="2"/>
+
+  <!-- Center label -->
+  <circle cx="256" cy="256" r="54" fill="url(#glow)"/>
+  <circle cx="256" cy="256" r="16" fill="#09090b"/>
+
+  <!-- Musical Note Icon -->
+  <path d="M246 160 v130 c-6 -4 -15 -6 -24 -6 c-22 0 -40 13 -40 30 s18 30 40 30 s40 -13 40 -30 V200 l60 -14 v64 c-6 -4 -15 -6 -24 -6 c-22 0 -40 13 -40 30 s18 30 40 30 s40 -13 40 -30 V140 Z" fill="#ffffff" filter="drop-shadow(0 4px 12px rgba(0,0,0,0.5))"/>
+</svg>

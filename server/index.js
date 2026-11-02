@@ -212,6 +212,7 @@ io.on('connection', (socket) => {
     io.in(rid).emit('player:song_changed', {
       currentSong: result.song,
       actorName: result.actorName,
+      playedHistory: result.room.playedHistory || [],
       playback: {
         isPlaying: true,
         currentTime: 0,
@@ -318,6 +319,7 @@ io.on('connection', (socket) => {
           io.in(currentRoomId).emit('player:song_changed', {
             currentSong: nextSongResult.room.currentSong,
             actorName: addResult.addedBy,
+            playedHistory: nextSongResult.room.playedHistory || [],
             playback: nextSongResult.room.playback
           });
         }
@@ -401,6 +403,7 @@ io.on('connection', (socket) => {
     io.in(rid).emit('player:song_changed', {
       currentSong: result.song,
       actorName: result.actorName,
+      playedHistory: result.room.playedHistory || [],
       playback: result.room.playback
     });
 
@@ -429,6 +432,7 @@ io.on('connection', (socket) => {
         io.in(rid).emit('player:song_changed', {
           currentSong: nextSongResult.room.currentSong,
           actorName: 'Next in Queue',
+          playedHistory: nextSongResult.room.playedHistory || [],
           playback: nextSongResult.room.playback
         });
         io.in(rid).emit('room:queue_updated', {
@@ -448,6 +452,7 @@ io.on('connection', (socket) => {
         io.in(rid).emit('player:song_changed', {
           currentSong: changeResult.song,
           actorName: '📻 Radio Auto-Pick',
+          playedHistory: changeResult.room.playedHistory || [],
           playback: changeResult.room.playback
         });
         io.in(rid).emit('room:toast', {
@@ -487,6 +492,7 @@ io.on('connection', (socket) => {
         io.in(rid).emit('player:song_changed', {
           currentSong: changeResult.song,
           actorName: '📻 Radio Auto-Pick',
+          playedHistory: changeResult.room.playedHistory || [],
           playback: changeResult.room.playback
         });
         io.in(rid).emit('room:toast', {
@@ -566,6 +572,7 @@ io.on('connection', (socket) => {
       io.in(rid).emit('player:song_changed', {
         currentSong: result.song,
         actorName: result.actorName,
+        playedHistory: result.room.playedHistory || [],
         playback: result.room.playback
       });
       io.in(rid).emit('room:queue_updated', {

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { socket } from '../socket';
-import { Plus, Headphones, Video, Music2, Disc3 } from 'lucide-react';
+import { Plus, Headphones, Video, Music2, Disc3, Zap } from 'lucide-react';
 
 export default function Player({
   currentSong,
@@ -35,6 +35,19 @@ export default function Player({
       return next;
     });
   };
+
+  // Set 144p quality when in audio-only mode to save ~85% mobile data & battery
+  useEffect(() => {
+    if (playerRef.current && typeof playerRef.current.setPlaybackQuality === 'function') {
+      try {
+        if (isAudioOnly) {
+          playerRef.current.setPlaybackQuality('tiny');
+        } else {
+          playerRef.current.setPlaybackQuality('auto');
+        }
+      } catch (_) {}
+    }
+  }, [isAudioOnly, currentSong?.videoId]);
 
   useEffect(() => {
     if (!currentSong?.videoId) return;
@@ -404,9 +417,12 @@ export default function Player({
             <span className="w-1 bg-white/80 rounded-full animate-[bounce_1s_infinite_200ms] h-2.5" />
           </div>
 
-          <span className="text-[10px] text-white/40 tracking-wider uppercase font-mono">
-            Audio-Only Mode Active
-          </span>
+          <div className="flex items-center gap-1.5 mt-1">
+            <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-mono flex items-center gap-1 font-medium">
+              <Zap className="w-2.5 h-2.5 fill-emerald-400 text-emerald-400" />
+              Data Saver (144p) Active
+            </span>
+          </div>
         </div>
       </div>
 
