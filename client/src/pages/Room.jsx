@@ -75,16 +75,10 @@ export default function Room({ initialRoom, currentSocketId, onLeaveRoom }) {
 
     const handleQueueUpdated = (data) => {
       setQueue(data.queue || []);
-      if (data.message) {
-        addToast(data.message, 'success');
-      }
     };
 
     const handleAutoModeUpdated = (data) => {
       setAutoMode(data.autoMode);
-      if (data.message) {
-        addToast(data.message, 'info');
-      }
     };
 
     const handleChatMessage = (data) => {
@@ -97,8 +91,23 @@ export default function Room({ initialRoom, currentSocketId, onLeaveRoom }) {
       addToast(data.message, data.type || 'info');
     };
 
+    const handleHeartbeat = (data) => {
+      setRoom((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          playback: {
+            ...prev.playback,
+            isPlaying: data.isPlaying,
+            currentTime: data.currentTime
+          }
+        };
+      });
+    };
+
     socket.on('player:synced', handleSynced);
     socket.on('player:song_changed', handleSongChanged);
+    socket.on('player:heartbeat', handleHeartbeat);
     socket.on('room:member_joined', handleMemberJoined);
     socket.on('room:member_left', handleMemberLeft);
     socket.on('room:queue_updated', handleQueueUpdated);
@@ -109,6 +118,7 @@ export default function Room({ initialRoom, currentSocketId, onLeaveRoom }) {
     return () => {
       socket.off('player:synced', handleSynced);
       socket.off('player:song_changed', handleSongChanged);
+      socket.off('player:heartbeat', handleHeartbeat);
       socket.off('room:member_joined', handleMemberJoined);
       socket.off('room:member_left', handleMemberLeft);
       socket.off('room:queue_updated', handleQueueUpdated);
@@ -118,13 +128,27 @@ export default function Room({ initialRoom, currentSocketId, onLeaveRoom }) {
     };
   }, []);
 
+  const handlePlaybackChange = ({ isPlaying }) => {
+    setRoom((prev) => {
+      if (!prev || prev.playback?.isPlaying === isPlaying) return prev;
+      return {
+        ...prev,
+        playback: {
+          ...prev.playback,
+          isPlaying
+        }
+      };
+    });
+  };
+
   const handlePlayPause = () => {
     if (!canControl) return;
-    const isPlaying = room.playback.isPlaying;
-    const currentTime = playerRef.current?.getCurrentTime?.() || room.playback.currentTime;
+    const playerState = playerRef.current?.getPlayerState?.();
+    const currentlyPlaying = (playerState === 1) || room?.playback?.isPlaying;
+    const currentTime = playerRef.current?.getCurrentTime?.() || room?.playback?.currentTime || 0;
 
     socket.emit('player:control', {
-      action: isPlaying ? 'pause' : 'play',
+      action: currentlyPlaying ? 'pause' : 'play',
       currentTime
     });
   };
@@ -216,6 +240,7 @@ export default function Room({ initialRoom, currentSocketId, onLeaveRoom }) {
               playback={room.playback}
               isHost={isHost}
               canControl={canControl}
+              onPlaybackChange={handlePlaybackChange}
               onSongEnd={handleSkip}
               volume={volume}
               isMuted={isMuted}

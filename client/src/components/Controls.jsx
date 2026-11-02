@@ -38,6 +38,11 @@ export default function Controls({
   const [currentProgress, setCurrentProgress] = useState(playback?.currentTime || 0);
   const [duration, setDuration] = useState(currentSong?.duration || 200);
   const [isScrubbing, setIsScrubbing] = useState(false);
+  const [isPlayingState, setIsPlayingState] = useState(Boolean(playback?.isPlaying));
+
+  useEffect(() => {
+    setIsPlayingState(Boolean(playback?.isPlaying));
+  }, [playback?.isPlaying]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -51,9 +56,14 @@ export default function Controls({
             const dur = playerRef.current.getDuration();
             if (dur > 0) setDuration(dur);
           }
+          if (typeof playerRef.current.getPlayerState === 'function') {
+            const pState = playerRef.current.getPlayerState();
+            if (pState === 1) setIsPlayingState(true);
+            else if (pState === 2) setIsPlayingState(false);
+          }
         } catch (e) {}
       }
-    }, 500);
+    }, 350);
 
     return () => clearInterval(timer);
   }, [playerRef, isScrubbing]);
@@ -170,9 +180,9 @@ export default function Controls({
             onClick={onPlayPause}
             disabled={!canControl || !currentSong}
             className="w-12 h-12 rounded-full bg-white text-black hover:bg-white/90 flex items-center justify-center transition-all shadow-xl shadow-white/10 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed"
-            title={playback?.isPlaying ? "Pause for everyone" : "Play for everyone"}
+            title={isPlayingState ? "Pause for everyone" : "Play for everyone"}
           >
-            {playback?.isPlaying ? (
+            {isPlayingState ? (
               <Pause className="w-5 h-5 fill-black" />
             ) : (
               <Play className="w-5 h-5 fill-black translate-x-0.5" />

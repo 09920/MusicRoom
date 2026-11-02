@@ -283,15 +283,14 @@ io.on('connection', (socket) => {
 
       // Broadcast updated queue to everyone in the room
       io.in(currentRoomId).emit('room:queue_updated', {
-        queue: addResult.room.queue,
-        message: `${addResult.addedBy} imported ${songs.length} songs to the queue`
+        queue: addResult.room.queue
       });
 
-      // Stream remaining tracks (up to 25 songs) in small polite batches
+      // Stream remaining tracks (up to 100 songs) in small polite batches silently
       if (spotifyTracks && spotifyTracks.length > 6) {
-        const remainingTracks = spotifyTracks.slice(6, 26);
+        const remainingTracks = spotifyTracks.slice(6, 100);
         (async () => {
-          const BATCH_SIZE = 3;
+          const BATCH_SIZE = 4;
           for (let i = 0; i < remainingTracks.length; i += BATCH_SIZE) {
             if (importAbort.signal.aborted) break; // User canceled import
             const activeRoom = roomManager.getRoom(currentRoomId);
@@ -311,14 +310,14 @@ io.on('connection', (socket) => {
             if (validChunk.length > 0) {
               const appendRes = roomManager.addSongsToQueue(currentRoomId, socket.id, validChunk);
               if (appendRes && appendRes.room) {
+                // Silently push updated queue without popup messages
                 io.in(currentRoomId).emit('room:queue_updated', {
-                  queue: appendRes.room.queue,
-                  message: `Added +${validChunk.length} more tracks to queue`
+                  queue: appendRes.room.queue
                 });
               }
             }
 
-            await new Promise(r => setTimeout(r, 800));
+            await new Promise(r => setTimeout(r, 650));
           }
         })().catch(bgErr => console.warn('Background playlist loading notice:', bgErr.message))
           .finally(() => activeImports.delete(socket.id));

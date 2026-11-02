@@ -152,7 +152,13 @@ class RoomManager {
   canControlMusic(room, socketId) {
     if (!room) return false;
     if (room.hostMode === 'friendly') return true;
-    return room.hostSocketId === socketId;
+    if (room.hostSocketId === socketId) return true;
+    // Safe fallback: if only 1 listener is in the room, they are always the host
+    if (room.members.length <= 1 && room.members.some(m => m.id === socketId)) {
+      room.hostSocketId = socketId;
+      return true;
+    }
+    return false;
   }
 
   /**
