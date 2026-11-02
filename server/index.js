@@ -463,7 +463,7 @@ io.on('connection', (socket) => {
   });
 
   // 4d-2. Toggle Auto Mode (Radio)
-  socket.on('room:toggle_automode', (payload) => {
+  socket.on('room:toggle_automode', async (payload) => {
     const rid = resolveRoomId(payload);
     if (!rid) return;
     const result = roomManager.toggleAutoMode(rid, socket.id);
@@ -476,6 +476,25 @@ io.on('connection', (socket) => {
       autoMode: result.autoMode,
       message: `${result.actorName} turned Radio ${result.autoMode ? 'ON' : 'OFF'}`
     });
+
+    // If Radio was enabled and room is currently idle (no song & empty queue), start playing immediately!
+    const room = roomManager.getRoom(rid);
+    if (result.autoMode && room && !room.currentSong && room.queue.length === 0) {
+      io.in(rid).emit('room:toast', { type: 'info', message: '📻 Radio is starting the session...' });
+      const autoSong = await autoModeService.pickNextSong(room, process.env.YOUTUBE_API_KEY);
+      if (autoSong) {
+        const changeResult = roomManager.changeSong(rid, room.hostSocketId, autoSong);
+        io.in(rid).emit('player:song_changed', {
+          currentSong: changeResult.song,
+          actorName: '📻 Radio Auto-Pick',
+          playback: changeResult.room.playback
+        });
+        io.in(rid).emit('room:toast', {
+          type: 'success',
+          message: `📻 Radio picked: ${autoSong.title}`
+        });
+      }
+    }
   });
 
   // 4d-3. In-Room Live Chat Message
