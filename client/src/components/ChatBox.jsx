@@ -10,7 +10,7 @@ function formatMessageTime(timestamp) {
   return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
-export default function ChatBox({ messages = [], currentSocketId }) {
+export default function ChatBox({ roomId, messages = [], currentSocketId }) {
   const [inputText, setInputText] = useState('');
   const messagesEndRef = useRef(null);
 
@@ -23,12 +23,12 @@ export default function ChatBox({ messages = [], currentSocketId }) {
     const text = inputText.trim();
     if (!text) return;
 
-    socket.emit('chat:send', { text });
+    socket.emit('chat:send', { roomId, text });
     setInputText('');
   };
 
   const handleQuickEmoji = (emoji) => {
-    socket.emit('chat:send', { text: emoji });
+    socket.emit('chat:send', { roomId, text: emoji });
   };
 
   return (

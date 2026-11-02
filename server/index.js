@@ -70,6 +70,52 @@ const activeImports = new Map();
 io.on('connection', (socket) => {
   let currentRoomId = null;
 
+  const resolveRoomId = (payload) => {
+    const rid = payload?.roomId || currentRoomId;
+    if (rid && rid !== currentRoomId) {
+      currentRoomId = rid;
+      socket.join(rid);
+    }
+    return currentRoomId;
+  };
+
+  // Re-link socket to room upon network reconnect or app foregrounding
+  socket.on('room:reconnect', (payload, callback) => {
+    const rid = resolveRoomId(payload);
+    if (!rid) {
+      if (typeof callback === 'function') callback({ success: false, error: 'No room ID' });
+      return;
+    }
+    const room = roomManager.getRoom(rid);
+    if (!room) {
+      if (typeof callback === 'function') callback({ success: false, error: 'Room expired or closed' });
+      return;
+    }
+
+    currentRoomId = room.id;
+    socket.join(room.id);
+
+    // Make sure socket is in members list
+    let member = room.members.find(m => m.id === socket.id);
+    if (!member) {
+      member = {
+        id: socket.id,
+        name: payload?.name?.trim() || 'Listener',
+        isHost: room.hostSocketId === socket.id || room.members.length === 0,
+        joinedAt: Date.now()
+      };
+      room.members.push(member);
+      if (member.isHost) {
+        room.hostSocketId = socket.id;
+      }
+    }
+
+    const state = roomManager.getPublicRoomState(room);
+    if (typeof callback === 'function') {
+      callback({ success: true, room: state });
+    }
+  });
+
   // 1. Create Room
   socket.on('room:create', (payload, callback) => {
     try {
@@ -134,10 +180,11 @@ io.on('connection', (socket) => {
 
   // 3. Playback Control (Play, Pause, Seek)
   socket.on('player:control', (payload) => {
-    if (!currentRoomId) return;
+    const rid = resolveRoomId(payload);
+    if (!rid) return;
 
     const { action, currentTime } = payload || {};
-    const result = roomManager.updatePlayback(currentRoomId, socket.id, {
+    const result = roomManager.updatePlayback(rid, socket.id, {
       action,
       currentTime
     });
@@ -148,7 +195,7 @@ io.on('connection', (socket) => {
     }
 
     // Broadcast playback change to ALL members in the room (including sender)
-    io.in(currentRoomId).emit('player:synced', {
+    io.in(rid).emit('player:synced', {
       action: result.action,
       currentTime: result.currentTime,
       isPlaying: result.isPlaying,
@@ -158,17 +205,19 @@ io.on('connection', (socket) => {
   });
 
   // 4. Change Song / Play Now
-  socket.on('player:change_song', (song) => {
-    if (!currentRoomId || !song || !song.videoId) return;
+  socket.on('player:change_song', (payload) => {
+    const rid = resolveRoomId(payload);
+    const song = payload?.song || payload;
+    if (!rid || !song || !song.videoId) return;
 
-    const result = roomManager.changeSong(currentRoomId, socket.id, song);
+    const result = roomManager.changeSong(rid, socket.id, song);
     if (result.error) {
       socket.emit('room:toast', { type: 'error', message: result.error });
       return;
     }
 
     // Broadcast new song to all members in the room
-    io.in(currentRoomId).emit('player:song_changed', {
+    io.in(rid).emit('player:song_changed', {
       currentSong: result.song,
       actorName: result.actorName,
       playback: {
@@ -191,7 +240,8 @@ io.on('connection', (socket) => {
 
   // 4b. Import Playlist (YouTube or Spotify)
   socket.on('playlist:import', async (payload, callback) => {
-    if (!currentRoomId) return;
+    const rid = resolveRoomId(payload);
+    if (!rid) return;
 
     const importAbort = new AbortController();
     activeImports.set(socket.id, importAbort);
@@ -346,37 +396,32 @@ io.on('connection', (socket) => {
 
   // 4c. Play specific song from queue
   socket.on('queue:play_item', (payload) => {
-    if (!currentRoomId) return;
+    const rid = resolveRoomId(payload);
+    if (!rid) return;
     const { queueId } = payload || {};
-    const result = roomManager.playQueueItem(currentRoomId, socket.id, queueId);
+    const result = roomManager.playQueueItem(rid, socket.id, queueId);
 
     if (result.error) {
       socket.emit('room:toast', { type: 'error', message: result.error });
       return;
     }
 
-    io.in(currentRoomId).emit('player:song_changed', {
+    io.in(rid).emit('player:song_changed', {
       currentSong: result.song,
       actorName: result.actorName,
       playback: result.room.playback
     });
 
-    io.in(currentRoomId).emit('player:synced', {
-      action: 'play',
-      currentTime: 0,
-      isPlaying: true,
-      lastUpdated: Date.now()
-    });
-
-    io.in(currentRoomId).emit('room:queue_updated', {
+    io.in(rid).emit('room:queue_updated', {
       queue: result.queue
     });
   });
 
   // 4d. Skip to next song in queue OR auto-pick if queue empty
-  socket.on('queue:skip_next', async () => {
-    if (!currentRoomId) return;
-    const room = roomManager.getRoom(currentRoomId);
+  socket.on('queue:skip_next', async (payload) => {
+    const rid = resolveRoomId(payload);
+    if (!rid) return;
+    const room = roomManager.getRoom(rid);
     if (!room) return;
 
     // Check permissions
@@ -387,14 +432,14 @@ io.on('connection', (socket) => {
 
     // 1. If queue has songs, play next
     if (room.queue.length > 0) {
-      const nextSongResult = roomManager.playNextInQueue(currentRoomId);
+      const nextSongResult = roomManager.playNextInQueue(rid);
       if (nextSongResult && nextSongResult.room) {
-        io.in(currentRoomId).emit('player:song_changed', {
+        io.in(rid).emit('player:song_changed', {
           currentSong: nextSongResult.room.currentSong,
           actorName: 'Next in Queue',
           playback: nextSongResult.room.playback
         });
-        io.in(currentRoomId).emit('room:queue_updated', {
+        io.in(rid).emit('room:queue_updated', {
           queue: nextSongResult.room.queue
         });
       }
@@ -403,17 +448,17 @@ io.on('connection', (socket) => {
 
     // 2. If queue is empty and Auto Mode (Radio) is ON, auto-pick next song!
     if (room.autoMode) {
-      io.in(currentRoomId).emit('room:toast', { type: 'info', message: '📻 Radio is picking next song...' });
+      io.in(rid).emit('room:toast', { type: 'info', message: '📻 Radio is picking next song...' });
       const autoSong = await autoModeService.pickNextSong(room, process.env.YOUTUBE_API_KEY);
 
       if (autoSong) {
-        const changeResult = roomManager.changeSong(currentRoomId, room.hostSocketId, autoSong);
-        io.in(currentRoomId).emit('player:song_changed', {
+        const changeResult = roomManager.changeSong(rid, room.hostSocketId, autoSong);
+        io.in(rid).emit('player:song_changed', {
           currentSong: changeResult.song,
           actorName: '📻 Radio Auto-Pick',
           playback: changeResult.room.playback
         });
-        io.in(currentRoomId).emit('room:toast', {
+        io.in(rid).emit('room:toast', {
           type: 'success',
           message: `📻 Radio picked: ${autoSong.title}`
         });
@@ -426,15 +471,16 @@ io.on('connection', (socket) => {
   });
 
   // 4d-2. Toggle Auto Mode (Radio)
-  socket.on('room:toggle_automode', () => {
-    if (!currentRoomId) return;
-    const result = roomManager.toggleAutoMode(currentRoomId, socket.id);
+  socket.on('room:toggle_automode', (payload) => {
+    const rid = resolveRoomId(payload);
+    if (!rid) return;
+    const result = roomManager.toggleAutoMode(rid, socket.id);
     if (result.error) {
       socket.emit('room:toast', { type: 'error', message: result.error });
       return;
     }
 
-    io.in(currentRoomId).emit('room:automode_updated', {
+    io.in(rid).emit('room:automode_updated', {
       autoMode: result.autoMode,
       message: `${result.actorName} turned Radio ${result.autoMode ? 'ON' : 'OFF'}`
     });
@@ -442,9 +488,10 @@ io.on('connection', (socket) => {
 
   // 4d-3. In-Room Live Chat Message
   socket.on('chat:send', (payload) => {
-    if (!currentRoomId) return;
+    const rid = resolveRoomId(payload);
+    if (!rid) return;
     const { text } = payload || {};
-    const result = roomManager.addChatMessage(currentRoomId, socket.id, text);
+    const result = roomManager.addChatMessage(rid, socket.id, text);
 
     if (result.error) {
       socket.emit('room:toast', { type: 'error', message: result.error });
@@ -452,23 +499,24 @@ io.on('connection', (socket) => {
     }
 
     // Broadcast new chat message to everyone in the room
-    io.in(currentRoomId).emit('chat:message', {
+    io.in(rid).emit('chat:message', {
       message: result.message
     });
   });
 
   // 4e. Remove song from queue
   socket.on('queue:remove_item', (payload) => {
-    if (!currentRoomId) return;
+    const rid = resolveRoomId(payload);
+    if (!rid) return;
     const { queueId } = payload || {};
-    const result = roomManager.removeFromQueue(currentRoomId, socket.id, queueId);
+    const result = roomManager.removeFromQueue(rid, socket.id, queueId);
 
     if (result.error) {
       socket.emit('room:toast', { type: 'error', message: result.error });
       return;
     }
 
-    io.in(currentRoomId).emit('room:queue_updated', {
+    io.in(rid).emit('room:queue_updated', {
       queue: result.queue
     });
   });
@@ -491,11 +539,12 @@ io.on('connection', (socket) => {
 
   // 4g. Pick Song from Search (Play Now or Add to Queue)
   socket.on('song:pick', (payload) => {
-    if (!currentRoomId) return;
+    const rid = resolveRoomId(payload);
+    if (!rid) return;
     const { song, playNow } = payload || {};
     if (!song || !song.videoId) return;
 
-    const result = roomManager.addSingleSong(currentRoomId, socket.id, song, playNow);
+    const result = roomManager.addSingleSong(rid, socket.id, song, playNow);
     if (result.error) {
       socket.emit('room:toast', { type: 'error', message: result.error });
       return;
@@ -503,23 +552,17 @@ io.on('connection', (socket) => {
 
     if (result.playedNow) {
       // Broadcast new song
-      io.in(currentRoomId).emit('player:song_changed', {
+      io.in(rid).emit('player:song_changed', {
         currentSong: result.song,
         actorName: result.actorName,
         playback: result.room.playback
       });
-      io.in(currentRoomId).emit('player:synced', {
-        action: 'play',
-        currentTime: 0,
-        isPlaying: true,
-        lastUpdated: Date.now()
-      });
-      io.in(currentRoomId).emit('room:queue_updated', {
+      io.in(rid).emit('room:queue_updated', {
         queue: result.queue
       });
     } else {
       // Added to queue
-      io.in(currentRoomId).emit('room:queue_updated', {
+      io.in(rid).emit('room:queue_updated', {
         queue: result.queue,
         message: `${result.actorName} added "${song.title}" to the queue`
       });

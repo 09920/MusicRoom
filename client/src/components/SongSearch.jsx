@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Search, Play, Plus, X, Loader2, Check } from 'lucide-react';
 import { socket } from '../socket';
 
-export default function SongSearch({ canControl, onSongPicked }) {
+export default function SongSearch({ roomId, canControl, onSongPicked }) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -36,7 +36,12 @@ export default function SongSearch({ canControl, onSongPicked }) {
     setLoading(true);
     setHasSearched(true);
 
+    const safetyTimer = setTimeout(() => {
+      setLoading(false);
+    }, 6000);
+
     socket.emit('song:search', { query: searchQuery }, (res) => {
+      clearTimeout(safetyTimer);
       setLoading(false);
       if (res?.success && res.results) {
         setResults(res.results);
@@ -49,7 +54,7 @@ export default function SongSearch({ canControl, onSongPicked }) {
   const handlePick = (song, playNow) => {
     if (!canControl) return;
 
-    socket.emit('song:pick', { song, playNow });
+    socket.emit('song:pick', { roomId, song, playNow });
 
     if (!playNow) {
       setAddedIds((prev) => ({ ...prev, [song.videoId]: true }));

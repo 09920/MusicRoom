@@ -23,7 +23,7 @@ function cleanTitle(str) {
 function extractVideosFromObj(obj, results = [], max = 10) {
   if (!obj || typeof obj !== 'object' || results.length >= max) return results;
 
-  // Check if this node is a videoRenderer
+  // 1. Classic videoRenderer format
   if (obj.videoId && obj.title) {
     const title = obj.title?.runs ? obj.title.runs.map(r => r.text).join('') : (obj.title?.simpleText || '');
     const channel = obj.ownerText?.runs ? obj.ownerText.runs.map(r => r.text).join('') : (obj.shortBylineText?.runs?.map(r => r.text).join('') || 'YouTube');
@@ -39,6 +39,23 @@ function extractVideosFromObj(obj, results = [], max = 10) {
       });
     }
     return results;
+  }
+
+  // 2. Modern lockupViewModel format
+  if (obj.lockupViewModel) {
+    const item = obj.lockupViewModel;
+    const videoId = item.contentId || item.rendererContext?.commandContext?.onTap?.innertubeCommand?.watchEndpoint?.videoId;
+    const title = item.metadata?.lockupMetadataViewModel?.title?.content;
+    const channel = item.metadata?.lockupMetadataViewModel?.metadata?.contentMetadataViewModel?.metadataRows?.[0]?.metadataParts?.[0]?.text?.content || 'YouTube';
+    if (videoId && title && !results.some(r => r.videoId === videoId)) {
+      results.push({
+        videoId,
+        title: cleanTitle(title),
+        channelTitle: cleanTitle(channel),
+        thumbnail: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
+        duration: 0
+      });
+    }
   }
 
   // Traverse children
@@ -72,7 +89,7 @@ async function searchSongs(query, apiKey) {
   if (apiKey) {
     try {
       const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&videoCategoryId=10&maxResults=8&q=${encodeURIComponent(query)}&key=${apiKey}`;
-      const res = await fetch(url);
+      const res = await fetch(url, { signal: AbortSignal.timeout(4000) });
       const data = await res.json();
 
       if (data.items && data.items.length > 0) {
@@ -99,12 +116,13 @@ async function searchSongs(query, apiKey) {
         headers: {
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
           'Accept-Language': 'en-US,en;q=0.9'
-        }
+        },
+        signal: AbortSignal.timeout(5000)
       });
 
       if (res.ok) {
         const html = await res.text();
-        const jsonMatch = html.match(/var ytInitialData = ({[\s\S]*?});<\/script>/);
+        const jsonMatch = html.match(/var ytInitialData\s*=\s*({[\s\S]*?});<\/script>/);
 
         if (jsonMatch) {
           const ytData = JSON.parse(jsonMatch[1]);

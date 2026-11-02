@@ -19,7 +19,9 @@ export default function Room({ initialRoom, currentSocketId, onLeaveRoom }) {
   const [messages, setMessages] = useState(initialRoom?.messages || []);
   const [sidebarTab, setSidebarTab] = useState('chat');
   const [toasts, setToasts] = useState([]);
-  const [needsTapToJoin, setNeedsTapToJoin] = useState(true);
+  const isHost = room?.hostSocketId === currentSocketId;
+  const canControl = room?.hostMode === 'friendly' || isHost;
+  const [needsTapToJoin, setNeedsTapToJoin] = useState(!isHost);
   const [volume, setVolume] = useState(80);
   const [isMuted, setIsMuted] = useState(false);
   const [autoMode, setAutoMode] = useState(initialRoom?.autoMode ?? true);
@@ -33,9 +35,6 @@ export default function Room({ initialRoom, currentSocketId, onLeaveRoom }) {
       setToasts((prev) => prev.filter((t) => t.id !== id));
     }, 3500);
   };
-
-  const isHost = room?.hostSocketId === currentSocketId;
-  const canControl = room?.hostMode === 'friendly' || isHost;
 
   useEffect(() => {
     const handleSynced = (data) => {
@@ -105,6 +104,18 @@ export default function Room({ initialRoom, currentSocketId, onLeaveRoom }) {
       });
     };
 
+    const handleConnect = () => {
+      if (room?.id) {
+        socket.emit('room:reconnect', { roomId: room.id }, (res) => {
+          if (res?.success && res.room) {
+            setRoom(res.room);
+            setQueue(res.room.queue || []);
+          }
+        });
+      }
+    };
+
+    socket.on('connect', handleConnect);
     socket.on('player:synced', handleSynced);
     socket.on('player:song_changed', handleSongChanged);
     socket.on('player:heartbeat', handleHeartbeat);
@@ -116,6 +127,7 @@ export default function Room({ initialRoom, currentSocketId, onLeaveRoom }) {
     socket.on('room:toast', handleGeneralToast);
 
     return () => {
+      socket.off('connect', handleConnect);
       socket.off('player:synced', handleSynced);
       socket.off('player:song_changed', handleSongChanged);
       socket.off('player:heartbeat', handleHeartbeat);
@@ -148,6 +160,7 @@ export default function Room({ initialRoom, currentSocketId, onLeaveRoom }) {
     const currentTime = playerRef.current?.getCurrentTime?.() || room?.playback?.currentTime || 0;
 
     socket.emit('player:control', {
+      roomId: room.id,
       action: currentlyPlaying ? 'pause' : 'play',
       currentTime
     });
@@ -156,6 +169,7 @@ export default function Room({ initialRoom, currentSocketId, onLeaveRoom }) {
   const handleSeek = (newTime) => {
     if (!canControl) return;
     socket.emit('player:control', {
+      roomId: room.id,
       action: 'seek',
       currentTime: newTime
     });
@@ -163,22 +177,22 @@ export default function Room({ initialRoom, currentSocketId, onLeaveRoom }) {
 
   const handleSkip = () => {
     if (!canControl) return;
-    socket.emit('queue:skip_next');
+    socket.emit('queue:skip_next', { roomId: room.id });
   };
 
   const handleToggleAutoMode = () => {
     if (!canControl) return;
-    socket.emit('room:toggle_automode');
+    socket.emit('room:toggle_automode', { roomId: room.id });
   };
 
   const handlePlayQueueItem = (queueId) => {
     if (!canControl) return;
-    socket.emit('queue:play_item', { queueId });
+    socket.emit('queue:play_item', { roomId: room.id, queueId });
   };
 
   const handleRemoveQueueItem = (queueId) => {
     if (!canControl) return;
-    socket.emit('queue:remove_item', { queueId });
+    socket.emit('queue:remove_item', { roomId: room.id, queueId });
   };
 
   const handleCopyInvite = () => {
@@ -297,6 +311,7 @@ export default function Room({ initialRoom, currentSocketId, onLeaveRoom }) {
             />
 
             <SongSearch
+              roomId={room?.id}
               canControl={canControl}
               onSongPicked={(song, playNow) => {
                 if (playNow) {
@@ -349,6 +364,7 @@ export default function Room({ initialRoom, currentSocketId, onLeaveRoom }) {
 
             {sidebarTab === 'chat' ? (
               <ChatBox
+                roomId={room?.id}
                 messages={messages}
                 currentSocketId={currentSocketId}
               />
