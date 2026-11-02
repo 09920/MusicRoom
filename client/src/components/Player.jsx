@@ -15,6 +15,7 @@ export default function Player({
   onOpenImport
 }) {
   const playerRef = useRef(null);
+  const silentAudioRef = useRef(null);
   const [isReady, setIsReady] = useState(false);
   const isRemoteActionRef = useRef(false);
   const [isAudioOnly, setIsAudioOnly] = useState(() => {
@@ -194,6 +195,112 @@ export default function Player({
     };
   }, [isReady]);
 
+  // Audio Keep-Alive Anchor to maintain Android OS background audio focus
+  useEffect(() => {
+    if (!silentAudioRef.current) return;
+    if (playback?.isPlaying) {
+      silentAudioRef.current.play().catch(() => {});
+    } else {
+      silentAudioRef.current.pause();
+    }
+  }, [playback?.isPlaying]);
+
+  // HTML5 MediaSession API for Android Lockscreen & Notification Controls
+  useEffect(() => {
+    if (!('mediaSession' in navigator) || !currentSong) return;
+
+    try {
+      navigator.mediaSession.metadata = new window.MediaMetadata({
+        title: currentSong.title || 'MusicRoom',
+        artist: currentSong.channelTitle || 'Synchronized Room',
+        album: 'MusicRoom Session',
+        artwork: [
+          { src: currentSong.thumbnail || `https://i.ytimg.com/vi/${currentSong.videoId}/hqdefault.jpg`, sizes: '512x512', type: 'image/jpeg' },
+          { src: currentSong.thumbnail || `https://i.ytimg.com/vi/${currentSong.videoId}/mqdefault.jpg`, sizes: '320x180', type: 'image/jpeg' }
+        ]
+      });
+
+      navigator.mediaSession.playbackState = playback?.isPlaying ? 'playing' : 'paused';
+
+      const setAction = (action, handler) => {
+        try {
+          navigator.mediaSession.setActionHandler(action, handler);
+        } catch (_) {}
+      };
+
+      setAction('play', () => {
+        if (playerRef.current && typeof playerRef.current.playVideo === 'function') {
+          playerRef.current.playVideo();
+        }
+        if (onPlaybackChange) onPlaybackChange({ isPlaying: true });
+      });
+
+      setAction('pause', () => {
+        if (playerRef.current && typeof playerRef.current.pauseVideo === 'function') {
+          playerRef.current.pauseVideo();
+        }
+        if (onPlaybackChange) onPlaybackChange({ isPlaying: false });
+      });
+
+      setAction('nexttrack', () => {
+        if (onSongEnd) onSongEnd();
+      });
+
+      setAction('previoustrack', () => {
+        if (playerRef.current && typeof playerRef.current.seekTo === 'function') {
+          const cur = playerRef.current.getCurrentTime() || 0;
+          playerRef.current.seekTo(Math.max(0, cur - 10), true);
+        }
+      });
+
+      setAction('seekto', (details) => {
+        if (details.seekTime != null && playerRef.current && typeof playerRef.current.seekTo === 'function') {
+          playerRef.current.seekTo(details.seekTime, true);
+        }
+      });
+
+      setAction('seekforward', (details) => {
+        const delta = details.seekOffset || 10;
+        if (playerRef.current && typeof playerRef.current.seekTo === 'function') {
+          const cur = playerRef.current.getCurrentTime() || 0;
+          playerRef.current.seekTo(cur + delta, true);
+        }
+      });
+
+      setAction('seekbackward', (details) => {
+        const delta = details.seekOffset || 10;
+        if (playerRef.current && typeof playerRef.current.seekTo === 'function') {
+          const cur = playerRef.current.getCurrentTime() || 0;
+          playerRef.current.seekTo(Math.max(0, cur - delta), true);
+        }
+      });
+    } catch (e) {
+      console.warn('MediaSession initialization error:', e);
+    }
+  }, [currentSong?.videoId, currentSong?.title, currentSong?.channelTitle, playback?.isPlaying]);
+
+  // Guard against background tab freeze or unexpected pause on tab switch
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        if (playback?.isPlaying && playerRef.current && typeof playerRef.current.getPlayerState === 'function') {
+          try {
+            if (playerRef.current.getPlayerState() !== 1) {
+              playerRef.current.playVideo();
+            }
+          } catch (_) {}
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleVisibilityChange);
+    };
+  }, [playback?.isPlaying]);
+
   // Clean Liquid-Glass Fresh Start State
   if (!currentSong) {
     return (
@@ -216,6 +323,14 @@ export default function Player({
           <Plus className="w-4 h-4" />
           Import Playlist
         </button>
+
+        <audio
+          ref={silentAudioRef}
+          loop
+          playsInline
+          src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA"
+          className="hidden"
+        />
       </div>
     );
   }
@@ -300,6 +415,15 @@ export default function Player({
         <div id="youtube-iframe-target" className="w-full h-full" />
       </div>
       <div className="absolute inset-0 bg-transparent pointer-events-none z-0" />
+
+      {/* Invisible HTML5 Audio Keep-Alive Anchor to maintain Android OS background audio focus */}
+      <audio
+        ref={silentAudioRef}
+        loop
+        playsInline
+        src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA"
+        className="hidden"
+      />
     </div>
   );
 }
