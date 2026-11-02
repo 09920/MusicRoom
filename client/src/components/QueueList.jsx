@@ -11,21 +11,21 @@ export default function QueueList({
   onOpenImport
 }) {
   return (
-    <div className="liquid-glass rounded-3xl p-5 sm:p-6 shadow-2xl">
+    <div className="rounded-3xl p-5 sm:p-6 shadow-2xl bg-zinc-950/85 backdrop-blur-2xl border border-white/10 relative overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between mb-4 pb-3 border-b border-white/10">
         <div className="flex items-center gap-2.5">
           <h3 className="font-heading italic text-lg sm:text-xl text-white">
             Up Next & Queue
           </h3>
-          <span className="text-[11px] liquid-glass text-white/80 font-medium px-2.5 py-0.5 rounded-full">
+          <span className="text-[11px] bg-white/10 border border-white/10 text-white/90 font-medium px-2.5 py-0.5 rounded-full">
             {queue.length} {queue.length === 1 ? 'song' : 'songs'}
           </span>
         </div>
 
         <button
           onClick={onOpenImport}
-          className="liquid-glass px-3 py-1.5 rounded-full text-xs font-medium text-white/90 hover:text-white transition-all active:scale-95 flex items-center gap-1.5"
+          className="bg-white/10 hover:bg-white/15 border border-white/15 px-3 py-1.5 rounded-full text-xs font-medium text-white/90 hover:text-white transition-all active:scale-95 flex items-center gap-1.5 shadow-sm"
         >
           <Plus className="w-3.5 h-3.5" />
           <span>Import Playlist</span>
@@ -34,8 +34,8 @@ export default function QueueList({
 
       {/* Queue items or Auto Mode Empty State */}
       {queue.length === 0 ? (
-        <div className="text-center py-7 px-4 rounded-2xl liquid-glass bg-white/[0.01] space-y-3">
-          <div className="w-12 h-12 rounded-full liquid-glass text-white mx-auto flex items-center justify-center font-heading italic text-2xl">
+        <div className="text-center py-7 px-4 rounded-2xl bg-white/[0.02] border border-white/5 space-y-3">
+          <div className="w-12 h-12 rounded-full bg-white/10 border border-white/10 text-white mx-auto flex items-center justify-center font-heading italic text-2xl">
             {autoMode ? (
               <Radio className="w-5 h-5 animate-pulse text-white" />
             ) : (
@@ -63,22 +63,22 @@ export default function QueueList({
           </div>
         </div>
       ) : (
-        <div className="flex flex-col gap-2 max-h-72 overflow-y-auto pr-1">
+        <div className="flex flex-col gap-2.5 max-h-[380px] overflow-y-auto pr-1">
           {queue.map((item, index) => (
             <div
               key={item.queueId || index}
-              className="flex items-center justify-between p-2 sm:p-2.5 rounded-2xl liquid-glass hover:bg-white/5 text-xs transition-all group"
+              className="flex items-center justify-between p-2.5 sm:p-3 rounded-2xl bg-white/[0.05] hover:bg-white/[0.09] border border-white/[0.08] hover:border-white/20 transition-all group shrink-0 min-h-[64px]"
             >
-              <div className="flex items-center gap-3 min-w-0 pr-2">
-                <span className="text-white/40 font-mono text-[11px] w-4 text-center shrink-0">
+              <div className="flex items-center gap-3 min-w-0 pr-2 flex-1">
+                <span className="text-white/40 font-mono text-xs w-4 text-center shrink-0">
                   {index + 1}
                 </span>
 
-                <div className="relative w-10 h-10 rounded-xl overflow-hidden shrink-0 bg-black">
+                <div className="relative w-12 h-12 rounded-xl overflow-hidden shrink-0 bg-black shadow-md border border-white/10">
                   <img
                     src={item.thumbnail}
                     alt={item.title}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
                   {canControl && (
                     <button
@@ -86,36 +86,46 @@ export default function QueueList({
                       className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-opacity"
                       title="Play this song now"
                     >
-                      <Play className="w-4 h-4 fill-white" />
+                      <Play className="w-5 h-5 fill-white translate-x-0.5" />
                     </button>
                   )}
                 </div>
 
-                <div className="min-w-0">
-                  <p className="font-medium text-white/95 truncate group-hover:text-white transition-colors">
+                <div
+                  className="min-w-0 flex-1 cursor-pointer"
+                  onClick={() => canControl && onPlayItem(item.queueId)}
+                  title="Click to play now"
+                >
+                  <p className="font-semibold text-xs sm:text-sm text-white truncate leading-snug group-hover:text-purple-200 transition-colors">
                     {item.title}
                   </p>
-                  <p className="text-[11px] text-white/50 truncate mt-0.5 font-body font-light">
-                    {item.channelTitle || 'YouTube'} {item.addedBy ? `• Added by ${item.addedBy}` : ''}
+                  <p className="text-[11px] text-white/65 truncate mt-1 font-body font-normal flex items-center gap-1.5">
+                    <span className="truncate">{item.channelTitle || 'YouTube'}</span>
+                    {item.addedBy && (
+                      <>
+                        <span className="text-white/30">•</span>
+                        <span className="text-white/50 shrink-0">Added by {item.addedBy}</span>
+                      </>
+                    )}
                   </p>
                 </div>
               </div>
 
               {canControl && (
-                <div className="flex items-center gap-1 shrink-0">
+                <div className="flex items-center gap-1.5 shrink-0 pl-2" onClick={(e) => e.stopPropagation()}>
                   <button
                     onClick={() => onPlayItem(item.queueId)}
-                    className="w-7 h-7 rounded-full liquid-glass flex items-center justify-center text-white/70 hover:text-white transition-colors"
+                    className="w-8 h-8 rounded-full bg-white/10 hover:bg-white text-white/80 hover:text-black flex items-center justify-center transition-all active:scale-90"
                     title="Play now"
                   >
-                    <Play className="w-3 h-3 fill-current translate-x-0.5" />
+                    <Play className="w-3.5 h-3.5 fill-current translate-x-0.5" />
                   </button>
                   <button
                     onClick={() => onRemoveItem(item.queueId)}
-                    className="w-7 h-7 rounded-full liquid-glass flex items-center justify-center text-white/40 hover:text-rose-400 transition-colors"
+                    className="w-8 h-8 rounded-full bg-white/5 hover:bg-rose-500/20 text-white/40 hover:text-rose-300 flex items-center justify-center transition-all active:scale-90"
                     title="Remove from queue"
                   >
-                    <Trash2 className="w-3 h-3" />
+                    <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
               )}
