@@ -40,11 +40,11 @@ export default function Navbar({ room, onLeaveRoom, onCopyInvite, onOpenImport }
 
         {/* Right Actions: Compact on mobile, expanded on desktop */}
         {room ? (
-          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+          <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
             {/* Import Playlist: Primary Pill */}
             <button
               onClick={onOpenImport}
-              className="w-8 h-8 sm:w-auto px-0 sm:px-3.5 py-0 sm:py-1.5 rounded-full bg-white text-black hover:bg-white/90 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all active:scale-95 shadow-md shadow-white/10 shrink-0"
+              className="w-9 h-9 sm:w-auto px-0 sm:px-3.5 py-0 sm:py-1.5 rounded-full bg-white text-black hover:bg-white/90 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all active:scale-95 shadow-md shadow-white/10 shrink-0"
               title="Import YouTube or Spotify Playlist"
               aria-label="Import Playlist"
             >
@@ -55,7 +55,7 @@ export default function Navbar({ room, onLeaveRoom, onCopyInvite, onOpenImport }
             {/* Invite Friends: Liquid glass pill */}
             <button
               onClick={handleCopy}
-              className="w-8 h-8 sm:w-auto px-0 sm:px-3.5 py-0 sm:py-1.5 rounded-full liquid-glass text-xs font-medium text-white/90 hover:text-white transition-all active:scale-95 flex items-center justify-center gap-1.5 shrink-0"
+              className="w-9 h-9 sm:w-auto px-0 sm:px-3.5 py-0 sm:py-1.5 rounded-full liquid-glass text-xs font-medium text-white/90 hover:text-white transition-all active:scale-95 flex items-center justify-center gap-1.5 shrink-0"
               title="Copy shareable invite link"
               aria-label="Invite Friends"
             >
@@ -75,11 +75,11 @@ export default function Navbar({ room, onLeaveRoom, onCopyInvite, onOpenImport }
             {/* Leave Room: Prominent & safe exit button */}
             <button
               onClick={onLeaveRoom}
-              className="w-8 h-8 rounded-full liquid-glass border border-rose-500/30 flex items-center justify-center text-rose-400 hover:bg-rose-500/20 hover:text-rose-300 transition-colors shrink-0"
+              className="w-9 h-9 rounded-full liquid-glass border border-rose-500/30 flex items-center justify-center text-rose-400 hover:bg-rose-500/20 hover:text-rose-300 transition-colors active:scale-95 shrink-0"
               title="Exit Room"
               aria-label="Exit Room"
             >
-              <LogOut className="w-3.5 h-3.5" />
+              <LogOut className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
             </button>
           </div>
         ) : (

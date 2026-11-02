@@ -86,7 +86,11 @@ export default function SongSearch({ roomId, canControl, onSongPicked }) {
           placeholder="Search any song or artist..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className="w-full pl-11 pr-10 py-3 rounded-full liquid-glass text-white placeholder-white/30 text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-white/40 transition-all font-body"
+          enterKeyHint="search"
+          autoComplete="off"
+          autoCorrect="off"
+          spellCheck="false"
+          className="w-full pl-11 pr-11 py-3 sm:py-3 rounded-full liquid-glass text-white placeholder-white/30 text-base sm:text-sm focus:outline-none focus:ring-1 focus:ring-white/40 transition-all font-body"
         />
 
         {loading ? (
@@ -94,10 +98,10 @@ export default function SongSearch({ roomId, canControl, onSongPicked }) {
         ) : query ? (
           <button
             onClick={handleClear}
-            className="w-6 h-6 rounded-full liquid-glass flex items-center justify-center text-white/60 hover:text-white transition-colors absolute right-3"
+            className="w-8 h-8 rounded-full liquid-glass flex items-center justify-center text-white/60 hover:text-white transition-colors absolute right-2 active:scale-90"
             title="Clear search"
           >
-            <X className="w-3.5 h-3.5" />
+            <X className="w-4 h-4" />
           </button>
         ) : null}
       </div>
@@ -157,16 +161,16 @@ export default function SongSearch({ roomId, canControl, onSongPicked }) {
                       <button
                         onClick={() => handlePick(song, true)}
                         disabled={!canControl}
-                        className="w-7 h-7 rounded-full bg-white text-black hover:bg-white/90 flex items-center justify-center transition-all active:scale-90 disabled:opacity-40"
+                        className="w-8 h-8 rounded-full bg-white text-black hover:bg-white/90 flex items-center justify-center transition-all active:scale-90 disabled:opacity-40"
                         title="Play Now for everyone"
                       >
-                        <Play className="w-3 h-3 fill-black translate-x-0.5" />
+                        <Play className="w-3.5 h-3.5 fill-black translate-x-0.5" />
                       </button>
 
                       <button
                         onClick={() => handlePick(song, false)}
                         disabled={!canControl || isAdded}
-                        className={`w-7 h-7 rounded-full liquid-glass flex items-center justify-center transition-all active:scale-90 disabled:opacity-40 ${
+                        className={`w-8 h-8 rounded-full liquid-glass flex items-center justify-center transition-all active:scale-90 disabled:opacity-40 ${
                           isAdded
                             ? 'bg-emerald-500/20 text-emerald-300 ring-1 ring-emerald-500/40'
                             : 'text-white/80 hover:text-white'
@@ -174,9 +178,9 @@ export default function SongSearch({ roomId, canControl, onSongPicked }) {
                         title="Add to Up Next Queue"
                       >
                         {isAdded ? (
-                          <Check className="w-3 h-3 text-emerald-400" />
+                          <Check className="w-3.5 h-3.5 text-emerald-400" />
                         ) : (
-                          <Plus className="w-3.5 h-3.5" />
+                          <Plus className="w-4 h-4" />
                         )}
                       </button>
                     </div>

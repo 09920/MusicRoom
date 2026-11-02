@@ -92,8 +92,8 @@ export default function ChatBox({ roomId, messages = [], currentSocketId }) {
       </div>
 
       {/* Quick Emojis */}
-      <div className="flex items-center gap-1.5 pt-2 pb-1.5 px-0.5 border-t border-white/10 shrink-0">
-        <span className="text-[10px] text-white/40 mr-1 flex items-center">
+      <div className="flex items-center gap-1.5 pt-2 pb-1.5 px-0.5 border-t border-white/10 shrink-0 overflow-x-auto">
+        <span className="text-[10px] text-white/40 mr-1 flex items-center shrink-0">
           <Smile className="w-3.5 h-3.5" />
         </span>
         {QUICK_EMOJIS.map((emoji, idx) => (
@@ -101,7 +101,7 @@ export default function ChatBox({ roomId, messages = [], currentSocketId }) {
             key={idx}
             type="button"
             onClick={() => handleQuickEmoji(emoji)}
-            className="w-7 h-7 rounded-full liquid-glass hover:bg-white/10 text-xs flex items-center justify-center transition-all active:scale-90"
+            className="w-8 h-8 rounded-full liquid-glass hover:bg-white/10 text-sm flex items-center justify-center transition-all active:scale-90 shrink-0"
           >
             {emoji}
           </button>
@@ -115,13 +115,15 @@ export default function ChatBox({ roomId, messages = [], currentSocketId }) {
           placeholder="Say something to the room..."
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
+          enterKeyHint="send"
+          autoComplete="off"
           maxLength={300}
-          className="w-full pl-3.5 pr-10 py-2.5 rounded-full liquid-glass text-white placeholder-white/30 text-xs focus:outline-none focus:ring-1 focus:ring-white/40 transition-all font-body"
+          className="w-full pl-4 pr-11 py-2.5 rounded-full liquid-glass text-white placeholder-white/30 text-base sm:text-xs focus:outline-none focus:ring-1 focus:ring-white/40 transition-all font-body"
         />
         <button
           type="submit"
           disabled={!inputText.trim()}
-          className="w-7 h-7 rounded-full bg-white text-black hover:bg-white/90 flex items-center justify-center transition-all absolute right-1.5 disabled:opacity-30 disabled:hover:bg-white"
+          className="w-8 h-8 rounded-full bg-white text-black hover:bg-white/90 flex items-center justify-center transition-all absolute right-1.5 active:scale-90 disabled:opacity-30 disabled:hover:bg-white"
         >
           <Send className="w-3.5 h-3.5" />
         </button>
