@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Music, 
-  Users, 
-  Sparkles, 
-  Radio, 
+  ArrowUpRight, 
   KeyRound, 
   ShieldCheck, 
-  ArrowRight, 
   Zap, 
-  Flame 
+  Radio, 
+  Music2, 
+  Users 
 } from 'lucide-react';
 import { socket } from '../socket';
 
@@ -21,16 +19,14 @@ const LANGUAGES = [
 export default function Home({ onRoomJoined, initialRoomId }) {
   const [tab, setTab] = useState(initialRoomId ? 'join' : 'create');
 
-  // Create Form State
   const [createData, setCreateData] = useState({
     name: '',
     hostName: '',
     pin: '',
-    hostMode: 'friendly', // 'friendly' or 'single'
+    hostMode: 'friendly',
     mood: 'Hindi'
   });
 
-  // Join Form State
   const [joinData, setJoinData] = useState({
     roomId: initialRoomId || '',
     name: '',
@@ -47,7 +43,6 @@ export default function Home({ onRoomJoined, initialRoomId }) {
     }
   }, [initialRoomId]);
 
-  // Handle Create Room
   const handleCreate = (e) => {
     e.preventDefault();
     if (!createData.hostName.trim()) {
@@ -68,7 +63,6 @@ export default function Home({ onRoomJoined, initialRoomId }) {
     });
   };
 
-  // Handle Join Room
   const handleJoin = (e) => {
     e.preventDefault();
     if (!joinData.roomId.trim()) {
@@ -80,7 +74,6 @@ export default function Home({ onRoomJoined, initialRoomId }) {
       return;
     }
 
-    // Extract room ID if user pasted full URL
     let cleanRoomId = joinData.roomId.trim();
     if (cleanRoomId.includes('/')) {
       const parts = cleanRoomId.split('/');
@@ -108,43 +101,49 @@ export default function Home({ onRoomJoined, initialRoomId }) {
   };
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex flex-col justify-center items-center px-4 py-8 max-w-4xl mx-auto">
+    <div className="min-h-[calc(100vh-5rem)] flex flex-col justify-center items-center px-4 py-12 max-w-5xl mx-auto">
       
-      {/* Hero Header */}
-      <div className="text-center mb-8 sm:mb-10 max-w-xl">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-950/60 border border-purple-800/50 text-purple-300 text-xs font-semibold mb-4">
-          <Sparkles className="w-3.5 h-3.5 text-purple-400" />
-          Synchronized Music Listening
-        </div>
-        <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white mb-3">
-          Listen to music together, <span className="bg-gradient-to-r from-purple-400 via-indigo-300 to-emerald-400 bg-clip-text text-transparent">in real-time</span>.
-        </h2>
-        <p className="text-zinc-400 text-sm sm:text-base leading-relaxed">
-          No signups, no audio uploads. Create a room in 1-click, send the link to friends on WhatsApp, and hear the same track at the exact same second.
+      {/* Cinematic Badge Chip */}
+      <div className="liquid-glass rounded-full px-1.5 py-1 pr-4 inline-flex items-center gap-2.5 mb-6 shadow-2xl">
+        <span className="bg-white text-black text-[11px] font-semibold px-2.5 py-0.5 rounded-full">
+          Live Sync
+        </span>
+        <span className="text-xs text-white/90 font-medium">
+          Collaborative Music Sessions with Friends
+        </span>
+      </div>
+
+      {/* Hero Headline in Instrument Serif */}
+      <div className="text-center mb-8 max-w-3xl">
+        <h1 className="text-5xl sm:text-7xl lg:text-[5.5rem] font-heading italic text-white leading-[0.9] tracking-[-3px] mb-4">
+          Listen together, in perfect sync.
+        </h1>
+        <p className="text-sm sm:text-base text-white/70 max-w-xl mx-auto font-body font-light leading-relaxed">
+          No signups, no audio uploads. Create a private room in 1-click, share the link with friends, and hear every beat at the exact same second.
         </p>
       </div>
 
-      {/* Main Tabbed Card */}
-      <div className="w-full max-w-md bg-zinc-900/90 backdrop-blur-xl border border-zinc-800/80 rounded-3xl p-6 sm:p-8 shadow-2xl shadow-purple-950/20">
+      {/* Main Glass Card */}
+      <div className="w-full max-w-md liquid-glass-strong rounded-[2rem] p-6 sm:p-8 shadow-2xl relative">
         
         {/* Tab Switcher */}
-        <div className="grid grid-cols-2 p-1 bg-zinc-950/80 rounded-2xl mb-6 border border-zinc-800">
+        <div className="grid grid-cols-2 p-1 liquid-glass rounded-full mb-6">
           <button
             onClick={() => { setTab('create'); setError(''); }}
-            className={`py-2.5 text-xs sm:text-sm font-semibold rounded-xl transition-all ${
+            className={`py-2 text-xs sm:text-sm font-medium rounded-full transition-all ${
               tab === 'create'
-                ? 'bg-purple-600 text-white shadow-md shadow-purple-600/30'
-                : 'text-zinc-400 hover:text-zinc-200'
+                ? 'bg-white text-black shadow-md'
+                : 'text-white/70 hover:text-white'
             }`}
           >
             Create Room
           </button>
           <button
             onClick={() => { setTab('join'); setError(''); }}
-            className={`py-2.5 text-xs sm:text-sm font-semibold rounded-xl transition-all ${
+            className={`py-2 text-xs sm:text-sm font-medium rounded-full transition-all ${
               tab === 'join'
-                ? 'bg-purple-600 text-white shadow-md shadow-purple-600/30'
-                : 'text-zinc-400 hover:text-zinc-200'
+                ? 'bg-white text-black shadow-md'
+                : 'text-white/70 hover:text-white'
             }`}
           >
             Join Room
@@ -152,7 +151,7 @@ export default function Home({ onRoomJoined, initialRoomId }) {
         </div>
 
         {error && (
-          <div className="mb-4 p-3 rounded-xl bg-rose-950/50 border border-rose-800/50 text-rose-300 text-xs font-medium">
+          <div className="mb-4 p-3 rounded-2xl bg-rose-950/60 border border-rose-800/40 text-rose-300 text-xs font-medium">
             {error}
           </div>
         )}
@@ -161,8 +160,8 @@ export default function Home({ onRoomJoined, initialRoomId }) {
         {tab === 'create' ? (
           <form onSubmit={handleCreate} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
-                Your Nickname <span className="text-purple-400">*</span>
+              <label className="block text-xs font-medium text-white/80 mb-1.5 font-body">
+                Your Nickname <span className="text-white/40">*</span>
               </label>
               <input
                 type="text"
@@ -170,82 +169,82 @@ export default function Home({ onRoomJoined, initialRoomId }) {
                 value={createData.hostName}
                 onChange={(e) => setCreateData({ ...createData, hostName: e.target.value })}
                 required
-                className="w-full px-4 py-2.5 rounded-xl bg-zinc-950 border border-zinc-800 text-white placeholder-zinc-500 focus:outline-none focus:border-purple-500 text-sm transition-colors"
+                className="w-full px-4 py-2.5 rounded-full liquid-glass text-white placeholder-white/30 text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-white/40 transition-all"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
+              <label className="block text-xs font-medium text-white/80 mb-1.5 font-body">
                 Room Name (Optional)
               </label>
               <input
                 type="text"
-                placeholder="e.g. Midnight Vibes"
+                placeholder="e.g. Midnight Sessions"
                 value={createData.name}
                 onChange={(e) => setCreateData({ ...createData, name: e.target.value })}
-                className="w-full px-4 py-2.5 rounded-xl bg-zinc-950 border border-zinc-800 text-white placeholder-zinc-500 focus:outline-none focus:border-purple-500 text-sm transition-colors"
+                className="w-full px-4 py-2.5 rounded-full liquid-glass text-white placeholder-white/30 text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-white/40 transition-all"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
+              <label className="block text-xs font-medium text-white/80 mb-1.5 font-body">
                 Language Preference
               </label>
               <select
                 value={createData.mood}
                 onChange={(e) => setCreateData({ ...createData, mood: e.target.value })}
-                className="w-full px-4 py-2.5 rounded-xl bg-zinc-950 border border-zinc-800 text-white focus:outline-none focus:border-purple-500 text-sm transition-colors cursor-pointer"
+                className="w-full px-4 py-2.5 rounded-full liquid-glass text-white text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-white/40 transition-all cursor-pointer bg-black/90"
               >
                 {LANGUAGES.map(lang => (
-                  <option key={lang.id} value={lang.id} className="bg-zinc-900">{lang.label}</option>
+                  <option key={lang.id} value={lang.id} className="bg-black text-white">{lang.label}</option>
                 ))}
               </select>
             </div>
 
             {/* Host Mode Selection */}
             <div>
-              <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
-                Room Control Mode
+              <label className="block text-xs font-medium text-white/80 mb-1.5 font-body">
+                Control Permissions
               </label>
               <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
                   onClick={() => setCreateData({ ...createData, hostMode: 'friendly' })}
-                  className={`p-2.5 rounded-xl border text-left transition-all ${
+                  className={`p-2.5 rounded-2xl text-left transition-all ${
                     createData.hostMode === 'friendly'
-                      ? 'border-purple-500 bg-purple-950/30 text-white'
-                      : 'border-zinc-800 bg-zinc-950/60 text-zinc-400 hover:border-zinc-700'
+                      ? 'liquid-glass bg-white/10 ring-1 ring-white/50 text-white'
+                      : 'liquid-glass text-white/60 hover:text-white'
                   }`}
                 >
-                  <p className="text-xs font-bold flex items-center gap-1.5">
-                    <Zap className="w-3.5 h-3.5 text-emerald-400" />
+                  <p className="text-xs font-semibold flex items-center gap-1.5">
+                    <Zap className="w-3.5 h-3.5 text-white" />
                     Friendly
                   </p>
-                  <p className="text-[11px] text-zinc-400 mt-0.5 leading-tight">Anyone can control songs</p>
+                  <p className="text-[10px] text-white/50 mt-0.5 leading-tight font-body">Anyone can control</p>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setCreateData({ ...createData, hostMode: 'single' })}
-                  className={`p-2.5 rounded-xl border text-left transition-all ${
+                  className={`p-2.5 rounded-2xl text-left transition-all ${
                     createData.hostMode === 'single'
-                      ? 'border-purple-500 bg-purple-950/30 text-white'
-                      : 'border-zinc-800 bg-zinc-950/60 text-zinc-400 hover:border-zinc-700'
+                      ? 'liquid-glass bg-white/10 ring-1 ring-white/50 text-white'
+                      : 'liquid-glass text-white/60 hover:text-white'
                   }`}
                 >
-                  <p className="text-xs font-bold flex items-center gap-1.5">
-                    <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
+                  <p className="text-xs font-semibold flex items-center gap-1.5">
+                    <ShieldCheck className="w-3.5 h-3.5 text-white" />
                     Host Only
                   </p>
-                  <p className="text-[11px] text-zinc-400 mt-0.5 leading-tight">Only host controls music</p>
+                  <p className="text-[10px] text-white/50 mt-0.5 leading-tight font-body">Only host controls</p>
                 </button>
               </div>
             </div>
 
-            {/* Optional Room PIN */}
+            {/* Room PIN */}
             <div>
-              <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
-                Optional 4-Digit PIN
+              <label className="block text-xs font-medium text-white/80 mb-1.5 font-body">
+                Room PIN (Optional)
               </label>
               <div className="relative">
                 <input
@@ -254,27 +253,27 @@ export default function Home({ onRoomJoined, initialRoomId }) {
                   placeholder="Leave empty for public link"
                   value={createData.pin}
                   onChange={(e) => setCreateData({ ...createData, pin: e.target.value })}
-                  className="w-full px-4 py-2.5 pl-9 rounded-xl bg-zinc-950 border border-zinc-800 text-white placeholder-zinc-500 focus:outline-none focus:border-purple-500 text-sm transition-colors"
+                  className="w-full px-4 py-2.5 pl-9 rounded-full liquid-glass text-white placeholder-white/30 text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-white/40 transition-all"
                 />
-                <KeyRound className="w-4 h-4 text-zinc-500 absolute left-3 top-3" />
+                <KeyRound className="w-4 h-4 text-white/40 absolute left-3 top-3" />
               </div>
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full mt-2 py-3.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold text-sm flex items-center justify-center gap-2 transition-all shadow-lg shadow-purple-600/25 active:scale-95 disabled:opacity-50"
+              className="w-full mt-2 py-3 rounded-full bg-white text-black hover:bg-white/90 font-medium text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shadow-lg active:scale-95 disabled:opacity-50"
             >
-              {loading ? 'Creating Room...' : 'Create & Enter Room'}
-              <ArrowRight className="w-4 h-4" />
+              {loading ? 'Creating Room...' : 'Start Session'}
+              <ArrowUpRight className="w-4 h-4" />
             </button>
           </form>
         ) : (
           /* Tab 2: Join Room */
           <form onSubmit={handleJoin} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
-                Room Link or ID <span className="text-purple-400">*</span>
+              <label className="block text-xs font-medium text-white/80 mb-1.5 font-body">
+                Room Link or ID <span className="text-white/40">*</span>
               </label>
               <input
                 type="text"
@@ -282,13 +281,13 @@ export default function Home({ onRoomJoined, initialRoomId }) {
                 value={joinData.roomId}
                 onChange={(e) => setJoinData({ ...joinData, roomId: e.target.value })}
                 required
-                className="w-full px-4 py-2.5 rounded-xl bg-zinc-950 border border-zinc-800 text-white placeholder-zinc-500 focus:outline-none focus:border-purple-500 text-sm transition-colors"
+                className="w-full px-4 py-2.5 rounded-full liquid-glass text-white placeholder-white/30 text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-white/40 transition-all"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
-                Your Nickname <span className="text-purple-400">*</span>
+              <label className="block text-xs font-medium text-white/80 mb-1.5 font-body">
+                Your Nickname <span className="text-white/40">*</span>
               </label>
               <input
                 type="text"
@@ -296,12 +295,12 @@ export default function Home({ onRoomJoined, initialRoomId }) {
                 value={joinData.name}
                 onChange={(e) => setJoinData({ ...joinData, name: e.target.value })}
                 required
-                className="w-full px-4 py-2.5 rounded-xl bg-zinc-950 border border-zinc-800 text-white placeholder-zinc-500 focus:outline-none focus:border-purple-500 text-sm transition-colors"
+                className="w-full px-4 py-2.5 rounded-full liquid-glass text-white placeholder-white/30 text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-white/40 transition-all"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
+              <label className="block text-xs font-medium text-white/80 mb-1.5 font-body">
                 Room PIN (if required)
               </label>
               <div className="relative">
@@ -310,32 +309,41 @@ export default function Home({ onRoomJoined, initialRoomId }) {
                   placeholder="Enter PIN if host set one"
                   value={joinData.pin}
                   onChange={(e) => setJoinData({ ...joinData, pin: e.target.value })}
-                  className="w-full px-4 py-2.5 pl-9 rounded-xl bg-zinc-950 border border-zinc-800 text-white placeholder-zinc-500 focus:outline-none focus:border-purple-500 text-sm transition-colors"
+                  className="w-full px-4 py-2.5 pl-9 rounded-full liquid-glass text-white placeholder-white/30 text-xs sm:text-sm focus:outline-none focus:border-purple-500 text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-white/40 transition-all"
                 />
-                <KeyRound className="w-4 h-4 text-zinc-500 absolute left-3 top-3" />
+                <KeyRound className="w-4 h-4 text-white/40 absolute left-3 top-3" />
               </div>
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full mt-2 py-3.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold text-sm flex items-center justify-center gap-2 transition-all shadow-lg shadow-purple-600/25 active:scale-95 disabled:opacity-50"
+              className="w-full mt-2 py-3 rounded-full bg-white text-black hover:bg-white/90 font-medium text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shadow-lg active:scale-95 disabled:opacity-50"
             >
-              {loading ? 'Joining Room...' : 'Enter Room'}
-              <ArrowRight className="w-4 h-4" />
+              {loading ? 'Joining Room...' : 'Enter Session'}
+              <ArrowUpRight className="w-4 h-4" />
             </button>
           </form>
         )}
 
       </div>
 
-      {/* Brave Browser sync tip footer */}
-      <div className="mt-8 flex items-center gap-2 px-4 py-2 rounded-2xl bg-zinc-900/60 border border-zinc-800/80 text-zinc-400 text-xs">
-        <span className="text-purple-400">💡</span>
-        <span>Pro-tip: For an ad-free sync experience, open the link in <strong>Brave Browser</strong>.</span>
+      {/* Stats / Highlight row */}
+      <div className="mt-10 flex flex-wrap items-center justify-center gap-4 text-center">
+        <div className="liquid-glass rounded-2xl p-4 w-[160px]">
+          <p className="font-heading italic text-2xl text-white">0s Latency</p>
+          <p className="text-[11px] text-white/60 font-body mt-1">Live WebSocket Sync</p>
+        </div>
+        <div className="liquid-glass rounded-2xl p-4 w-[160px]">
+          <p className="font-heading italic text-2xl text-white">Ad-Free</p>
+          <p className="text-[11px] text-white/60 font-body mt-1">Optimized for Brave</p>
+        </div>
+        <div className="liquid-glass rounded-2xl p-4 w-[160px]">
+          <p className="font-heading italic text-2xl text-white">Auto Radio</p>
+          <p className="text-[11px] text-white/60 font-body mt-1">Continuous Playback</p>
+        </div>
       </div>
 
     </div>
   );
 }
-

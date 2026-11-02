@@ -2,15 +2,14 @@ import React, { useState } from 'react';
 import { X, ListMusic, Sparkles, Check, AlertCircle, Loader2 } from 'lucide-react';
 import { socket } from '../socket';
 
-// Preset sample public playlists so the user can test in 1 click!
 const SAMPLES = [
   {
     name: '🌸 Hindi Romantic Hits',
-    url: 'https://www.youtube.com/playlist?list=PL9bw4S5AgEbm_VbL-9bZ0P9t-q6-7iB3K' // Public Hindi Romantic Playlist
+    url: 'https://www.youtube.com/playlist?list=PL9bw4S5AgEbm_VbL-9bZ0P9t-q6-7iB3K'
   },
   {
     name: '☕ English Chill & Lo-Fi',
-    url: 'https://www.youtube.com/playlist?list=PLOzDu-MXXLliO9fBNZOQTBDddoA3FzZUo' // Public Chill Lo-fi Playlist
+    url: 'https://www.youtube.com/playlist?list=PLOzDu-MXXLliO9fBNZOQTBDddoA3FzZUo'
   },
   {
     name: '🎉 Bollywood Dance Beats',
@@ -53,30 +52,30 @@ export default function ImportPlaylistModal({ isOpen, onClose, onImportSuccess }
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
-      <div className="bg-zinc-900 border border-zinc-800 rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-2xl shadow-purple-950/40 relative">
+    <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
+      <div className="liquid-glass-strong rounded-[2rem] max-w-lg w-full p-6 sm:p-8 shadow-2xl relative">
         
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 p-2 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
+          className="absolute top-5 right-5 w-8 h-8 rounded-full liquid-glass flex items-center justify-center text-white/60 hover:text-white transition-colors"
         >
-          <X className="w-5 h-5" />
+          <X className="w-4 h-4" />
         </button>
 
         {/* Header */}
-        <div className="flex items-center gap-3 mb-5">
-          <div className="w-10 h-10 rounded-2xl bg-purple-600/20 text-purple-400 border border-purple-500/30 flex items-center justify-center">
-            <ListMusic className="w-5 h-5" />
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-10 h-10 rounded-full liquid-glass flex items-center justify-center font-heading italic text-xl text-white">
+            m
           </div>
           <div>
-            <h3 className="text-lg font-bold text-white">Import Playlist</h3>
-            <p className="text-xs text-zinc-400">Add entire playlists to the room queue</p>
+            <h3 className="font-heading italic text-2xl text-white">Import Playlist</h3>
+            <p className="text-xs text-white/50 font-body font-light">Add tracks directly into the room's live queue</p>
           </div>
         </div>
 
         {error && (
-          <div className="mb-4 p-3 rounded-xl bg-rose-950/50 border border-rose-800/50 text-rose-300 text-xs flex items-center gap-2">
+          <div className="mb-4 p-3 rounded-2xl bg-rose-950/60 border border-rose-800/40 text-rose-300 text-xs flex items-center gap-2">
             <AlertCircle className="w-4 h-4 shrink-0" />
             <span>{error}</span>
           </div>
@@ -84,25 +83,25 @@ export default function ImportPlaylistModal({ isOpen, onClose, onImportSuccess }
 
         <form onSubmit={handleImport} className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
-              Paste Playlist Link (YouTube or Spotify)
+            <label className="block text-xs font-medium text-white/80 mb-1.5 font-body">
+              Playlist URL (YouTube or Spotify)
             </label>
             <input
               type="text"
               placeholder="e.g. https://www.youtube.com/playlist?list=PL... or Spotify link"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl bg-zinc-950 border border-zinc-800 text-white placeholder-zinc-500 text-xs sm:text-sm focus:outline-none focus:border-purple-500 transition-colors"
+              className="w-full px-4 py-3 rounded-full liquid-glass text-white placeholder-white/30 text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-white/40 transition-all font-body"
               autoFocus
             />
-            <p className="text-[11px] text-zinc-400 mt-1.5">
+            <p className="text-[11px] text-white/40 mt-1.5 font-body font-light">
               Supports public or unlisted YouTube & Spotify playlists.
             </p>
           </div>
 
-          {/* Quick 1-Click Samples */}
+          {/* Preset Samples */}
           <div>
-            <label className="block text-xs font-semibold text-zinc-400 mb-2">
+            <label className="block text-xs font-medium text-white/60 mb-2 font-body">
               Or Try A Preset Playlist:
             </label>
             <div className="flex flex-col gap-1.5">
@@ -111,10 +110,10 @@ export default function ImportPlaylistModal({ isOpen, onClose, onImportSuccess }
                   key={idx}
                   type="button"
                   onClick={() => handleSelectSample(sample.url)}
-                  className={`text-left text-xs px-3 py-2 rounded-xl border transition-all ${
+                  className={`text-left text-xs px-3.5 py-2 rounded-2xl transition-all font-body ${
                     url === sample.url
-                      ? 'bg-purple-950/40 border-purple-500/60 text-purple-300 font-semibold'
-                      : 'bg-zinc-950/60 border-zinc-800/80 text-zinc-300 hover:border-zinc-700'
+                      ? 'liquid-glass bg-white/10 ring-1 ring-white/50 text-white font-medium'
+                      : 'liquid-glass text-white/70 hover:text-white'
                   }`}
                 >
                   {sample.name}
@@ -127,19 +126,19 @@ export default function ImportPlaylistModal({ isOpen, onClose, onImportSuccess }
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold transition-colors"
+              className="flex-1 py-2.5 rounded-full liquid-glass text-white/70 hover:text-white text-xs font-medium transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-semibold flex items-center justify-center gap-2 transition-all shadow-lg shadow-purple-600/30 disabled:opacity-50"
+              className="flex-1 py-2.5 rounded-full bg-white text-black hover:bg-white/90 text-xs font-semibold flex items-center justify-center gap-2 transition-all shadow-md active:scale-95 disabled:opacity-50"
             >
               {loading ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Importing Songs...
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  Importing...
                 </>
               ) : (
                 'Import to Room'

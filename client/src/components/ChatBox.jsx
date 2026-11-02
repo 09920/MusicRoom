@@ -14,7 +14,6 @@ export default function ChatBox({ messages = [], currentSocketId }) {
   const [inputText, setInputText] = useState('');
   const messagesEndRef = useRef(null);
 
-  // Auto scroll to latest message
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
@@ -33,14 +32,14 @@ export default function ChatBox({ messages = [], currentSocketId }) {
   };
 
   return (
-    <div className="bg-zinc-900/80 backdrop-blur-xl border border-zinc-800/80 rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-xl flex flex-col h-[380px]">
+    <div className="liquid-glass rounded-3xl p-5 shadow-2xl flex flex-col h-[380px]">
       {/* Header */}
-      <div className="flex items-center justify-between pb-3 border-b border-zinc-800 shrink-0">
+      <div className="flex items-center justify-between pb-3 border-b border-white/10 shrink-0">
         <div className="flex items-center gap-2">
-          <MessageSquare className="w-4 h-4 text-purple-400" />
-          <h3 className="text-sm font-semibold text-zinc-200">Room Chat</h3>
+          <MessageSquare className="w-4 h-4 text-white/70" />
+          <h3 className="font-heading italic text-lg text-white">Live Chat</h3>
         </div>
-        <span className="text-[11px] text-zinc-500 font-medium">
+        <span className="text-[11px] text-white/40 font-body">
           {messages.length} messages
         </span>
       </div>
@@ -48,10 +47,10 @@ export default function ChatBox({ messages = [], currentSocketId }) {
       {/* Messages Scroll Area */}
       <div className="flex-1 overflow-y-auto py-3 space-y-3 pr-1 text-xs">
         {messages.length === 0 ? (
-          <div className="h-full flex flex-col items-center justify-center text-center text-zinc-500 py-6">
-            <MessageSquare className="w-8 h-8 text-zinc-700 mb-2 stroke-[1.5]" />
-            <p className="font-medium text-zinc-400">No messages yet</p>
-            <p className="text-[11px] text-zinc-600 mt-0.5">
+          <div className="h-full flex flex-col items-center justify-center text-center text-white/40 py-6">
+            <MessageSquare className="w-8 h-8 text-white/20 mb-2 stroke-[1.5]" />
+            <p className="font-medium text-white/60 font-body">No messages yet</p>
+            <p className="text-[11px] text-white/30 mt-0.5 font-body font-light">
               Say hi or drop a reaction while listening!
             </p>
           </div>
@@ -64,25 +63,23 @@ export default function ChatBox({ messages = [], currentSocketId }) {
                 key={msg.id}
                 className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}
               >
-                {/* Sender Name & Badge */}
                 <div className="flex items-center gap-1.5 mb-1 px-1">
-                  <span className="text-[10px] text-zinc-400 font-semibold">
+                  <span className="text-[10px] text-white/50 font-medium font-body">
                     {isMe ? 'You' : msg.senderName}
                   </span>
                   {msg.isHost && (
-                    <Crown className="w-2.5 h-2.5 text-amber-400 fill-amber-400" title="Host" />
+                    <Crown className="w-2.5 h-2.5 text-amber-300 fill-amber-300" title="Host" />
                   )}
-                  <span className="text-[9px] text-zinc-600">
+                  <span className="text-[9px] text-white/30 font-body">
                     {formatMessageTime(msg.timestamp)}
                   </span>
                 </div>
 
-                {/* Message Bubble */}
                 <div
-                  className={`px-3.5 py-2 rounded-2xl max-w-[85%] break-words leading-relaxed ${
+                  className={`px-3.5 py-2 rounded-2xl max-w-[85%] break-words leading-relaxed text-xs font-body ${
                     isMe
-                      ? 'bg-purple-600 text-white rounded-br-sm shadow-sm shadow-purple-600/30'
-                      : 'bg-zinc-800 text-zinc-200 rounded-bl-sm border border-zinc-750'
+                      ? 'bg-white text-black font-medium rounded-br-sm shadow-md'
+                      : 'liquid-glass text-white/90 rounded-bl-sm'
                   }`}
                 >
                   {msg.text}
@@ -94,17 +91,17 @@ export default function ChatBox({ messages = [], currentSocketId }) {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Quick Emojis Row */}
-      <div className="flex items-center gap-1.5 pt-2 pb-1.5 px-0.5 border-t border-zinc-800/80 shrink-0">
-        <span className="text-[10px] text-zinc-500 mr-1 flex items-center gap-1">
-          <Smile className="w-3 h-3 text-zinc-500" />
+      {/* Quick Emojis */}
+      <div className="flex items-center gap-1.5 pt-2 pb-1.5 px-0.5 border-t border-white/10 shrink-0">
+        <span className="text-[10px] text-white/40 mr-1 flex items-center">
+          <Smile className="w-3.5 h-3.5" />
         </span>
         {QUICK_EMOJIS.map((emoji, idx) => (
           <button
             key={idx}
             type="button"
             onClick={() => handleQuickEmoji(emoji)}
-            className="w-7 h-7 rounded-lg bg-zinc-800/60 hover:bg-zinc-700/80 text-xs flex items-center justify-center transition-all active:scale-90"
+            className="w-7 h-7 rounded-full liquid-glass hover:bg-white/10 text-xs flex items-center justify-center transition-all active:scale-90"
           >
             {emoji}
           </button>
@@ -115,21 +112,20 @@ export default function ChatBox({ messages = [], currentSocketId }) {
       <form onSubmit={handleSend} className="relative flex items-center pt-1 shrink-0">
         <input
           type="text"
-          placeholder="Type a message..."
+          placeholder="Say something to the room..."
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
           maxLength={300}
-          className="w-full pl-3 pr-10 py-2.5 rounded-xl bg-zinc-950 border border-zinc-800 text-white placeholder-zinc-500 text-xs focus:outline-none focus:border-purple-500 transition-colors"
+          className="w-full pl-3.5 pr-10 py-2.5 rounded-full liquid-glass text-white placeholder-white/30 text-xs focus:outline-none focus:ring-1 focus:ring-white/40 transition-all font-body"
         />
         <button
           type="submit"
           disabled={!inputText.trim()}
-          className="p-1.5 rounded-lg text-purple-400 hover:text-white hover:bg-purple-600 transition-all absolute right-2 disabled:opacity-30 disabled:hover:bg-transparent"
+          className="w-7 h-7 rounded-full bg-white text-black hover:bg-white/90 flex items-center justify-center transition-all absolute right-1.5 disabled:opacity-30 disabled:hover:bg-white"
         >
-          <Send className="w-4 h-4" />
+          <Send className="w-3.5 h-3.5" />
         </button>
       </form>
     </div>
   );
 }
-

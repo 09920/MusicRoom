@@ -10,13 +10,13 @@ import ChatBox from '../components/ChatBox';
 import ImportPlaylistModal from '../components/ImportPlaylistModal';
 import Toast from '../components/Toast';
 import TapToJoin from '../components/TapToJoin';
-import { Music, Shield, Sparkles, Globe, ListMusic, Users, MessageSquare } from 'lucide-react';
+import { Shield, Users, MessageSquare, Copy } from 'lucide-react';
 
 export default function Room({ initialRoom, currentSocketId, onLeaveRoom }) {
   const [room, setRoom] = useState(initialRoom);
   const [queue, setQueue] = useState(initialRoom?.queue || []);
   const [messages, setMessages] = useState(initialRoom?.messages || []);
-  const [sidebarTab, setSidebarTab] = useState('chat'); // 'chat' or 'members'
+  const [sidebarTab, setSidebarTab] = useState('chat');
   const [toasts, setToasts] = useState([]);
   const [needsTapToJoin, setNeedsTapToJoin] = useState(true);
   const [volume, setVolume] = useState(80);
@@ -25,7 +25,6 @@ export default function Room({ initialRoom, currentSocketId, onLeaveRoom }) {
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const playerRef = useRef(null);
 
-  // Toast Helper
   const addToast = (message, type = 'info') => {
     const id = Date.now() + Math.random();
     setToasts((prev) => [...prev, { id, message, type }]);
@@ -37,9 +36,7 @@ export default function Room({ initialRoom, currentSocketId, onLeaveRoom }) {
   const isHost = room?.hostSocketId === currentSocketId;
   const canControl = room?.hostMode === 'friendly' || isHost;
 
-  // Listen to socket room events
   useEffect(() => {
-    // 1. Playback synced
     const handleSynced = (data) => {
       setRoom((prev) => ({
         ...prev,
@@ -56,7 +53,6 @@ export default function Room({ initialRoom, currentSocketId, onLeaveRoom }) {
       }
     };
 
-    // 2. Song changed
     const handleSongChanged = (data) => {
       setRoom((prev) => ({
         ...prev,
@@ -66,7 +62,6 @@ export default function Room({ initialRoom, currentSocketId, onLeaveRoom }) {
       addToast(`Now playing: ${data.currentSong.title}`, 'info');
     };
 
-    // 3. Member joined
     const handleMemberJoined = (data) => {
       setRoom((prev) => ({
         ...prev,
@@ -75,7 +70,6 @@ export default function Room({ initialRoom, currentSocketId, onLeaveRoom }) {
       addToast(data.message, 'success');
     };
 
-    // 4. Member left
     const handleMemberLeft = (data) => {
       setRoom((prev) => ({
         ...prev,
@@ -84,7 +78,6 @@ export default function Room({ initialRoom, currentSocketId, onLeaveRoom }) {
       addToast(data.message, 'info');
     };
 
-    // 5. Queue updated
     const handleQueueUpdated = (data) => {
       setQueue(data.queue || []);
       if (data.message) {
@@ -92,7 +85,6 @@ export default function Room({ initialRoom, currentSocketId, onLeaveRoom }) {
       }
     };
 
-    // 6. AutoMode updated
     const handleAutoModeUpdated = (data) => {
       setAutoMode(data.autoMode);
       if (data.message) {
@@ -100,14 +92,12 @@ export default function Room({ initialRoom, currentSocketId, onLeaveRoom }) {
       }
     };
 
-    // 7. Chat message received
     const handleChatMessage = (data) => {
       if (data?.message) {
         setMessages((prev) => [...prev, data.message]);
       }
     };
 
-    // 8. General Toast
     const handleGeneralToast = (data) => {
       addToast(data.message, data.type || 'info');
     };
@@ -133,7 +123,6 @@ export default function Room({ initialRoom, currentSocketId, onLeaveRoom }) {
     };
   }, []);
 
-  // Controls Handlers
   const handlePlayPause = () => {
     if (!canControl) return;
     const isPlaying = room.playback.isPlaying;
@@ -195,23 +184,19 @@ export default function Room({ initialRoom, currentSocketId, onLeaveRoom }) {
   };
 
   return (
-    <div className="min-h-screen bg-[#09090b] pb-12">
-      {/* Tap to Join Modal only shown when music is actually playing */}
+    <div className="min-h-screen bg-black pb-16 font-body">
       {needsTapToJoin && room.currentSong && (
         <TapToJoin onJoin={handleTapToJoin} roomName={room?.name} />
       )}
 
-      {/* Import Playlist Modal */}
       <ImportPlaylistModal
         isOpen={isImportModalOpen}
         onClose={() => setIsImportModalOpen(false)}
-        onImportSuccess={(count) => addToast(`Successfully added ${count} songs to queue!`, 'success')}
+        onImportSuccess={(count) => addToast(`Added ${count} songs to queue!`, 'success')}
       />
 
-      {/* Floating Notifications */}
       <Toast toasts={toasts} />
 
-      {/* Top Navbar */}
       <Navbar
         room={room}
         onLeaveRoom={onLeaveRoom}
@@ -220,14 +205,11 @@ export default function Room({ initialRoom, currentSocketId, onLeaveRoom }) {
       />
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 sm:pt-8">
-        
-        {/* Main Grid Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           
-          {/* Main Stage: Player, Controls & Queue (2 Columns) */}
+          {/* Main Stage (2 Columns) */}
           <div className="lg:col-span-2 space-y-4 sm:space-y-6">
             
-            {/* The Synced YouTube Embed Player */}
             <Player
               currentSong={room.currentSong}
               playback={room.playback}
@@ -241,37 +223,35 @@ export default function Room({ initialRoom, currentSocketId, onLeaveRoom }) {
             />
 
             {/* Song Meta Header */}
-            <div className="bg-zinc-900/60 backdrop-blur-md border border-zinc-800/80 rounded-2xl p-4 flex items-center justify-between gap-4">
+            <div className="liquid-glass rounded-2xl p-4 flex items-center justify-between gap-4">
               <div className="min-w-0">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-purple-400 flex items-center gap-1.5">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-white/50 flex items-center gap-1.5 font-body">
                   {room.currentSong ? (
                     <>
-                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping inline-block" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping inline-block" />
                       Now Playing
                     </>
                   ) : (
                     <>
-                      <span className="w-2 h-2 rounded-full bg-zinc-500 inline-block" />
-                      Waiting for Music
+                      <span className="w-1.5 h-1.5 rounded-full bg-white/40 inline-block" />
+                      Session Idle
                     </>
                   )}
                 </span>
-                <h2 className="text-base sm:text-lg font-bold text-white truncate mt-0.5">
+                <h2 className="text-base sm:text-xl font-heading italic text-white truncate mt-0.5">
                   {room.currentSong?.title || 'No Song Playing'}
                 </h2>
-                <p className="text-xs text-zinc-400 truncate">
-                  {room.currentSong?.channelTitle || 'Add songs via Import Playlist'}
+                <p className="text-xs text-white/50 truncate font-light font-body">
+                  {room.currentSong?.channelTitle || 'Import a playlist to begin'}
                 </p>
               </div>
 
-              {/* Room Code Badge */}
-              <div className="shrink-0 flex items-center gap-1.5 bg-zinc-950 px-3 py-1.5 rounded-xl border border-zinc-800 text-xs">
-                <span className="text-zinc-500 font-mono">ROOM:</span>
-                <span className="text-purple-300 font-mono font-bold">{room.id}</span>
+              <div className="shrink-0 flex items-center gap-1.5 liquid-glass px-3 py-1.5 rounded-full text-xs">
+                <span className="text-white/40 font-mono text-[10px]">ROOM:</span>
+                <span className="text-white font-mono font-bold">{room.id}</span>
               </div>
             </div>
 
-            {/* Synchronized Playback Controls */}
             <Controls
               playback={room.playback}
               currentSong={room.currentSong}
@@ -290,7 +270,6 @@ export default function Room({ initialRoom, currentSocketId, onLeaveRoom }) {
               playerRef={playerRef}
             />
 
-            {/* Song Search Component */}
             <SongSearch
               canControl={canControl}
               onSongPicked={(song, playNow) => {
@@ -302,7 +281,6 @@ export default function Room({ initialRoom, currentSocketId, onLeaveRoom }) {
               }}
             />
 
-            {/* Queue & Up Next Section */}
             <QueueList
               queue={queue}
               canControl={canControl}
@@ -315,17 +293,17 @@ export default function Room({ initialRoom, currentSocketId, onLeaveRoom }) {
 
           </div>
 
-          {/* Right Column: Tabbed Chat & Listeners List */}
+          {/* Right Column: Tabbed Chat & Listeners */}
           <div className="space-y-4">
             
-            {/* Sidebar Tab Switcher */}
-            <div className="grid grid-cols-2 p-1 bg-zinc-900/90 border border-zinc-800 rounded-2xl">
+            {/* Sidebar Tabs */}
+            <div className="grid grid-cols-2 p-1 liquid-glass rounded-full">
               <button
                 onClick={() => setSidebarTab('chat')}
-                className={`py-2 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-all ${
+                className={`py-2 px-3 rounded-full text-xs font-medium flex items-center justify-center gap-2 transition-all ${
                   sidebarTab === 'chat'
-                    ? 'bg-purple-600 text-white shadow-md shadow-purple-600/30'
-                    : 'text-zinc-400 hover:text-white'
+                    ? 'bg-white text-black shadow-md'
+                    : 'text-white/60 hover:text-white'
                 }`}
               >
                 <MessageSquare className="w-3.5 h-3.5" />
@@ -334,10 +312,10 @@ export default function Room({ initialRoom, currentSocketId, onLeaveRoom }) {
 
               <button
                 onClick={() => setSidebarTab('members')}
-                className={`py-2 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-all ${
+                className={`py-2 px-3 rounded-full text-xs font-medium flex items-center justify-center gap-2 transition-all ${
                   sidebarTab === 'members'
-                    ? 'bg-purple-600 text-white shadow-md shadow-purple-600/30'
-                    : 'text-zinc-400 hover:text-white'
+                    ? 'bg-white text-black shadow-md'
+                    : 'text-white/60 hover:text-white'
                 }`}
               >
                 <Users className="w-3.5 h-3.5" />
@@ -345,7 +323,6 @@ export default function Room({ initialRoom, currentSocketId, onLeaveRoom }) {
               </button>
             </div>
 
-            {/* Active Tab Content */}
             {sidebarTab === 'chat' ? (
               <ChatBox
                 messages={messages}
@@ -358,50 +335,50 @@ export default function Room({ initialRoom, currentSocketId, onLeaveRoom }) {
               />
             )}
 
-            {/* Room Info Card */}
-            <div className="bg-zinc-900/60 border border-zinc-800/80 rounded-2xl p-4 text-xs space-y-2.5">
-              <h4 className="font-semibold text-zinc-300 flex items-center gap-2">
-                <Shield className="w-4 h-4 text-purple-400" />
+            {/* Room Info */}
+            <div className="liquid-glass rounded-3xl p-5 text-xs space-y-2.5">
+              <h4 className="font-heading italic text-base text-white flex items-center gap-2">
+                <Shield className="w-3.5 h-3.5 text-white/70" />
                 Room Information
               </h4>
               
-              <div className="flex justify-between py-1 border-b border-zinc-800/60 text-zinc-400">
+              <div className="flex justify-between py-1 border-b border-white/10 text-white/60 font-body">
                 <span>Control Mode</span>
-                <span className="text-zinc-200 font-medium capitalize">
+                <span className="text-white font-medium capitalize">
                   {room.hostMode === 'friendly' ? '🤝 Friendly (All Control)' : '👑 Single Host Only'}
                 </span>
               </div>
 
-              <div className="flex justify-between py-1 border-b border-zinc-800/60 text-zinc-400">
+              <div className="flex justify-between py-1 border-b border-white/10 text-white/60 font-body">
                 <span>Language</span>
-                <span className="text-purple-300 font-medium">{room.mood || 'Hindi'}</span>
+                <span className="text-white font-medium">{room.mood || 'Hindi'}</span>
               </div>
 
-              <div className="flex justify-between py-1 text-zinc-400">
+              <div className="flex justify-between py-1 text-white/60 font-body">
                 <span>Protection</span>
-                <span className="text-zinc-200 font-medium">
+                <span className="text-white font-medium">
                   {room.hasPin ? '🔒 PIN Protected' : '🌐 Open Link'}
                 </span>
               </div>
             </div>
 
             {/* Quick Share Widget */}
-            <div className="bg-gradient-to-br from-purple-950/30 to-zinc-900 border border-purple-800/30 rounded-2xl p-4 text-center">
-              <p className="text-xs text-zinc-300 mb-2 font-medium">
-                Want friends to join the session?
+            <div className="liquid-glass-strong rounded-3xl p-5 text-center">
+              <p className="text-xs text-white/80 mb-3 font-medium font-body">
+                Invite friends to this session
               </p>
               <button
                 onClick={handleCopyInvite}
-                className="w-full py-2.5 px-4 rounded-xl bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/40 text-purple-300 text-xs font-semibold flex items-center justify-center gap-2 transition-all active:scale-95"
+                className="w-full py-2.5 px-4 rounded-full bg-white text-black hover:bg-white/90 text-xs font-semibold flex items-center justify-center gap-2 transition-all active:scale-95 shadow-md"
               >
-                Copy Invite Link
+                <Copy className="w-3.5 h-3.5" />
+                Copy Shareable Link
               </button>
             </div>
 
           </div>
 
         </div>
-
       </main>
     </div>
   );

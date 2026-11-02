@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Music2, Copy, Check, LogOut, ListPlus } from 'lucide-react';
+import { Copy, Check, LogOut, Plus, Music2, ArrowUpRight } from 'lucide-react';
 
 export default function Navbar({ room, onLeaveRoom, onCopyInvite, onOpenImport }) {
   const [copied, setCopied] = useState(false);
@@ -11,27 +11,27 @@ export default function Navbar({ room, onLeaveRoom, onCopyInvite, onOpenImport }
   };
 
   return (
-    <header className="border-b border-zinc-800/80 bg-zinc-950/60 backdrop-blur-xl sticky top-0 z-40">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+    <header className="sticky top-3 z-50 px-4 sm:px-8 max-w-7xl mx-auto w-full">
+      <div className="liquid-glass rounded-full px-4 sm:px-6 py-2.5 flex items-center justify-between gap-4 shadow-2xl">
         
-        {/* Brand Logo & Room Name */}
+        {/* Brand Logo */}
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-500 flex items-center justify-center text-white shadow-lg shadow-purple-600/30">
-            <Music2 className="w-5 h-5" />
+          <div className="w-9 h-9 rounded-full liquid-glass flex items-center justify-center font-heading italic text-white text-xl">
+            m
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="font-bold text-white text-base tracking-tight leading-none">
+              <span className="font-heading italic text-lg sm:text-xl text-white tracking-tight leading-none">
                 MusicRoom
-              </h1>
+              </span>
               {room && (
-                <span className="hidden sm:inline-block text-xs font-semibold px-2 py-0.5 rounded-full bg-purple-900/40 text-purple-300 border border-purple-700/40">
-                  {room.mood || 'Music'}
+                <span className="text-[11px] font-medium px-2.5 py-0.5 rounded-full liquid-glass text-white/80">
+                  {room.mood || 'Hindi'}
                 </span>
               )}
             </div>
             {room && (
-              <p className="text-xs text-zinc-400 truncate max-w-[180px] sm:max-w-xs mt-0.5 font-medium">
+              <p className="text-[11px] text-white/50 truncate max-w-[150px] sm:max-w-xs font-light font-body">
                 {room.name}
               </p>
             )}
@@ -39,47 +39,51 @@ export default function Navbar({ room, onLeaveRoom, onCopyInvite, onOpenImport }
         </div>
 
         {/* Right Actions */}
-        {room && (
+        {room ? (
           <div className="flex items-center gap-2 sm:gap-3">
-            {/* Import Playlist Button */}
+            {/* Import Playlist: High contrast primary pill */}
             <button
               onClick={onOpenImport}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/40 text-xs font-semibold text-purple-300 transition-all active:scale-95 shadow-sm"
+              className="px-3.5 py-1.5 rounded-full bg-white text-black hover:bg-white/90 text-xs font-semibold flex items-center gap-1.5 transition-all active:scale-95 shadow-md shadow-white/10"
               title="Import YouTube or Spotify Playlist"
             >
-              <ListPlus className="w-3.5 h-3.5" />
+              <Plus className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Import Playlist</span>
               <span className="sm:hidden">Import</span>
             </button>
 
-            {/* Copy Invite Link */}
+            {/* Invite Friends: Liquid glass pill */}
             <button
               onClick={handleCopy}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-700/60 text-xs font-semibold text-zinc-200 transition-all active:scale-95 shadow-sm"
-              title="Copy shareable link for friends"
+              className="liquid-glass px-3.5 py-1.5 rounded-full text-xs font-medium text-white/90 hover:text-white transition-all active:scale-95 flex items-center gap-1.5"
+              title="Copy shareable invite link"
             >
               {copied ? (
                 <>
                   <Check className="w-3.5 h-3.5 text-emerald-400" />
-                  <span className="text-emerald-400">Copied!</span>
+                  <span className="text-emerald-400 font-semibold">Copied!</span>
                 </>
               ) : (
                 <>
-                  <Copy className="w-3.5 h-3.5 text-purple-400" />
+                  <Copy className="w-3.5 h-3.5 text-white/70" />
                   <span className="hidden sm:inline">Invite Friends</span>
                   <span className="sm:hidden">Invite</span>
                 </>
               )}
             </button>
 
-            {/* Leave Room Button */}
+            {/* Leave Room: Subtle round button */}
             <button
               onClick={onLeaveRoom}
-              className="p-2 rounded-xl text-zinc-400 hover:text-rose-400 hover:bg-rose-950/30 border border-transparent hover:border-rose-900/40 transition-colors"
+              className="w-8 h-8 rounded-full liquid-glass flex items-center justify-center text-white/60 hover:text-rose-400 transition-colors"
               title="Leave Room"
             >
-              <LogOut className="w-4 h-4" />
+              <LogOut className="w-3.5 h-3.5" />
             </button>
+          </div>
+        ) : (
+          <div className="text-xs text-white/60 font-body">
+            Listen in sync with friends
           </div>
         )}
 
@@ -87,4 +91,3 @@ export default function Navbar({ room, onLeaveRoom, onCopyInvite, onOpenImport }
     </header>
   );
 }
-

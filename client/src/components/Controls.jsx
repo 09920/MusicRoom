@@ -39,7 +39,6 @@ export default function Controls({
   const [duration, setDuration] = useState(currentSong?.duration || 200);
   const [isScrubbing, setIsScrubbing] = useState(false);
 
-  // Poll current progress for the smooth scrubber bar
   useEffect(() => {
     const timer = setInterval(() => {
       if (playerRef?.current && !isScrubbing) {
@@ -52,9 +51,7 @@ export default function Controls({
             const dur = playerRef.current.getDuration();
             if (dur > 0) setDuration(dur);
           }
-        } catch (e) {
-          // player might not be ready yet
-        }
+        } catch (e) {}
       }
     }, 500);
 
@@ -81,17 +78,17 @@ export default function Controls({
   };
 
   return (
-    <div className="bg-zinc-900/80 backdrop-blur-xl border border-zinc-800/80 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-xl">
-      {/* Host mode restriction notice */}
+    <div className="liquid-glass-strong rounded-3xl p-5 sm:p-6 shadow-2xl">
+      {/* Single Host notice */}
       {!canControl && (
-        <div className="mb-4 flex items-center justify-center gap-2 py-1.5 px-3 rounded-xl bg-purple-950/40 border border-purple-800/40 text-purple-300 text-xs font-medium">
-          <Lock className="w-3.5 h-3.5" />
-          <span>Single Host Mode: Only the room host can pause, skip, or change songs.</span>
+        <div className="mb-4 flex items-center justify-center gap-2 py-1 px-3 rounded-full liquid-glass text-white/70 text-xs font-body">
+          <Lock className="w-3.5 h-3.5 text-white/50" />
+          <span>Single Host Mode: Only the room host can pause, seek, or skip songs.</span>
         </div>
       )}
 
-      {/* Scrubber Bar */}
-      <div className="space-y-1.5 mb-4">
+      {/* Progress Bar */}
+      <div className="space-y-1.5 mb-5">
         <div className="relative group">
           <input
             type="range"
@@ -103,29 +100,29 @@ export default function Controls({
             onMouseUp={handleScrubberCommit}
             onTouchEnd={handleScrubberCommit}
             disabled={!canControl || !currentSong}
-            className="w-full h-1.5 bg-zinc-800 rounded-lg appearance-none cursor-pointer group-hover:h-2 transition-all accent-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full h-1 bg-white/20 rounded-full appearance-none cursor-pointer group-hover:h-1.5 transition-all accent-white disabled:opacity-40 disabled:cursor-not-allowed"
           />
         </div>
-        <div className="flex justify-between text-xs text-zinc-400 font-medium px-0.5">
+        <div className="flex justify-between text-[11px] text-white/50 font-body px-1">
           <span>{formatTime(currentProgress)}</span>
           <span>{formatTime(duration)}</span>
         </div>
       </div>
 
-      {/* Main Control Buttons */}
+      {/* Control Buttons */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         
         {/* Left: Volume & Auto Mode */}
         <div className="flex items-center gap-3">
           <button
             onClick={() => setIsMuted(!isMuted)}
-            className="p-2 text-zinc-400 hover:text-white transition-colors"
+            className="p-1.5 rounded-full liquid-glass text-white/70 hover:text-white transition-colors"
             title={isMuted ? "Unmute" : "Mute"}
           >
             {isMuted || volume === 0 ? (
-              <VolumeX className="w-5 h-5 text-rose-400" />
+              <VolumeX className="w-4 h-4 text-rose-400" />
             ) : (
-              <Volume2 className="w-5 h-5" />
+              <Volume2 className="w-4 h-4" />
             )}
           </button>
           
@@ -138,65 +135,66 @@ export default function Controls({
               setVolume(parseInt(e.target.value));
               if (isMuted) setIsMuted(false);
             }}
-            className="w-16 sm:w-24 h-1.5 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-purple-500"
+            className="w-16 sm:w-20 h-1 bg-white/20 rounded-full appearance-none cursor-pointer accent-white"
           />
 
-          {/* Auto Mode / Radio Toggle */}
+          {/* Radio Pill */}
           <button
             onClick={() => onToggleAutoMode && onToggleAutoMode()}
             disabled={!canControl}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all disabled:opacity-50 ${
+            className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-medium transition-all disabled:opacity-50 ${
               autoMode 
-                ? 'bg-purple-600/20 text-purple-400 border border-purple-500/40 shadow-sm shadow-purple-500/20' 
-                : 'bg-zinc-800/60 text-zinc-400 border border-zinc-700 hover:text-zinc-200'
+                ? 'bg-white text-black font-semibold shadow-sm shadow-white/20' 
+                : 'liquid-glass text-white/60 hover:text-white'
             }`}
-            title="Auto-picks continuous music matching room language"
+            title="Auto-picks continuous music"
           >
-            <Radio className={`w-3.5 h-3.5 ${autoMode ? 'animate-pulse text-purple-400' : ''}`} />
+            <Radio className={`w-3 h-3 ${autoMode ? 'animate-pulse' : ''}`} />
             <span>Radio {autoMode ? 'ON' : 'OFF'}</span>
           </button>
         </div>
 
-        {/* Center: Play / Pause & Skip Buttons */}
-        <div className="flex items-center gap-2 sm:gap-4 mx-auto sm:mx-0">
+        {/* Center: Play / Pause / Seek / Skip */}
+        <div className="flex items-center gap-2 sm:gap-3 mx-auto sm:mx-0">
           <button
             onClick={() => handleSeekDelta(-10)}
             disabled={!canControl || !currentSong}
-            className="p-2.5 rounded-full text-zinc-400 hover:text-white hover:bg-zinc-800/60 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+            className="w-8 h-8 rounded-full liquid-glass flex items-center justify-center text-white/70 hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed"
             title="Rewind 10s"
           >
-            <RotateCcw className="w-4 h-4" />
+            <RotateCcw className="w-3.5 h-3.5" />
           </button>
 
+          {/* Play / Pause Primary Pill */}
           <button
             onClick={onPlayPause}
             disabled={!canControl || !currentSong}
-            className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white flex items-center justify-center transition-all shadow-lg shadow-purple-600/30 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed"
+            className="w-12 h-12 rounded-full bg-white text-black hover:bg-white/90 flex items-center justify-center transition-all shadow-xl shadow-white/10 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed"
             title={playback?.isPlaying ? "Pause for everyone" : "Play for everyone"}
           >
             {playback?.isPlaying ? (
-              <Pause className="w-6 h-6 fill-current" />
+              <Pause className="w-5 h-5 fill-black" />
             ) : (
-              <Play className="w-6 h-6 fill-current translate-x-0.5" />
+              <Play className="w-5 h-5 fill-black translate-x-0.5" />
             )}
           </button>
 
           <button
             onClick={() => handleSeekDelta(10)}
             disabled={!canControl || !currentSong}
-            className="p-2.5 rounded-full text-zinc-400 hover:text-white hover:bg-zinc-800/60 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+            className="w-8 h-8 rounded-full liquid-glass flex items-center justify-center text-white/70 hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed"
             title="Forward 10s"
           >
-            <RotateCw className="w-4 h-4" />
+            <RotateCw className="w-3.5 h-3.5" />
           </button>
 
           <button
             onClick={onSkip}
             disabled={!canControl || !currentSong}
-            className="p-2.5 rounded-full text-zinc-400 hover:text-white hover:bg-zinc-800/60 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+            className="w-8 h-8 rounded-full liquid-glass flex items-center justify-center text-white/70 hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed"
             title="Skip to next song"
           >
-            <SkipForward className="w-5 h-5" />
+            <SkipForward className="w-4 h-4" />
           </button>
         </div>
 
@@ -204,4 +202,3 @@ export default function Controls({
     </div>
   );
 }
-

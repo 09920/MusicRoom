@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { socket } from '../socket';
-import { Music2, Plus, Sparkles } from 'lucide-react';
+import { Plus } from 'lucide-react';
 
 export default function Player({
   currentSong,
@@ -18,7 +18,6 @@ export default function Player({
   const [isReady, setIsReady] = useState(false);
   const isRemoteActionRef = useRef(false);
 
-  // Initialize YouTube Player only when currentSong is present
   useEffect(() => {
     if (!currentSong?.videoId) return;
 
@@ -29,7 +28,6 @@ export default function Player({
       const targetElement = document.getElementById('youtube-iframe-target');
       if (!targetElement) return false;
 
-      // If player already exists, load new video instead of re-instantiating
       if (playerRef.current && typeof playerRef.current.loadVideoById === 'function') {
         playerRef.current.loadVideoById({
           videoId: currentSong.videoId,
@@ -72,7 +70,6 @@ export default function Player({
           },
           onStateChange: (event) => {
             if (event.data === 0) {
-              // Video ended -> trigger next in queue
               if (onSongEnd) onSongEnd();
             }
           },
@@ -100,7 +97,6 @@ export default function Player({
     };
   }, [currentSong?.videoId]);
 
-  // Volume & Mute adjustments
   useEffect(() => {
     if (playerRef.current && typeof playerRef.current.setVolume === 'function') {
       playerRef.current.setVolume(volume);
@@ -112,7 +108,6 @@ export default function Player({
     }
   }, [volume, isMuted]);
 
-  // Socket sync listeners
   useEffect(() => {
     const handleSynced = (data) => {
       if (!playerRef.current || !isReady) return;
@@ -130,7 +125,7 @@ export default function Player({
           playerRef.current.seekTo(currentTime, true);
         }
       } catch (err) {
-        console.error('Player sync execution error:', err);
+        console.error('Player sync error:', err);
       } finally {
         setTimeout(() => {
           isRemoteActionRef.current = false;
@@ -182,24 +177,24 @@ export default function Player({
     };
   }, [isReady]);
 
-  // If no song is loaded yet, show the clean "Fresh Start" screen
+  // Clean Liquid-Glass Fresh Start State
   if (!currentSong) {
     return (
-      <div className="relative w-full aspect-video rounded-2xl sm:rounded-3xl overflow-hidden bg-gradient-to-br from-zinc-950 via-zinc-900 to-purple-950/20 border border-zinc-800 flex flex-col items-center justify-center p-6 text-center shadow-2xl">
-        <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-3xl bg-purple-600/10 border border-purple-500/20 text-purple-400 flex items-center justify-center mb-4 shadow-inner">
-          <Music2 className="w-8 h-8 sm:w-10 sm:h-10 animate-pulse" />
+      <div className="relative w-full aspect-video rounded-3xl overflow-hidden liquid-glass flex flex-col items-center justify-center p-6 sm:p-8 text-center shadow-2xl">
+        <div className="w-16 h-16 rounded-full liquid-glass flex items-center justify-center mb-4 font-heading italic text-3xl text-white">
+          m
         </div>
 
-        <h3 className="text-lg sm:text-2xl font-bold text-white mb-2">
+        <h3 className="text-2xl sm:text-4xl font-heading italic text-white mb-2 tracking-tight">
           Room is Ready
         </h3>
-        <p className="text-zinc-400 text-xs sm:text-sm max-w-md mb-6 leading-relaxed">
-          No song is currently playing. Import your favorite YouTube or Spotify playlist to kick off the listening session!
+        <p className="text-white/60 text-xs sm:text-sm max-w-sm mb-6 font-body font-light leading-relaxed">
+          No song is currently playing. Import a playlist or search any track to begin listening together.
         </p>
 
         <button
           onClick={onOpenImport}
-          className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs sm:text-sm font-semibold shadow-lg shadow-purple-600/30 transition-all active:scale-95"
+          className="px-5 py-2.5 rounded-full bg-white text-black hover:bg-white/90 text-xs font-semibold flex items-center gap-2 transition-all active:scale-95 shadow-lg shadow-white/10"
         >
           <Plus className="w-4 h-4" />
           Import Playlist
@@ -209,7 +204,7 @@ export default function Player({
   }
 
   return (
-    <div className="relative w-full aspect-video rounded-2xl sm:rounded-3xl overflow-hidden bg-black shadow-2xl border border-zinc-800/80 group">
+    <div className="relative w-full aspect-video rounded-3xl overflow-hidden bg-black shadow-2xl liquid-glass group">
       <div id="youtube-iframe-target" className="w-full h-full pointer-events-none" />
       <div className="absolute inset-0 bg-transparent" />
     </div>

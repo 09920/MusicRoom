@@ -7,6 +7,10 @@ export default {
   darkMode: 'class',
   theme: {
     extend: {
+      fontFamily: {
+        heading: ["'Instrument Serif'", 'serif'],
+        body: ["'Barlow'", 'sans-serif'],
+      },
       colors: {
         brand: {
           50: '#f5f3ff',

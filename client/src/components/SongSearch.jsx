@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Play, Plus, X, Loader2, Music, Check } from 'lucide-react';
+import { Search, Play, Plus, X, Loader2, Check } from 'lucide-react';
 import { socket } from '../socket';
 
 export default function SongSearch({ canControl, onSongPicked }) {
@@ -10,7 +10,6 @@ export default function SongSearch({ canControl, onSongPicked }) {
   const [addedIds, setAddedIds] = useState({});
   const debounceTimeoutRef = useRef(null);
 
-  // Auto-search after typing (debounced by 450ms)
   useEffect(() => {
     if (!query.trim()) {
       setResults([]);
@@ -53,13 +52,11 @@ export default function SongSearch({ canControl, onSongPicked }) {
     socket.emit('song:pick', { song, playNow });
 
     if (!playNow) {
-      // Mark as added for visual feedback
       setAddedIds((prev) => ({ ...prev, [song.videoId]: true }));
       setTimeout(() => {
         setAddedIds((prev) => ({ ...prev, [song.videoId]: false }));
       }, 2000);
     } else {
-      // If played now, clear search to focus on the player
       setQuery('');
       setResults([]);
       setHasSearched(false);
@@ -75,48 +72,48 @@ export default function SongSearch({ canControl, onSongPicked }) {
   };
 
   return (
-    <div className="bg-zinc-900/80 backdrop-blur-xl border border-zinc-800/80 rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-xl transition-all">
+    <div className="liquid-glass rounded-3xl p-4 sm:p-5 shadow-2xl">
       {/* Search Input Bar */}
       <div className="relative flex items-center">
-        <Search className="w-4 h-4 sm:w-5 sm:h-5 text-purple-400 absolute left-3.5 pointer-events-none" />
+        <Search className="w-4 h-4 text-white/50 absolute left-4 pointer-events-none" />
         <input
           type="text"
-          placeholder="Search any song or artist (e.g. Arijit Singh, Diljit, The Weeknd)..."
+          placeholder="Search any song or artist..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className="w-full pl-10 pr-10 py-3 rounded-2xl bg-zinc-950/80 border border-zinc-800 text-white placeholder-zinc-500 text-xs sm:text-sm focus:outline-none focus:border-purple-500 transition-all shadow-inner"
+          className="w-full pl-11 pr-10 py-3 rounded-full liquid-glass text-white placeholder-white/30 text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-white/40 transition-all font-body"
         />
 
         {loading ? (
-          <Loader2 className="w-4 h-4 text-purple-400 animate-spin absolute right-3.5" />
+          <Loader2 className="w-4 h-4 text-white/60 animate-spin absolute right-4" />
         ) : query ? (
           <button
             onClick={handleClear}
-            className="p-1 rounded-full text-zinc-500 hover:text-white transition-colors absolute right-3"
+            className="w-6 h-6 rounded-full liquid-glass flex items-center justify-center text-white/60 hover:text-white transition-colors absolute right-3"
             title="Clear search"
           >
-            <X className="w-4 h-4" />
+            <X className="w-3.5 h-3.5" />
           </button>
         ) : null}
       </div>
 
-      {/* Search Results Dropdown / Container */}
+      {/* Search Results Dropdown */}
       {hasSearched && (
-        <div className="mt-4 pt-3 border-t border-zinc-800/80 animate-in fade-in duration-200">
+        <div className="mt-4 pt-3 border-t border-white/10 animate-in fade-in duration-200">
           <div className="flex items-center justify-between mb-2.5 px-1">
-            <span className="text-xs font-semibold text-zinc-400">
-              {loading ? 'Searching...' : `Found ${results.length} results`}
+            <span className="text-[11px] font-medium text-white/60 font-body">
+              {loading ? 'Searching...' : `Found ${results.length} songs`}
             </span>
             <button
               onClick={handleClear}
-              className="text-[11px] text-zinc-500 hover:text-zinc-300 transition-colors"
+              className="text-[11px] text-white/40 hover:text-white transition-colors"
             >
-              Close
+              Dismiss
             </button>
           </div>
 
           {results.length === 0 && !loading ? (
-            <div className="py-6 text-center text-zinc-500 text-xs">
+            <div className="py-6 text-center text-white/40 text-xs font-body">
               No matching songs found. Try a different title or artist name.
             </div>
           ) : (
@@ -127,10 +124,10 @@ export default function SongSearch({ canControl, onSongPicked }) {
                 return (
                   <div
                     key={song.videoId}
-                    className="flex items-center justify-between p-2 rounded-xl bg-zinc-950/60 border border-zinc-800/80 hover:border-zinc-700 transition-all group"
+                    className="flex items-center justify-between p-2 rounded-2xl liquid-glass hover:bg-white/5 transition-all group"
                   >
                     <div className="flex items-center gap-2.5 min-w-0 pr-2">
-                      <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0 bg-black relative">
+                      <div className="w-11 h-11 rounded-xl overflow-hidden shrink-0 bg-black relative">
                         <img
                           src={song.thumbnail}
                           alt={song.title}
@@ -138,38 +135,37 @@ export default function SongSearch({ canControl, onSongPicked }) {
                         />
                       </div>
                       <div className="min-w-0">
-                        <p className="font-semibold text-xs text-white truncate group-hover:text-purple-300 transition-colors">
+                        <p className="font-medium text-xs text-white truncate group-hover:text-white/90 transition-colors">
                           {song.title}
                         </p>
-                        <p className="text-[11px] text-zinc-500 truncate mt-0.5">
+                        <p className="text-[11px] text-white/50 truncate mt-0.5 font-body">
                           {song.channelTitle}
                         </p>
                       </div>
                     </div>
 
-                    {/* Action Buttons */}
-                    <div className="flex items-center gap-1 shrink-0">
+                    <div className="flex items-center gap-1.5 shrink-0">
                       <button
                         onClick={() => handlePick(song, true)}
                         disabled={!canControl}
-                        className="p-2 rounded-xl bg-purple-600/20 hover:bg-purple-600 text-purple-300 hover:text-white transition-all active:scale-95 disabled:opacity-40"
+                        className="w-7 h-7 rounded-full bg-white text-black hover:bg-white/90 flex items-center justify-center transition-all active:scale-90 disabled:opacity-40"
                         title="Play Now for everyone"
                       >
-                        <Play className="w-3.5 h-3.5 fill-current" />
+                        <Play className="w-3 h-3 fill-black translate-x-0.5" />
                       </button>
 
                       <button
                         onClick={() => handlePick(song, false)}
                         disabled={!canControl || isAdded}
-                        className={`p-2 rounded-xl transition-all active:scale-95 disabled:opacity-40 ${
+                        className={`w-7 h-7 rounded-full liquid-glass flex items-center justify-center transition-all active:scale-90 disabled:opacity-40 ${
                           isAdded
-                            ? 'bg-emerald-600/30 text-emerald-400 border border-emerald-500/40'
-                            : 'bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white'
+                            ? 'bg-emerald-500/20 text-emerald-300 ring-1 ring-emerald-500/40'
+                            : 'text-white/80 hover:text-white'
                         }`}
                         title="Add to Up Next Queue"
                       >
                         {isAdded ? (
-                          <Check className="w-3.5 h-3.5" />
+                          <Check className="w-3 h-3 text-emerald-400" />
                         ) : (
                           <Plus className="w-3.5 h-3.5" />
                         )}
@@ -185,4 +181,3 @@ export default function SongSearch({ canControl, onSongPicked }) {
     </div>
   );
 }
-
