@@ -86,31 +86,23 @@ io.on('connection', (socket) => {
       if (typeof callback === 'function') callback({ success: false, error: 'No room ID' });
       return;
     }
-    const room = roomManager.getRoom(rid);
-    if (!room) {
+    const result = roomManager.reconnectMember(rid, payload || {}, socket.id);
+    if (!result || !result.room) {
       if (typeof callback === 'function') callback({ success: false, error: 'Room expired or closed' });
       return;
     }
 
-    currentRoomId = room.id;
-    socket.join(room.id);
+    currentRoomId = result.room.id;
+    socket.join(result.room.id);
 
-    // Make sure socket is in members list
-    let member = room.members.find(m => m.id === socket.id);
-    if (!member) {
-      member = {
-        id: socket.id,
-        name: payload?.name?.trim() || 'Listener',
-        isHost: room.hostSocketId === socket.id || room.members.length === 0,
-        joinedAt: Date.now()
-      };
-      room.members.push(member);
-      if (member.isHost) {
-        room.hostSocketId = socket.id;
-      }
-    }
+    // Sync clean deduplicated members list to all devices in the room
+    io.in(result.room.id).emit('room:member_joined', {
+      member: result.member,
+      members: result.room.members,
+      message: null // Transparent reconnect without toast spam
+    });
 
-    const state = roomManager.getPublicRoomState(room);
+    const state = roomManager.getPublicRoomState(result.room);
     if (typeof callback === 'function') {
       callback({ success: true, room: state });
     }
@@ -119,9 +111,9 @@ io.on('connection', (socket) => {
   // 1. Create Room
   socket.on('room:create', (payload, callback) => {
     try {
-      const { name, hostName, pin, hostMode, mood } = payload || {};
+      const { name, hostName, pin, hostMode, mood, userId } = payload || {};
       const room = roomManager.createRoom(
-        { name, hostName, pin, hostMode, mood },
+        { name, hostName, pin, hostMode, mood, userId },
         socket.id
       );
 
@@ -143,8 +135,8 @@ io.on('connection', (socket) => {
   // 2. Join Room
   socket.on('room:join', (payload, callback) => {
     try {
-      const { roomId, name, pin } = payload || {};
-      const result = roomManager.joinRoom(roomId, { name, pin }, socket.id);
+      const { roomId, name, pin, userId } = payload || {};
+      const result = roomManager.joinRoom(roomId, { name, pin, userId }, socket.id);
 
       if (result.error) {
         if (typeof callback === 'function') {

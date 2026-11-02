@@ -13,7 +13,7 @@ import TapToJoin from '../components/TapToJoin';
 import FadingVideo from '../components/FadingVideo';
 import { Shield, Users, MessageSquare, Copy, LogOut } from 'lucide-react';
 
-export default function Room({ initialRoom, currentSocketId, onLeaveRoom }) {
+export default function Room({ initialRoom, currentSocketId, userId, onLeaveRoom }) {
   const [room, setRoom] = useState(initialRoom);
   const [queue, setQueue] = useState(initialRoom?.queue || []);
   const [messages, setMessages] = useState(initialRoom?.messages || []);
@@ -61,7 +61,9 @@ export default function Room({ initialRoom, currentSocketId, onLeaveRoom }) {
         ...prev,
         members: data.members
       }));
-      addToast(data.message, 'success');
+      if (data.message) {
+        addToast(data.message, 'success');
+      }
     };
 
     const handleMemberLeft = (data) => {
@@ -69,7 +71,9 @@ export default function Room({ initialRoom, currentSocketId, onLeaveRoom }) {
         ...prev,
         members: data.members
       }));
-      addToast(data.message, 'info');
+      if (data.message) {
+        addToast(data.message, 'info');
+      }
     };
 
     const handleQueueUpdated = (data) => {
@@ -106,7 +110,15 @@ export default function Room({ initialRoom, currentSocketId, onLeaveRoom }) {
 
     const handleConnect = () => {
       if (room?.id) {
-        socket.emit('room:reconnect', { roomId: room.id }, (res) => {
+        let savedName = '';
+        try {
+          savedName = localStorage.getItem('musicroom_user_name') || '';
+        } catch {}
+        socket.emit('room:reconnect', {
+          roomId: room.id,
+          userId,
+          name: savedName
+        }, (res) => {
           if (res?.success && res.room) {
             setRoom(res.room);
             setQueue(res.room.queue || []);

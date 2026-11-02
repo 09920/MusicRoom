@@ -16,8 +16,9 @@ class RoomManager {
   /**
    * Create a new room
    */
-  createRoom({ name, hostName, pin = null, hostMode = 'friendly', mood = 'Hindi' }, hostSocketId) {
+  createRoom({ name, hostName, pin = null, hostMode = 'friendly', mood = 'Hindi', userId = null }, hostSocketId) {
     const roomId = generateRoomId();
+    const cleanUserId = userId || `user_${hostSocketId}`;
 
     const room = {
       id: roomId,
@@ -30,6 +31,7 @@ class RoomManager {
       members: [
         {
           id: hostSocketId,
+          userId: cleanUserId,
           name: hostName.trim() || 'Host',
           isHost: true,
           joinedAt: Date.now()
@@ -50,6 +52,67 @@ class RoomManager {
 
     rooms.set(roomId, room);
     return room;
+  }
+
+  /**
+   * Clean up any duplicate members in a room
+   */
+  deduplicateMembers(room) {
+    if (!room || !Array.isArray(room.members)) return;
+    const seen = new Set();
+    const unique = [];
+    for (const m of room.members) {
+      const key = m.userId || (m.name ? m.name.toLowerCase() : null) || m.id;
+      if (!seen.has(key)) {
+        seen.add(key);
+        unique.push(m);
+      }
+    }
+    room.members = unique;
+  }
+
+  /**
+   * Reconnect an existing member to a room, updating their socket ID
+   */
+  reconnectMember(roomId, { userId = null, name = null }, socketId) {
+    const room = this.getRoom(roomId);
+    if (!room) return null;
+
+    const cleanName = name?.trim();
+    const cleanUserId = userId;
+
+    let member = room.members.find(m =>
+      (cleanUserId && m.userId === cleanUserId) ||
+      (cleanName && m.name.toLowerCase() === cleanName.toLowerCase()) ||
+      m.id === socketId
+    );
+
+    if (member) {
+      const oldId = member.id;
+      member.id = socketId;
+      if (cleanName) member.name = cleanName;
+      if (cleanUserId) member.userId = cleanUserId;
+      if (room.hostSocketId === oldId) {
+        room.hostSocketId = socketId;
+        member.isHost = true;
+      }
+    } else {
+      const isHost = room.members.length === 0 || room.hostSocketId === socketId;
+      member = {
+        id: socketId,
+        userId: cleanUserId || `user_${socketId}`,
+        name: cleanName || 'Listener',
+        isHost,
+        joinedAt: Date.now()
+      };
+      room.members.push(member);
+      if (isHost) {
+        room.hostSocketId = socketId;
+      }
+    }
+
+    this.deduplicateMembers(room);
+    return { room, member };
   }
 
   /**
@@ -75,7 +138,7 @@ class RoomManager {
   /**
    * Join an existing room
    */
-  joinRoom(roomId, { name, pin }, socketId) {
+  joinRoom(roomId, { name, pin, userId = null }, socketId) {
     const room = this.getRoom(roomId);
     if (!room) {
       return { error: 'Room not found' };
@@ -86,26 +149,42 @@ class RoomManager {
       return { error: 'Incorrect PIN' };
     }
 
-    // Room capacity limit (~10 people as specified in Section 8)
-    if (room.members.length >= 15) {
-      return { error: 'Room is full (max 15 listeners)' };
-    }
-
     // Cancel empty room cleanup timer if active
     if (room.emptyTimeout) {
       clearTimeout(room.emptyTimeout);
       room.emptyTimeout = null;
     }
 
-    // Check if user is already in members (e.g. reconnect)
-    const existingIndex = room.members.findIndex(m => m.id === socketId);
-    if (existingIndex !== -1) {
-      room.members[existingIndex].name = name || room.members[existingIndex].name;
+    const cleanName = name?.trim() || `Guest ${room.members.length + 1}`;
+    const cleanUserId = userId || `user_${socketId}`;
+
+    // Check if user is already in members (by userId, name, or socketId)
+    const existingMember = room.members.find(m =>
+      (cleanUserId && m.userId === cleanUserId) ||
+      (cleanName && m.name.toLowerCase() === cleanName.toLowerCase()) ||
+      m.id === socketId
+    );
+
+    if (existingMember) {
+      const oldSocketId = existingMember.id;
+      existingMember.id = socketId;
+      existingMember.userId = cleanUserId;
+      existingMember.name = cleanName;
+      if (room.hostSocketId === oldSocketId) {
+        room.hostSocketId = socketId;
+        existingMember.isHost = true;
+      }
     } else {
+      // Room capacity limit (~15 listeners)
+      if (room.members.length >= 15) {
+        return { error: 'Room is full (max 15 listeners)' };
+      }
+
       const isFirst = room.members.length === 0;
       room.members.push({
         id: socketId,
-        name: name?.trim() || `Guest ${room.members.length + 1}`,
+        userId: cleanUserId,
+        name: cleanName,
         isHost: isFirst,
         joinedAt: Date.now()
       });
@@ -113,6 +192,8 @@ class RoomManager {
         room.hostSocketId = socketId;
       }
     }
+
+    this.deduplicateMembers(room);
 
     return { room };
   }

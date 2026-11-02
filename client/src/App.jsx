@@ -4,7 +4,21 @@ import Home from './pages/Home';
 import Room from './pages/Room';
 import Navbar from './components/Navbar';
 
+const getPersistentUserId = () => {
+  try {
+    let id = localStorage.getItem('musicroom_user_id');
+    if (!id) {
+      id = 'usr_' + Math.random().toString(36).substring(2, 9) + Date.now().toString(36);
+      localStorage.setItem('musicroom_user_id', id);
+    }
+    return id;
+  } catch {
+    return 'usr_' + Math.random().toString(36).substring(2, 9);
+  }
+};
+
 export default function App() {
+  const [userId] = useState(getPersistentUserId);
   const [currentRoom, setCurrentRoom] = useState(null);
   const [currentSocketId, setCurrentSocketId] = useState(socket.id || null);
   const [initialRoomId, setInitialRoomId] = useState('');
@@ -57,12 +71,14 @@ export default function App() {
         <Room
           initialRoom={currentRoom}
           currentSocketId={currentSocketId}
+          userId={userId}
           onLeaveRoom={handleLeaveRoom}
         />
       ) : (
         <Home
           onRoomJoined={handleRoomJoined}
           initialRoomId={initialRoomId}
+          userId={userId}
         />
       )}
     </div>

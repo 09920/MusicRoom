@@ -23,21 +23,33 @@ const LANGUAGES = [
   { id: 'Other Languages', label: '🌍 Other Languages' }
 ];
 
-export default function Home({ onRoomJoined, initialRoomId }) {
+export default function Home({ onRoomJoined, initialRoomId, userId }) {
   const [tab, setTab] = useState(initialRoomId ? 'join' : 'create');
 
-  const [createData, setCreateData] = useState({
-    name: '',
-    hostName: '',
-    pin: '',
-    hostMode: 'friendly',
-    mood: 'Hindi'
+  const [createData, setCreateData] = useState(() => {
+    let savedName = '';
+    try {
+      savedName = localStorage.getItem('musicroom_user_name') || '';
+    } catch {}
+    return {
+      name: '',
+      hostName: savedName,
+      pin: '',
+      hostMode: 'friendly',
+      mood: 'Hindi'
+    };
   });
 
-  const [joinData, setJoinData] = useState({
-    roomId: initialRoomId || '',
-    name: '',
-    pin: ''
+  const [joinData, setJoinData] = useState(() => {
+    let savedName = '';
+    try {
+      savedName = localStorage.getItem('musicroom_user_name') || '';
+    } catch {}
+    return {
+      roomId: initialRoomId || '',
+      name: savedName,
+      pin: ''
+    };
   });
 
   const [loading, setLoading] = useState(false);
@@ -57,10 +69,14 @@ export default function Home({ onRoomJoined, initialRoomId }) {
       return;
     }
 
+    try {
+      localStorage.setItem('musicroom_user_name', createData.hostName.trim());
+    } catch {}
+
     setLoading(true);
     setError('');
 
-    socket.emit('room:create', createData, (res) => {
+    socket.emit('room:create', { ...createData, userId }, (res) => {
       setLoading(false);
       if (res?.success && res.room) {
         onRoomJoined(res.room, res.room.hostSocketId);
@@ -81,6 +97,10 @@ export default function Home({ onRoomJoined, initialRoomId }) {
       return;
     }
 
+    try {
+      localStorage.setItem('musicroom_user_name', joinData.name.trim());
+    } catch {}
+
     let cleanRoomId = joinData.roomId.trim();
     if (cleanRoomId.includes('/')) {
       const parts = cleanRoomId.split('/');
@@ -95,8 +115,9 @@ export default function Home({ onRoomJoined, initialRoomId }) {
 
     socket.emit('room:join', {
       roomId: cleanRoomId,
-      name: joinData.name,
-      pin: joinData.pin
+      name: joinData.name.trim(),
+      pin: joinData.pin,
+      userId
     }, (res) => {
       setLoading(false);
       if (res?.success && res.room) {
