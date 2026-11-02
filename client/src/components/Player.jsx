@@ -50,6 +50,9 @@ export default function Player({
           videoId: currentSong.videoId,
           startSeconds: playback?.currentTime || 0
         });
+        if (playback?.isPlaying !== false) {
+          playerRef.current.playVideo();
+        }
         return true;
       }
 
@@ -162,6 +165,16 @@ export default function Player({
             videoId: data.currentSong.videoId,
             startSeconds: 0
           });
+          playerRef.current.playVideo();
+          setTimeout(() => {
+            try {
+              if (playerRef.current && typeof playerRef.current.playVideo === 'function') {
+                if (playerRef.current.getPlayerState() !== 1) {
+                  playerRef.current.playVideo();
+                }
+              }
+            } catch (_) {}
+          }, 300);
         }
       } catch (err) {
         console.error('Song change error:', err);

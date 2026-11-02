@@ -126,7 +126,11 @@ export default function SongSearch({ canControl, onSongPicked }) {
                     key={song.videoId}
                     className="flex items-center justify-between p-2 rounded-2xl liquid-glass hover:bg-white/5 transition-all group"
                   >
-                    <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                    <div
+                      className="flex items-center gap-2.5 min-w-0 pr-2 flex-1 cursor-pointer"
+                      onClick={() => handlePick(song, true)}
+                      title="Tap to play now"
+                    >
                       <div className="w-11 h-11 rounded-xl overflow-hidden shrink-0 bg-black relative">
                         <img
                           src={song.thumbnail}

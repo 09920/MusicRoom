@@ -64,7 +64,86 @@ async function fetchYouTubePlaylist(playlistId, apiKey) {
     }
   }
 
-  // Strategy 2: YouTube public RSS feed (Works without API key, 100% free)
+  // Strategy 2: Scrape YouTube playlist page via ytInitialData (Fetches up to 100 tracks free without API key)
+  try {
+    const pageUrl = `https://www.youtube.com/playlist?list=${playlistId}`;
+    const pageRes = await fetch(pageUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept-Language': 'en-US,en;q=0.9'
+      },
+      signal: AbortSignal.timeout(6000)
+    });
+
+    if (pageRes.ok) {
+      const html = await pageRes.text();
+      const jsonMatch = html.match(/var ytInitialData\s*=\s*({[\s\S]*?});<\/script>/);
+      if (jsonMatch) {
+        const data = JSON.parse(jsonMatch[1]);
+        const songs = [];
+
+        // Check for lockupViewModel (modern YouTube layout)
+        const lockups = [];
+        const playlistVideos = [];
+
+        function walk(node) {
+          if (!node) return;
+          if (node.lockupViewModel) {
+            lockups.push(node.lockupViewModel);
+          }
+          if (node.playlistVideoRenderer) {
+            playlistVideos.push(node.playlistVideoRenderer);
+          }
+          if (typeof node === 'object') {
+            for (const key of Object.keys(node)) {
+              walk(node[key]);
+            }
+          }
+        }
+        walk(data);
+
+        // Process lockupViewModel items
+        for (const item of lockups) {
+          const videoId = item.contentId || item.rendererContext?.commandContext?.onTap?.innertubeCommand?.watchEndpoint?.videoId;
+          const title = item.metadata?.lockupMetadataViewModel?.title?.content;
+          const channel = item.metadata?.lockupMetadataViewModel?.metadata?.contentMetadataViewModel?.metadataRows?.[0]?.metadataParts?.[0]?.text?.content || 'YouTube';
+          if (videoId && title && !songs.some(s => s.videoId === videoId)) {
+            songs.push({
+              videoId,
+              title,
+              channelTitle: channel,
+              thumbnail: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
+              duration: 0
+            });
+          }
+        }
+
+        // Process playlistVideoRenderer items (classic YouTube layout)
+        for (const item of playlistVideos) {
+          const videoId = item.videoId;
+          const title = item.title?.runs?.[0]?.text || item.title?.simpleText;
+          const channel = item.shortBylineText?.runs?.[0]?.text || 'YouTube';
+          if (videoId && title && !songs.some(s => s.videoId === videoId)) {
+            songs.push({
+              videoId,
+              title,
+              channelTitle: channel,
+              thumbnail: item.thumbnail?.thumbnails?.slice(-1)[0]?.url || `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
+              duration: parseInt(item.lengthSeconds, 10) || 0
+            });
+          }
+        }
+
+        if (songs.length > 0) {
+          return songs;
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('Scraping ytInitialData failed, trying RSS fallback:', err.message);
+  }
+
+  // Strategy 3: YouTube public RSS feed (Works without API key, 100% free fallback)
   try {
     const rssUrl = `https://www.youtube.com/feeds/videos.xml?playlist_id=${playlistId}`;
     const res = await fetch(rssUrl, {

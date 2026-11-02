@@ -361,6 +361,13 @@ io.on('connection', (socket) => {
       playback: result.room.playback
     });
 
+    io.in(currentRoomId).emit('player:synced', {
+      action: 'play',
+      currentTime: 0,
+      isPlaying: true,
+      lastUpdated: Date.now()
+    });
+
     io.in(currentRoomId).emit('room:queue_updated', {
       queue: result.queue
     });
@@ -500,6 +507,12 @@ io.on('connection', (socket) => {
         currentSong: result.song,
         actorName: result.actorName,
         playback: result.room.playback
+      });
+      io.in(currentRoomId).emit('player:synced', {
+        action: 'play',
+        currentTime: 0,
+        isPlaying: true,
+        lastUpdated: Date.now()
       });
       io.in(currentRoomId).emit('room:queue_updated', {
         queue: result.queue
