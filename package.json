@@ -1,0 +1,23 @@
+{
+  "name": "musicroom",
+  "version": "1.0.0",
+  "description": "Listen to music in sync with friends",
+  "private": true,
+  "scripts": {
+    "server": "node server/index.js",
+    "client": "npm run dev --prefix client",
+    "dev": "node -e \"const { spawn } = require('child_process'); spawn('node', ['server/index.js'], { stdio: 'inherit', shell: true }); spawn('npm', ['run', 'dev', '--prefix', 'client'], { stdio: 'inherit', shell: true });\"",
+    "build": "npm run build --prefix client",
+    "start": "node server/index.js"
+  },
+  "keywords": [
+    "music",
+    "sync",
+    "youtube",
+    "socket.io",
+    "collaborative"
+  ],
+  "author": "",
+  "license": "MIT"
+}
+
