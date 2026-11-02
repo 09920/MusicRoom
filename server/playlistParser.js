@@ -26,23 +26,38 @@ function extractSpotifyPlaylistId(url) {
  * Fetch YouTube Playlist items using YouTube Data API v3 or fallback to public RSS
  */
 async function fetchYouTubePlaylist(playlistId, apiKey) {
-  // Strategy 1: Official YouTube API if key provided
+  // Strategy 1: Official YouTube API if key provided (with multi-page pagination up to 250 songs)
   if (apiKey) {
     try {
-      const endpoint = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId=${playlistId}&key=${apiKey}`;
-      const res = await fetch(endpoint);
-      const data = await res.json();
+      const allSongs = [];
+      let nextPageToken = '';
+      let pages = 0;
 
-      if (data.items && data.items.length > 0) {
-        return data.items
-          .filter(item => item.snippet && item.snippet.resourceId && item.snippet.resourceId.videoId)
-          .map(item => ({
-            videoId: item.snippet.resourceId.videoId,
-            title: item.snippet.title,
-            channelTitle: item.snippet.videoOwnerChannelTitle || item.snippet.channelTitle || '',
-            thumbnail: item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url || `https://i.ytimg.com/vi/${item.snippet.resourceId.videoId}/hqdefault.jpg`,
-            duration: 0
-          }));
+      do {
+        pages++;
+        const tokenQuery = nextPageToken ? `&pageToken=${nextPageToken}` : '';
+        const endpoint = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId=${playlistId}&key=${apiKey}${tokenQuery}`;
+        const res = await fetch(endpoint);
+        const data = await res.json();
+
+        if (data.items && data.items.length > 0) {
+          const pageSongs = data.items
+            .filter(item => item.snippet && item.snippet.resourceId && item.snippet.resourceId.videoId)
+            .map(item => ({
+              videoId: item.snippet.resourceId.videoId,
+              title: item.snippet.title,
+              channelTitle: item.snippet.videoOwnerChannelTitle || item.snippet.channelTitle || '',
+              thumbnail: item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url || `https://i.ytimg.com/vi/${item.snippet.resourceId.videoId}/hqdefault.jpg`,
+              duration: 0
+            }));
+          allSongs.push(...pageSongs);
+        }
+
+        nextPageToken = data.nextPageToken;
+      } while (nextPageToken && allSongs.length < 250 && pages < 6);
+
+      if (allSongs.length > 0) {
+        return allSongs;
       }
     } catch (err) {
       console.warn('YouTube API fetch failed, falling back to public feed:', err.message);
@@ -133,10 +148,20 @@ async function fetchSpotifyPlaylist(playlistId) {
   }
 }
 
+const videoSearchCache = new Map();
+
 /**
  * Search YouTube for a song title (used to resolve Spotify tracks or direct search)
  */
 async function searchYouTubeVideo(query, apiKey) {
+  if (!query) return null;
+  const cleanQ = query.toLowerCase().trim();
+  if (videoSearchCache.has(cleanQ)) {
+    return videoSearchCache.get(cleanQ);
+  }
+
+  let result = null;
+
   if (apiKey) {
     try {
       const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&videoCategoryId=10&maxResults=1&q=${encodeURIComponent(query)}&key=${apiKey}`;
@@ -144,7 +169,7 @@ async function searchYouTubeVideo(query, apiKey) {
       const data = await res.json();
       if (data.items && data.items.length > 0) {
         const item = data.items[0];
-        return {
+        result = {
           videoId: item.id.videoId,
           title: item.snippet.title,
           channelTitle: item.snippet.channelTitle,
@@ -157,27 +182,33 @@ async function searchYouTubeVideo(query, apiKey) {
   }
 
   // Fallback: search via YouTube public search suggest / page
-  try {
-    const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
-    const res = await fetch(searchUrl, {
-      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' }
-    });
-    const html = await res.text();
-    const videoIdMatch = html.match(/"videoId":"([a-zA-Z0-9_-]{11})"/);
-    if (videoIdMatch) {
-      const videoId = videoIdMatch[1];
-      return {
-        videoId,
-        title: query,
-        channelTitle: 'YouTube',
-        thumbnail: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`
-      };
+  if (!result) {
+    try {
+      const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
+      const res = await fetch(searchUrl, {
+        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' }
+      });
+      const html = await res.text();
+      const videoIdMatch = html.match(/"videoId":"([a-zA-Z0-9_-]{11})"/);
+      if (videoIdMatch) {
+        const videoId = videoIdMatch[1];
+        result = {
+          videoId,
+          title: query,
+          channelTitle: 'YouTube',
+          thumbnail: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`
+        };
+      }
+    } catch (e) {
+      console.warn('Fallback search failed:', e);
     }
-  } catch (e) {
-    console.warn('Fallback search failed:', e);
   }
 
-  return null;
+  if (result) {
+    videoSearchCache.set(cleanQ, result);
+  }
+
+  return result;
 }
 
 module.exports = {

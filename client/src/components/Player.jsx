@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { socket } from '../socket';
-import { Plus } from 'lucide-react';
+import { Plus, Headphones, Video, Music2, Disc3 } from 'lucide-react';
 
 export default function Player({
   currentSong,
@@ -17,6 +17,23 @@ export default function Player({
   const playerRef = useRef(null);
   const [isReady, setIsReady] = useState(false);
   const isRemoteActionRef = useRef(false);
+  const [isAudioOnly, setIsAudioOnly] = useState(() => {
+    try {
+      return localStorage.getItem('musicroom_audio_only') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const toggleAudioOnly = () => {
+    setIsAudioOnly(prev => {
+      const next = !prev;
+      try {
+        localStorage.setItem('musicroom_audio_only', String(next));
+      } catch {}
+      return next;
+    });
+  };
 
   useEffect(() => {
     if (!currentSong?.videoId) return;
@@ -205,8 +222,85 @@ export default function Player({
 
   return (
     <div className="relative w-full aspect-video rounded-3xl overflow-hidden bg-black shadow-2xl liquid-glass group">
-      <div id="youtube-iframe-target" className="w-full h-full pointer-events-none" />
-      <div className="absolute inset-0 bg-transparent" />
+      {/* Audio / Video Mode Toggle Pill */}
+      <button
+        onClick={toggleAudioOnly}
+        className="absolute top-3 right-3 z-30 px-3 py-1.5 rounded-full liquid-glass-strong text-white/90 hover:text-white text-xs font-medium flex items-center gap-1.5 transition-all shadow-xl active:scale-95 border border-white/10"
+        title={isAudioOnly ? "Switch to Video Mode" : "Switch to Audio-Only Mode"}
+      >
+        {isAudioOnly ? (
+          <>
+            <Video className="w-3.5 h-3.5 text-emerald-400" />
+            <span className="text-[11px] font-semibold text-emerald-300">Show Video</span>
+          </>
+        ) : (
+          <>
+            <Headphones className="w-3.5 h-3.5 text-white/70" />
+            <span className="text-[11px] text-white/80">Audio Only</span>
+          </>
+        )}
+      </button>
+
+      {/* Audio-Only Visualizer Screen */}
+      {isAudioOnly && (
+        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center p-6 text-center overflow-hidden bg-black/90 backdrop-blur-xl">
+          {/* Ambient blurred backdrop glow */}
+          {currentSong?.thumbnail && (
+            <img
+              src={currentSong.thumbnail}
+              alt=""
+              className="absolute inset-0 w-full h-full object-cover blur-3xl opacity-25 scale-125 pointer-events-none"
+            />
+          )}
+
+          <div className="relative z-10 flex flex-col items-center max-w-sm">
+            {/* Spinning/pulsing vinyl artwork */}
+            <div className="relative w-28 h-28 sm:w-36 sm:h-36 rounded-full overflow-hidden shadow-2xl border-2 border-white/20 mb-4 animate-[spin_12s_linear_infinite]">
+              <img
+                src={currentSong?.thumbnail || "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400&q=80"}
+                alt={currentSong?.title || "Track"}
+                className="w-full h-full object-cover"
+              />
+              {/* Center vinyl hole */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-black/90 border border-white/30 flex items-center justify-center">
+                  <div className="w-2 h-2 rounded-full bg-white/70" />
+                </div>
+              </div>
+            </div>
+
+            {/* Song title & channel */}
+            <h4 className="font-heading italic text-xl sm:text-2xl text-white tracking-tight leading-tight truncate w-full px-4 mb-1">
+              {currentSong?.title || "Playing Track"}
+            </h4>
+            <p className="text-xs text-white/60 font-body font-light truncate max-w-xs mb-3">
+              {currentSong?.channelTitle || "YouTube"}
+            </p>
+
+            {/* Animated Equalizer Bars */}
+            <div className="flex items-end justify-center gap-1.5 h-5 mb-2">
+              <span className="w-1 bg-white/80 rounded-full animate-[bounce_1s_infinite_100ms] h-3" />
+              <span className="w-1 bg-white/90 rounded-full animate-[bounce_1s_infinite_300ms] h-5" />
+              <span className="w-1 bg-white/70 rounded-full animate-[bounce_1s_infinite_150ms] h-4" />
+              <span className="w-1 bg-white/90 rounded-full animate-[bounce_1s_infinite_400ms] h-5" />
+              <span className="w-1 bg-white/80 rounded-full animate-[bounce_1s_infinite_200ms] h-2.5" />
+            </div>
+
+            <span className="text-[10px] text-white/40 tracking-wider uppercase font-mono">
+              Audio-Only Mode Active
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* YouTube IFrame: kept active in DOM, hidden visually when Audio-Only is toggled */}
+      <div 
+        id="youtube-iframe-target" 
+        className={`w-full h-full pointer-events-none transition-opacity duration-300 ${
+          isAudioOnly ? 'opacity-0' : 'opacity-100'
+        }`} 
+      />
+      <div className="absolute inset-0 bg-transparent pointer-events-none" />
     </div>
   );
 }

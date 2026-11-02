@@ -192,17 +192,40 @@ io.on('connection', (socket) => {
 
       let songs = [];
 
+      let spotifyTracks = null;
+
       if (ytPlaylistId) {
         songs = await playlistParser.fetchYouTubePlaylist(ytPlaylistId, process.env.YOUTUBE_API_KEY);
       } else if (spotifyPlaylistId) {
-        const spotifyTracks = await playlistParser.fetchSpotifyPlaylist(spotifyPlaylistId);
-        // Match first few tracks or resolve them
-        for (const track of spotifyTracks.slice(0, 15)) {
-          const query = `${track.title} ${track.subtitle || ''}`;
-          const found = await playlistParser.searchYouTubeVideo(query, process.env.YOUTUBE_API_KEY);
-          if (found) {
-            songs.push(found);
+        spotifyTracks = await playlistParser.fetchSpotifyPlaylist(spotifyPlaylistId);
+        if (!spotifyTracks || spotifyTracks.length === 0) {
+          if (typeof callback === 'function') {
+            callback({ success: false, error: 'No songs found in this Spotify playlist.' });
           }
+          return;
+        }
+
+        // Fast parallel resolution of first 10 tracks for immediate playback
+        const initialBatch = spotifyTracks.slice(0, 10);
+        const resolvedInitial = await Promise.all(
+          initialBatch.map(track => {
+            const query = `${track.title} ${track.subtitle || ''}`;
+            return playlistParser.searchYouTubeVideo(query, process.env.YOUTUBE_API_KEY).catch(() => null);
+          })
+        );
+
+        songs = resolvedInitial.filter(Boolean);
+
+        // Fallback retry if first batch had few matches
+        if (songs.length < 3 && spotifyTracks.length > 10) {
+          const nextBatch = spotifyTracks.slice(10, 15);
+          const nextResolved = await Promise.all(
+            nextBatch.map(track => {
+              const query = `${track.title} ${track.subtitle || ''}`;
+              return playlistParser.searchYouTubeVideo(query, process.env.YOUTUBE_API_KEY).catch(() => null);
+            })
+          );
+          songs.push(...nextResolved.filter(Boolean));
         }
       } else {
         if (typeof callback === 'function') {
@@ -244,8 +267,49 @@ io.on('connection', (socket) => {
         message: `${addResult.addedBy} imported ${songs.length} songs to the queue`
       });
 
+      // Stream remaining tracks (up to 120 tracks) in parallel background batches
+      if (spotifyTracks && spotifyTracks.length > 10) {
+        const remainingTracks = spotifyTracks.slice(10, 120);
+        (async () => {
+          const BATCH_SIZE = 5;
+          for (let i = 0; i < remainingTracks.length; i += BATCH_SIZE) {
+            const activeRoom = roomManager.getRoom(currentRoomId);
+            if (!activeRoom) break; // Room was closed or left
+
+            const chunk = remainingTracks.slice(i, i + BATCH_SIZE);
+            const chunkResolved = await Promise.all(
+              chunk.map(track => {
+                const query = `${track.title} ${track.subtitle || ''}`;
+                return playlistParser.searchYouTubeVideo(query, process.env.YOUTUBE_API_KEY).catch(() => null);
+              })
+            );
+
+            const validChunk = chunkResolved.filter(Boolean);
+            if (validChunk.length > 0) {
+              const appendRes = roomManager.addSongsToQueue(currentRoomId, socket.id, validChunk);
+              if (appendRes && appendRes.room) {
+                io.in(currentRoomId).emit('room:queue_updated', {
+                  queue: appendRes.room.queue,
+                  message: `Added +${validChunk.length} more tracks to queue`
+                });
+              }
+            }
+
+            // Polite pause between background batches to prevent rate limits
+            await new Promise(r => setTimeout(r, 600));
+          }
+        })().catch(bgErr => console.warn('Background playlist loading notice:', bgErr.message));
+      }
+
       if (typeof callback === 'function') {
-        callback({ success: true, count: songs.length });
+        const isStreaming = spotifyTracks && spotifyTracks.length > 10;
+        callback({ 
+          success: true, 
+          count: songs.length,
+          message: isStreaming 
+            ? `Added first ${songs.length} songs! Loading remaining tracks in background...`
+            : `Added ${songs.length} songs to queue`
+        });
       }
     } catch (err) {
       console.error('Playlist import failed:', err);

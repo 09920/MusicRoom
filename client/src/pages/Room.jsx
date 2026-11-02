@@ -11,7 +11,7 @@ import ImportPlaylistModal from '../components/ImportPlaylistModal';
 import Toast from '../components/Toast';
 import TapToJoin from '../components/TapToJoin';
 import FadingVideo from '../components/FadingVideo';
-import { Shield, Users, MessageSquare, Copy } from 'lucide-react';
+import { Shield, Users, MessageSquare, Copy, LogOut } from 'lucide-react';
 
 export default function Room({ initialRoom, currentSocketId, onLeaveRoom }) {
   const [room, setRoom] = useState(initialRoom);
@@ -199,7 +199,7 @@ export default function Room({ initialRoom, currentSocketId, onLeaveRoom }) {
       <ImportPlaylistModal
         isOpen={isImportModalOpen}
         onClose={() => setIsImportModalOpen(false)}
-        onImportSuccess={(count) => addToast(`Added ${count} songs to queue!`, 'success')}
+        onImportSuccess={(count, msg) => addToast(msg || `Added ${count} songs to queue!`, 'success')}
       />
 
       <Toast toasts={toasts} />
@@ -369,18 +369,30 @@ export default function Room({ initialRoom, currentSocketId, onLeaveRoom }) {
               </div>
             </div>
 
-            {/* Quick Share Widget */}
-            <div className="liquid-glass-strong rounded-3xl p-5 text-center">
-              <p className="text-xs text-white/80 mb-3 font-medium font-body">
-                Invite friends to this session
-              </p>
-              <button
-                onClick={handleCopyInvite}
-                className="w-full py-2.5 px-4 rounded-full bg-white text-black hover:bg-white/90 text-xs font-semibold flex items-center justify-center gap-2 transition-all active:scale-95 shadow-md"
-              >
-                <Copy className="w-3.5 h-3.5" />
-                Copy Shareable Link
-              </button>
+            {/* Quick Share & Safe Leave Widgets */}
+            <div className="liquid-glass-strong rounded-3xl p-5 text-center space-y-3">
+              <div>
+                <p className="text-xs text-white/80 mb-2.5 font-medium font-body">
+                  Invite friends to this session
+                </p>
+                <button
+                  onClick={handleCopyInvite}
+                  className="w-full py-2.5 px-4 rounded-full bg-white text-black hover:bg-white/90 text-xs font-semibold flex items-center justify-center gap-2 transition-all active:scale-95 shadow-md"
+                >
+                  <Copy className="w-3.5 h-3.5" />
+                  Copy Shareable Link
+                </button>
+              </div>
+
+              <div className="pt-2 border-t border-white/5">
+                <button
+                  onClick={onLeaveRoom}
+                  className="w-full py-2 px-4 rounded-full liquid-glass border border-rose-500/25 text-rose-400 hover:bg-rose-500/15 hover:text-rose-300 text-xs font-medium flex items-center justify-center gap-2 transition-all active:scale-95"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  Leave Session
+                </button>
+              </div>
             </div>
 
           </div>

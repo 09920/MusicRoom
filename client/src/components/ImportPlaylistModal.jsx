@@ -37,7 +37,7 @@ export default function ImportPlaylistModal({ isOpen, onClose, onImportSuccess }
     socket.emit('playlist:import', { url: url.trim() }, (res) => {
       setLoading(false);
       if (res?.success) {
-        onImportSuccess?.(res.count);
+        onImportSuccess?.(res.count, res.message);
         onClose();
         setUrl('');
       } else {
