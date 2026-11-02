@@ -165,7 +165,7 @@ async function searchYouTubeVideo(query, apiKey) {
   if (apiKey) {
     try {
       const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&videoCategoryId=10&maxResults=1&q=${encodeURIComponent(query)}&key=${apiKey}`;
-      const res = await fetch(url);
+      const res = await fetch(url, { signal: AbortSignal.timeout(2800) });
       const data = await res.json();
       if (data.items && data.items.length > 0) {
         const item = data.items[0];
@@ -177,30 +177,36 @@ async function searchYouTubeVideo(query, apiKey) {
         };
       }
     } catch (e) {
-      console.warn('API search failed:', e);
+      console.warn('API search failed or timed out:', e.message);
     }
   }
 
-  // Fallback: search via YouTube public search suggest / page
+  // Fallback: search via YouTube public search suggest / page with strict 2.5s timeout
   if (!result) {
     try {
       const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
       const res = await fetch(searchUrl, {
-        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' }
+        headers: { 
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept-Language': 'en-US,en;q=0.9'
+        },
+        signal: AbortSignal.timeout(2500)
       });
-      const html = await res.text();
-      const videoIdMatch = html.match(/"videoId":"([a-zA-Z0-9_-]{11})"/);
-      if (videoIdMatch) {
-        const videoId = videoIdMatch[1];
-        result = {
-          videoId,
-          title: query,
-          channelTitle: 'YouTube',
-          thumbnail: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`
-        };
+      if (res.ok) {
+        const html = await res.text();
+        const videoIdMatch = html.match(/"videoId":"([a-zA-Z0-9_-]{11})"/);
+        if (videoIdMatch) {
+          const videoId = videoIdMatch[1];
+          result = {
+            videoId,
+            title: query,
+            channelTitle: 'YouTube',
+            thumbnail: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`
+          };
+        }
       }
     } catch (e) {
-      console.warn('Fallback search failed:', e);
+      // Abort or network failure handled cleanly without hanging
     }
   }
 

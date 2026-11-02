@@ -24,6 +24,15 @@ export default function ImportPlaylistModal({ isOpen, onClose, onImportSuccess }
 
   if (!isOpen) return null;
 
+  const handleClose = () => {
+    if (loading) {
+      socket.emit('playlist:cancel_import');
+      setLoading(false);
+    }
+    setError('');
+    onClose();
+  };
+
   const handleImport = (e) => {
     if (e) e.preventDefault();
     if (!url.trim()) {
@@ -34,7 +43,13 @@ export default function ImportPlaylistModal({ isOpen, onClose, onImportSuccess }
     setLoading(true);
     setError('');
 
+    const timeoutTimer = setTimeout(() => {
+      setLoading(false);
+      setError('Import is taking longer than usual. Please check your link or try a YouTube playlist for instant loading.');
+    }, 7500);
+
     socket.emit('playlist:import', { url: url.trim() }, (res) => {
+      clearTimeout(timeoutTimer);
       setLoading(false);
       if (res?.success) {
         onImportSuccess?.(res.count, res.message);
@@ -57,8 +72,9 @@ export default function ImportPlaylistModal({ isOpen, onClose, onImportSuccess }
         
         {/* Close Button */}
         <button
-          onClick={onClose}
+          onClick={handleClose}
           className="absolute top-5 right-5 w-8 h-8 rounded-full liquid-glass flex items-center justify-center text-white/60 hover:text-white transition-colors"
+          aria-label="Close modal"
         >
           <X className="w-4 h-4" />
         </button>
@@ -125,7 +141,7 @@ export default function ImportPlaylistModal({ isOpen, onClose, onImportSuccess }
           <div className="pt-2 flex gap-3">
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleClose}
               className="flex-1 py-2.5 rounded-full liquid-glass text-white/70 hover:text-white text-xs font-medium transition-colors"
             >
               Cancel

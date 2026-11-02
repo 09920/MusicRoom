@@ -47,11 +47,6 @@ export default function Room({ initialRoom, currentSocketId, onLeaveRoom }) {
           lastUpdated: data.lastUpdated
         }
       }));
-
-      if (data.actorName) {
-        const actionVerb = data.action === 'play' ? 'resumed' : data.action === 'pause' ? 'paused' : 'scrubbed';
-        addToast(`${data.actorName} ${actionVerb} the music`, 'info');
-      }
     };
 
     const handleSongChanged = (data) => {
@@ -60,7 +55,6 @@ export default function Room({ initialRoom, currentSocketId, onLeaveRoom }) {
         currentSong: data.currentSong,
         playback: data.playback
       }));
-      addToast(`Now playing: ${data.currentSong.title}`, 'info');
     };
 
     const handleMemberJoined = (data) => {
@@ -213,10 +207,10 @@ export default function Room({ initialRoom, currentSocketId, onLeaveRoom }) {
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 sm:pt-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          
+
           {/* Main Stage (2 Columns) */}
           <div className="lg:col-span-2 space-y-4 sm:space-y-6">
-            
+
             <Player
               currentSong={room.currentSong}
               playback={room.playback}
@@ -302,16 +296,15 @@ export default function Room({ initialRoom, currentSocketId, onLeaveRoom }) {
 
           {/* Right Column: Tabbed Chat & Listeners */}
           <div className="space-y-4">
-            
+
             {/* Sidebar Tabs */}
             <div className="grid grid-cols-2 p-1 liquid-glass rounded-full">
               <button
                 onClick={() => setSidebarTab('chat')}
-                className={`py-2 px-3 rounded-full text-xs font-medium flex items-center justify-center gap-2 transition-all ${
-                  sidebarTab === 'chat'
+                className={`py-2 px-3 rounded-full text-xs font-medium flex items-center justify-center gap-2 transition-all ${sidebarTab === 'chat'
                     ? 'bg-white text-black shadow-md'
                     : 'text-white/60 hover:text-white'
-                }`}
+                  }`}
               >
                 <MessageSquare className="w-3.5 h-3.5" />
                 <span>Chat ({messages.length})</span>
@@ -319,11 +312,10 @@ export default function Room({ initialRoom, currentSocketId, onLeaveRoom }) {
 
               <button
                 onClick={() => setSidebarTab('members')}
-                className={`py-2 px-3 rounded-full text-xs font-medium flex items-center justify-center gap-2 transition-all ${
-                  sidebarTab === 'members'
+                className={`py-2 px-3 rounded-full text-xs font-medium flex items-center justify-center gap-2 transition-all ${sidebarTab === 'members'
                     ? 'bg-white text-black shadow-md'
                     : 'text-white/60 hover:text-white'
-                }`}
+                  }`}
               >
                 <Users className="w-3.5 h-3.5" />
                 <span>Listeners ({room.members?.length || 1})</span>
@@ -348,7 +340,7 @@ export default function Room({ initialRoom, currentSocketId, onLeaveRoom }) {
                 <Shield className="w-3.5 h-3.5 text-white/70" />
                 Room Information
               </h4>
-              
+
               <div className="flex justify-between py-1 border-b border-white/10 text-white/60 font-body">
                 <span>Control Mode</span>
                 <span className="text-white font-medium capitalize">

@@ -63,6 +63,9 @@ app.get('/api/room/:roomId', (req, res) => {
 const clientDistPath = path.join(__dirname, '../client/dist');
 app.use(express.static(clientDistPath));
 
+// Active background imports map: socketId -> AbortController
+const activeImports = new Map();
+
 // WebSockets Connection Logic
 io.on('connection', (socket) => {
   let currentRoomId = null;
@@ -176,14 +179,28 @@ io.on('connection', (socket) => {
     });
   });
 
+  // Cancel in-flight playlist import
+  socket.on('playlist:cancel_import', () => {
+    if (activeImports.has(socket.id)) {
+      try {
+        activeImports.get(socket.id).abort();
+      } catch {}
+      activeImports.delete(socket.id);
+    }
+  });
+
   // 4b. Import Playlist (YouTube or Spotify)
   socket.on('playlist:import', async (payload, callback) => {
     if (!currentRoomId) return;
+
+    const importAbort = new AbortController();
+    activeImports.set(socket.id, importAbort);
 
     try {
       const { url } = payload || {};
       if (!url || typeof url !== 'string') {
         if (typeof callback === 'function') callback({ success: false, error: 'Please enter a valid link' });
+        activeImports.delete(socket.id);
         return;
       }
 
@@ -191,7 +208,6 @@ io.on('connection', (socket) => {
       const spotifyPlaylistId = playlistParser.extractSpotifyPlaylistId(url);
 
       let songs = [];
-
       let spotifyTracks = null;
 
       if (ytPlaylistId) {
@@ -202,11 +218,12 @@ io.on('connection', (socket) => {
           if (typeof callback === 'function') {
             callback({ success: false, error: 'No songs found in this Spotify playlist.' });
           }
+          activeImports.delete(socket.id);
           return;
         }
 
-        // Fast parallel resolution of first 10 tracks for immediate playback
-        const initialBatch = spotifyTracks.slice(0, 10);
+        // Fast parallel resolution of first 6 tracks for immediate playback (< 2 seconds)
+        const initialBatch = spotifyTracks.slice(0, 6);
         const resolvedInitial = await Promise.all(
           initialBatch.map(track => {
             const query = `${track.title} ${track.subtitle || ''}`;
@@ -217,8 +234,8 @@ io.on('connection', (socket) => {
         songs = resolvedInitial.filter(Boolean);
 
         // Fallback retry if first batch had few matches
-        if (songs.length < 3 && spotifyTracks.length > 10) {
-          const nextBatch = spotifyTracks.slice(10, 15);
+        if (songs.length < 2 && spotifyTracks.length > 6) {
+          const nextBatch = spotifyTracks.slice(6, 12);
           const nextResolved = await Promise.all(
             nextBatch.map(track => {
               const query = `${track.title} ${track.subtitle || ''}`;
@@ -231,13 +248,15 @@ io.on('connection', (socket) => {
         if (typeof callback === 'function') {
           callback({ success: false, error: 'Unrecognized playlist URL. Must be YouTube or Spotify playlist link.' });
         }
+        activeImports.delete(socket.id);
         return;
       }
 
       if (!songs || songs.length === 0) {
         if (typeof callback === 'function') {
-          callback({ success: false, error: 'No songs found in this playlist. Please check that it is public.' });
+          callback({ success: false, error: 'No playable songs found. Please check that the playlist is public.' });
         }
+        activeImports.delete(socket.id);
         return;
       }
 
@@ -245,6 +264,7 @@ io.on('connection', (socket) => {
       const addResult = roomManager.addSongsToQueue(currentRoomId, socket.id, songs);
       if (addResult.error) {
         if (typeof callback === 'function') callback({ success: false, error: addResult.error });
+        activeImports.delete(socket.id);
         return;
       }
 
@@ -267,12 +287,13 @@ io.on('connection', (socket) => {
         message: `${addResult.addedBy} imported ${songs.length} songs to the queue`
       });
 
-      // Stream remaining tracks (up to 120 tracks) in parallel background batches
-      if (spotifyTracks && spotifyTracks.length > 10) {
-        const remainingTracks = spotifyTracks.slice(10, 120);
+      // Stream remaining tracks (up to 25 songs) in small polite batches
+      if (spotifyTracks && spotifyTracks.length > 6) {
+        const remainingTracks = spotifyTracks.slice(6, 26);
         (async () => {
-          const BATCH_SIZE = 5;
+          const BATCH_SIZE = 3;
           for (let i = 0; i < remainingTracks.length; i += BATCH_SIZE) {
+            if (importAbort.signal.aborted) break; // User canceled import
             const activeRoom = roomManager.getRoom(currentRoomId);
             if (!activeRoom) break; // Room was closed or left
 
@@ -283,6 +304,8 @@ io.on('connection', (socket) => {
                 return playlistParser.searchYouTubeVideo(query, process.env.YOUTUBE_API_KEY).catch(() => null);
               })
             );
+
+            if (importAbort.signal.aborted) break;
 
             const validChunk = chunkResolved.filter(Boolean);
             if (validChunk.length > 0) {
@@ -295,23 +318,26 @@ io.on('connection', (socket) => {
               }
             }
 
-            // Polite pause between background batches to prevent rate limits
-            await new Promise(r => setTimeout(r, 600));
+            await new Promise(r => setTimeout(r, 800));
           }
-        })().catch(bgErr => console.warn('Background playlist loading notice:', bgErr.message));
+        })().catch(bgErr => console.warn('Background playlist loading notice:', bgErr.message))
+          .finally(() => activeImports.delete(socket.id));
+      } else {
+        activeImports.delete(socket.id);
       }
 
       if (typeof callback === 'function') {
-        const isStreaming = spotifyTracks && spotifyTracks.length > 10;
+        const isStreaming = spotifyTracks && spotifyTracks.length > 6;
         callback({ 
           success: true, 
           count: songs.length,
           message: isStreaming 
-            ? `Added first ${songs.length} songs! Loading remaining tracks in background...`
+            ? `Added first ${songs.length} songs! Resolving remaining tracks into queue...`
             : `Added ${songs.length} songs to queue`
         });
       }
     } catch (err) {
+      activeImports.delete(socket.id);
       console.error('Playlist import failed:', err);
       if (typeof callback === 'function') {
         callback({ success: false, error: err.message || 'Failed to import playlist' });
