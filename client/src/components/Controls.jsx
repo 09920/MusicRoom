@@ -181,13 +181,14 @@ export default function Controls({
           <button
             onClick={onPlayPause}
             disabled={!canControl || !currentSong}
-            className="w-13 h-13 sm:w-14 sm:h-14 rounded-full bg-white text-black hover:bg-white/90 flex items-center justify-center transition-all shadow-xl shadow-white/20 active:scale-90 disabled:opacity-30 disabled:cursor-not-allowed"
+            style={{ colorScheme: 'light', backgroundColor: '#ffffff', color: '#000000' }}
+            className="w-14 h-14 rounded-full bg-white text-black hover:bg-white/90 flex items-center justify-center transition-all shadow-xl shadow-white/20 active:scale-90 disabled:opacity-30 disabled:cursor-not-allowed shrink-0 border border-white/40"
             title={isPlayingState ? "Pause for everyone" : "Play for everyone"}
           >
             {isPlayingState ? (
-              <Pause className="w-6 h-6 fill-black" />
+              <Pause className="w-6 h-6 text-black fill-black" />
             ) : (
-              <Play className="w-6 h-6 fill-black translate-x-0.5" />
+              <Play className="w-6 h-6 text-black fill-black ml-0.5" />
             )}
           </button>
 

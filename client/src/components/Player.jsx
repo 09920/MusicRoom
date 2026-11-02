@@ -117,12 +117,23 @@ export default function Player({
             } else if (event.data === 2) {
               if (onPlaybackChange) onPlaybackChange({ isPlaying: false });
             } else if (event.data === 0) {
-              if (onSongEnd) onSongEnd();
+              // ONLY Host can trigger automatic track advance when video truly finishes!
+              if (isHost && onSongEnd) {
+                try {
+                  const cur = event.target.getCurrentTime() || 0;
+                  const dur = event.target.getDuration() || 0;
+                  // Guard: only advance if video played to near-end (dur > 10 and within 3s of end)
+                  if (dur > 10 && cur >= dur - 3.5) {
+                    onSongEnd();
+                  }
+                } catch (_) {}
+              }
             }
           },
           onError: (event) => {
             console.warn('YouTube Player error:', event.data);
-            if (event.data === 150 || event.data === 101) {
+            // Only host advances on unplayable restricted video
+            if (isHost && (event.data === 150 || event.data === 101)) {
               if (onSongEnd) onSongEnd();
             }
           }

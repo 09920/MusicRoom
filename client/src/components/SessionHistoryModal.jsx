@@ -139,3 +139,4 @@ export default function SessionHistoryModal({ isOpen, onClose, history = [], onP
     </div>
   );
 }
+

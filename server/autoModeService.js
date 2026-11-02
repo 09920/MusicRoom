@@ -1,13 +1,15 @@
 // server/autoModeService.js
 const { searchSongs } = require('./searchService');
 
-// Keywords to strictly filter out long jukeboxes, full album mixes, and compilations
+// Keywords to strictly filter out long jukeboxes, full album mixes, compilations, and kids rhymes
 const COMPILATION_KEYWORDS = [
   'jukebox', 'playlist', 'compilation', 'full album', 'all songs',
   'non stop', 'non-stop', 'nonstop', 'hour', 'hours', 'top 10', 'top 20', 'top 50', 'top 100',
   'best of', 'mashup', 'discography', 'collection', 'full ep', 'audio jukebox', 'video jukebox',
   'hit songs', 'golden hits', 'evergreen hits', 'superhit songs', 'all hit songs', 'songs collection',
-  'song collection'
+  'song collection', 'phonics', 'nursery', 'cocomelon', 'kids tv', 'kids song', 'kids songs',
+  'toddler', 'rhymes', 'abc song', 'shapes song', 'alphabet song', 'chuchu', 'baby shark',
+  'educational songs', 'kindergarten', 'preschool', 'bedtime rhyme'
 ];
 
 /**

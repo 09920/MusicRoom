@@ -322,7 +322,8 @@ class RoomManager {
       if (room.playedHistory.length > 80) room.playedHistory.pop();
     }
 
-    // Reset playback to start of new song
+    // Reset playback to start of new song & track timestamp to prevent skip loops
+    room.lastSongChangedAt = Date.now();
     room.playback = {
       isPlaying: true,
       currentTime: 0,

@@ -194,6 +194,19 @@ io.on('connection', (socket) => {
       actorName: result.actorName,
       lastUpdated: result.room.playback.lastUpdated
     });
+
+    // Notify room when someone pauses or resumes
+    if (result.action === 'pause') {
+      io.in(rid).emit('room:toast', {
+        type: 'info',
+        message: `${result.actorName} paused playback`
+      });
+    } else if (result.action === 'play') {
+      io.in(rid).emit('room:toast', {
+        type: 'info',
+        message: `${result.actorName} resumed playback`
+      });
+    }
   });
 
   // 4. Change Song / Play Now
@@ -218,6 +231,12 @@ io.on('connection', (socket) => {
         currentTime: 0,
         lastUpdated: result.room.playback.lastUpdated
       }
+    });
+
+    // Notify room who changed the song
+    io.in(rid).emit('room:toast', {
+      type: 'info',
+      message: `${result.actorName} played "${result.song.title}"`
     });
   });
 
@@ -425,6 +444,11 @@ io.on('connection', (socket) => {
       return;
     }
 
+    // Anti-loop cooldown: ignore skip if current song was started less than 4 seconds ago
+    if (room.lastSongChangedAt && (Date.now() - room.lastSongChangedAt < 4000)) {
+      return;
+    }
+
     // 1. If queue has songs, play next
     if (room.queue.length > 0) {
       const nextSongResult = roomManager.playNextInQueue(rid);
@@ -438,13 +462,16 @@ io.on('connection', (socket) => {
         io.in(rid).emit('room:queue_updated', {
           queue: nextSongResult.room.queue
         });
+        io.in(rid).emit('room:toast', {
+          type: 'info',
+          message: `Next track: "${nextSongResult.room.currentSong.title}"`
+        });
       }
       return;
     }
 
     // 2. If queue is empty and Auto Mode (Radio) is ON, auto-pick next song!
     if (room.autoMode) {
-      io.in(rid).emit('room:toast', { type: 'info', message: '📻 Radio is picking next song...' });
       const autoSong = await autoModeService.pickNextSong(room, process.env.YOUTUBE_API_KEY);
 
       if (autoSong) {
@@ -454,10 +481,6 @@ io.on('connection', (socket) => {
           actorName: '📻 Radio Auto-Pick',
           playedHistory: changeResult.room.playedHistory || [],
           playback: changeResult.room.playback
-        });
-        io.in(rid).emit('room:toast', {
-          type: 'success',
-          message: `📻 Radio picked: ${autoSong.title}`
         });
         return;
       }
@@ -485,7 +508,6 @@ io.on('connection', (socket) => {
     // If Radio was enabled and room is currently idle (no song & empty queue), start playing immediately!
     const room = roomManager.getRoom(rid);
     if (result.autoMode && room && !room.currentSong && room.queue.length === 0) {
-      io.in(rid).emit('room:toast', { type: 'info', message: '📻 Radio is starting the session...' });
       const autoSong = await autoModeService.pickNextSong(room, process.env.YOUTUBE_API_KEY);
       if (autoSong) {
         const changeResult = roomManager.changeSong(rid, room.hostSocketId, autoSong);
@@ -494,10 +516,6 @@ io.on('connection', (socket) => {
           actorName: '📻 Radio Auto-Pick',
           playedHistory: changeResult.room.playedHistory || [],
           playback: changeResult.room.playback
-        });
-        io.in(rid).emit('room:toast', {
-          type: 'success',
-          message: `📻 Radio picked: ${autoSong.title}`
         });
       }
     }
@@ -577,6 +595,10 @@ io.on('connection', (socket) => {
       });
       io.in(rid).emit('room:queue_updated', {
         queue: result.queue
+      });
+      io.in(rid).emit('room:toast', {
+        type: 'info',
+        message: `${result.actorName} played "${result.song.title}"`
       });
     } else {
       // Added to queue

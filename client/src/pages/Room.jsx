@@ -32,11 +32,11 @@ export default function Room({ initialRoom, currentSocketId, userId, onLeaveRoom
   const playerRef = useRef(null);
 
   const addToast = (message, type = 'info') => {
-    const id = Date.now() + Math.random();
-    setToasts((prev) => [...prev, { id, message, type }]);
+    const id = Date.now();
+    setToasts([{ id, message, type }]);
     setTimeout(() => {
       setToasts((prev) => prev.filter((t) => t.id !== id));
-    }, 3500);
+    }, 2500);
   };
 
   useEffect(() => {
@@ -340,9 +340,7 @@ export default function Room({ initialRoom, currentSocketId, userId, onLeaveRoom
               roomId={room?.id}
               canControl={canControl}
               onSongPicked={(song, playNow) => {
-                if (playNow) {
-                  addToast(`Playing "${song.title}" for everyone`, 'success');
-                } else {
+                if (!playNow) {
                   addToast(`Added "${song.title}" to queue`, 'success');
                 }
               }}
