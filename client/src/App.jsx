@@ -52,7 +52,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#09090b] text-zinc-100 flex flex-col font-['Plus_Jakarta_Sans',sans-serif]">
+    <div className="min-h-screen bg-black text-white flex flex-col font-body">
       {currentRoom ? (
         <Room
           initialRoom={currentRoom}
@@ -60,13 +60,10 @@ export default function App() {
           onLeaveRoom={handleLeaveRoom}
         />
       ) : (
-        <>
-          <Navbar />
-          <Home
-            onRoomJoined={handleRoomJoined}
-            initialRoomId={initialRoomId}
-          />
-        </>
+        <Home
+          onRoomJoined={handleRoomJoined}
+          initialRoomId={initialRoomId}
+        />
       )}
     </div>
   );

@@ -10,6 +10,7 @@ import ChatBox from '../components/ChatBox';
 import ImportPlaylistModal from '../components/ImportPlaylistModal';
 import Toast from '../components/Toast';
 import TapToJoin from '../components/TapToJoin';
+import FadingVideo from '../components/FadingVideo';
 import { Shield, Users, MessageSquare, Copy } from 'lucide-react';
 
 export default function Room({ initialRoom, currentSocketId, onLeaveRoom }) {
@@ -184,7 +185,13 @@ export default function Room({ initialRoom, currentSocketId, onLeaveRoom }) {
   };
 
   return (
-    <div className="min-h-screen bg-black pb-16 font-body">
+    <div className="min-h-screen bg-black pb-16 font-body relative overflow-x-hidden">
+      {/* Subtle Cinematic Video Background */}
+      <FadingVideo
+        src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260418_080021_d598092b-c4c2-4e53-8e46-94cf9064cd50.mp4"
+        className="fixed inset-0 w-full h-full object-cover opacity-25 pointer-events-none z-0"
+      />
+
       {needsTapToJoin && room.currentSong && (
         <TapToJoin onJoin={handleTapToJoin} roomName={room?.name} />
       )}
