@@ -17,6 +17,7 @@ export default function Player({
   const playerRef = useRef(null);
   const silentAudioRef = useRef(null);
   const [isReady, setIsReady] = useState(false);
+  const [isEnding, setIsEnding] = useState(false);
   const isRemoteActionRef = useRef(false);
   const [isAudioOnly, setIsAudioOnly] = useState(() => {
     try {
@@ -35,6 +36,30 @@ export default function Player({
       return next;
     });
   };
+
+  useEffect(() => {
+    setIsEnding(false);
+  }, [currentSong?.videoId]);
+
+  // Monitor near-end to trigger advance BEFORE YouTube renders native end-screen recommendations
+  useEffect(() => {
+    const endCheckInterval = setInterval(() => {
+      if (playerRef.current && typeof playerRef.current.getCurrentTime === 'function') {
+        try {
+          const cur = playerRef.current.getCurrentTime() || 0;
+          const dur = playerRef.current.getDuration() || 0;
+          if (dur > 15 && cur >= dur - 1.5) {
+            setIsEnding(true);
+            if (isHost && onSongEnd) {
+              onSongEnd();
+            }
+          }
+        } catch (_) {}
+      }
+    }, 400);
+
+    return () => clearInterval(endCheckInterval);
+  }, [isHost, onSongEnd]);
 
   // Set 144p quality when in audio-only mode to save ~85% mobile data & battery
   useEffect(() => {
@@ -91,6 +116,7 @@ export default function Player({
           rel: 0,
           modestbranding: 1,
           playsinline: 1,
+          iv_load_policy: 3,
           origin: window.location.origin
         },
         events: {
@@ -113,10 +139,12 @@ export default function Player({
           },
           onStateChange: (event) => {
             if (event.data === 1) {
+              setIsEnding(false);
               if (onPlaybackChange) onPlaybackChange({ isPlaying: true });
             } else if (event.data === 2) {
               if (onPlaybackChange) onPlaybackChange({ isPlaying: false });
             } else if (event.data === 0) {
+              setIsEnding(true);
               // ONLY Host can trigger automatic track advance when video truly finishes!
               if (isHost && onSongEnd) {
                 try {
@@ -360,11 +388,11 @@ export default function Player({
   }
 
   return (
-    <div className="relative w-full aspect-video rounded-3xl overflow-hidden bg-black shadow-2xl liquid-glass group">
+    <div className={`relative w-full ${isAudioOnly ? 'min-h-[295px] sm:min-h-[340px] aspect-auto sm:aspect-video' : 'aspect-video'} rounded-3xl overflow-hidden bg-black shadow-2xl liquid-glass group transition-all duration-300`}>
       {/* Audio / Video Mode Toggle Pill */}
       <button
         onClick={toggleAudioOnly}
-        className="absolute top-3 right-3 z-30 px-3 py-1.5 rounded-full liquid-glass-strong text-white/90 hover:text-white text-xs font-medium flex items-center gap-1.5 transition-all shadow-xl active:scale-95 border border-white/10"
+        className="!absolute top-3.5 right-3.5 z-30 px-3 py-1.5 rounded-full liquid-glass-strong text-white/90 hover:text-white text-xs font-medium flex items-center gap-1.5 transition-all shadow-xl active:scale-95 border border-white/10"
         title={isAudioOnly ? "Switch to Video Mode" : "Switch to Audio-Only Mode"}
       >
         {isAudioOnly ? (
@@ -380,9 +408,22 @@ export default function Player({
         )}
       </button>
 
+      {/* Transition Shield: Covers YouTube video when ending to completely hide YouTube's native watch-next grid */}
+      <div
+        className={`!absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/95 backdrop-blur-xl transition-opacity duration-300 pointer-events-none ${
+          isEnding ? 'opacity-100' : 'opacity-0'
+        }`}
+      >
+        <div className="w-12 h-12 rounded-full liquid-glass flex items-center justify-center mb-2.5">
+          <Disc3 className="w-6 h-6 text-white/80 animate-spin" />
+        </div>
+        <p className="font-heading italic text-lg text-white">Up Next...</p>
+        <p className="text-xs text-white/50 font-body">Transitioning smoothly to next song</p>
+      </div>
+
       {/* Audio-Only Visualizer Screen (Overlay over video) */}
       <div
-        className={`absolute inset-0 z-10 flex flex-col items-center justify-center p-6 text-center overflow-hidden bg-black/95 backdrop-blur-xl transition-all duration-300 ${
+        className={`!absolute inset-0 z-10 flex flex-col items-center justify-center p-4 sm:p-6 text-center overflow-hidden bg-black/95 backdrop-blur-xl transition-all duration-300 ${
           isAudioOnly ? 'opacity-100 pointer-events-auto visible' : 'opacity-0 pointer-events-none invisible'
         }`}
       >
@@ -391,13 +432,13 @@ export default function Player({
           <img
             src={currentSong.thumbnail}
             alt=""
-            className="absolute inset-0 w-full h-full object-cover blur-3xl opacity-25 scale-125 pointer-events-none"
+            className="!absolute inset-0 w-full h-full object-cover blur-3xl opacity-25 scale-125 pointer-events-none"
           />
         )}
 
-        <div className="relative z-10 flex flex-col items-center max-w-sm">
+        <div className="relative z-10 flex flex-col items-center max-w-sm pt-1">
           {/* Spinning vinyl artwork */}
-          <div className="relative w-28 h-28 sm:w-36 sm:h-36 rounded-full overflow-hidden shadow-2xl border-2 border-white/20 mb-4 animate-[spin_12s_linear_infinite]">
+          <div className={`relative w-24 h-24 sm:w-32 sm:h-32 rounded-full overflow-hidden shadow-2xl border-2 border-white/20 mb-3 ${playback?.isPlaying ? 'animate-[spin_12s_linear_infinite]' : ''}`}>
             <img
               src={currentSong?.thumbnail || "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400&q=80"}
               alt={currentSong?.title || "Track"}
@@ -412,23 +453,23 @@ export default function Player({
           </div>
 
           {/* Song title & channel */}
-          <h4 className="font-heading italic text-xl sm:text-2xl text-white tracking-tight leading-tight truncate w-full px-4 mb-1">
+          <h4 className="font-heading italic text-lg sm:text-2xl text-white tracking-tight leading-tight truncate w-full px-4 mb-0.5">
             {currentSong?.title || "Playing Track"}
           </h4>
-          <p className="text-xs text-white/60 font-body font-light truncate max-w-xs mb-3">
+          <p className="text-xs text-white/60 font-body font-light truncate max-w-xs mb-2.5">
             {currentSong?.channelTitle || "YouTube"}
           </p>
 
           {/* Animated Equalizer Bars */}
-          <div className="flex items-end justify-center gap-1.5 h-5 mb-2">
-            <span className="w-1 bg-white/80 rounded-full animate-[bounce_1s_infinite_100ms] h-3" />
-            <span className="w-1 bg-white/90 rounded-full animate-[bounce_1s_infinite_300ms] h-5" />
-            <span className="w-1 bg-white/70 rounded-full animate-[bounce_1s_infinite_150ms] h-4" />
-            <span className="w-1 bg-white/90 rounded-full animate-[bounce_1s_infinite_400ms] h-5" />
-            <span className="w-1 bg-white/80 rounded-full animate-[bounce_1s_infinite_200ms] h-2.5" />
+          <div className="flex items-end justify-center gap-1.5 h-4 mb-2">
+            <span className={`w-1 bg-white/80 rounded-full h-3 ${playback?.isPlaying ? 'animate-[bounce_1s_infinite_100ms]' : ''}`} />
+            <span className={`w-1 bg-white/90 rounded-full h-4 ${playback?.isPlaying ? 'animate-[bounce_1s_infinite_300ms]' : ''}`} />
+            <span className={`w-1 bg-white/70 rounded-full h-3.5 ${playback?.isPlaying ? 'animate-[bounce_1s_infinite_150ms]' : ''}`} />
+            <span className={`w-1 bg-white/90 rounded-full h-4 ${playback?.isPlaying ? 'animate-[bounce_1s_infinite_400ms]' : ''}`} />
+            <span className={`w-1 bg-white/80 rounded-full h-2.5 ${playback?.isPlaying ? 'animate-[bounce_1s_infinite_200ms]' : ''}`} />
           </div>
 
-          <div className="flex items-center gap-1.5 mt-1">
+          <div className="flex items-center gap-1.5 mt-0.5">
             <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-mono flex items-center gap-1 font-medium">
               <Zap className="w-2.5 h-2.5 fill-emerald-400 text-emerald-400" />
               Data Saver (144p) Active
@@ -438,10 +479,10 @@ export default function Player({
       </div>
 
       {/* YouTube IFrame container: STATIC props so React never interferes with the iframe */}
-      <div className="absolute inset-0 z-0 w-full h-full pointer-events-none">
+      <div className="!absolute inset-0 z-0 w-full h-full pointer-events-none">
         <div id="youtube-iframe-target" className="w-full h-full" />
       </div>
-      <div className="absolute inset-0 bg-transparent pointer-events-none z-0" />
+      <div className="!absolute inset-0 bg-transparent pointer-events-none z-0" />
 
       {/* Invisible HTML5 Audio Keep-Alive Anchor to maintain Android OS background audio focus */}
       <audio

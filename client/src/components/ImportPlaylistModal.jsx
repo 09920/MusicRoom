@@ -68,26 +68,28 @@ export default function ImportPlaylistModal({ isOpen, onClose, onImportSuccess }
 
   return (
     <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
-      <div className="liquid-glass-strong rounded-[2rem] max-w-lg w-full p-6 sm:p-8 shadow-2xl relative">
+      <div className="liquid-glass-strong rounded-[2rem] max-w-lg w-full p-5 sm:p-7 shadow-2xl relative">
         
-        {/* Close Button */}
-        <button
-          onClick={handleClose}
-          className="absolute top-5 right-5 w-8 h-8 rounded-full liquid-glass flex items-center justify-center text-white/60 hover:text-white transition-colors"
-          aria-label="Close modal"
-        >
-          <X className="w-4 h-4" />
-        </button>
+        {/* Header with Title and Close Button */}
+        <div className="flex items-center justify-between gap-3 mb-5 pb-3 border-b border-white/10">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 rounded-full liquid-glass flex items-center justify-center font-heading italic text-xl text-white shrink-0">
+              m
+            </div>
+            <div className="min-w-0">
+              <h3 className="font-heading italic text-xl sm:text-2xl text-white truncate">Import Playlist</h3>
+              <p className="text-xs text-white/50 font-body font-light truncate">Add tracks directly into the room's live queue</p>
+            </div>
+          </div>
 
-        {/* Header */}
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 rounded-full liquid-glass flex items-center justify-center font-heading italic text-xl text-white">
-            m
-          </div>
-          <div>
-            <h3 className="font-heading italic text-2xl text-white">Import Playlist</h3>
-            <p className="text-xs text-white/50 font-body font-light">Add tracks directly into the room's live queue</p>
-          </div>
+          <button
+            type="button"
+            onClick={handleClose}
+            className="w-8 h-8 rounded-full liquid-glass flex items-center justify-center text-white/60 hover:text-white transition-colors active:scale-90 shrink-0"
+            aria-label="Close modal"
+          >
+            <X className="w-4 h-4" />
+          </button>
         </div>
 
         {error && (

@@ -94,14 +94,16 @@ export default function SongSearch({ roomId, canControl, onSongPicked }) {
         />
 
         {loading ? (
-          <Loader2 className="w-4 h-4 text-white/60 animate-spin absolute right-4" />
+          <Loader2 className="w-4 h-4 text-white/60 animate-spin absolute right-3.5" />
         ) : query ? (
           <button
+            type="button"
             onClick={handleClear}
-            className="w-8 h-8 rounded-full liquid-glass flex items-center justify-center text-white/60 hover:text-white transition-colors absolute right-2 active:scale-90"
+            className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white/70 hover:text-white transition-all absolute right-3 active:scale-90"
             title="Clear search"
+            aria-label="Clear search input"
           >
-            <X className="w-4 h-4" />
+            <X className="w-3.5 h-3.5" />
           </button>
         ) : null}
       </div>

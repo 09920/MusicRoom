@@ -28,6 +28,11 @@
   overflow: hidden;
 }
 
+.liquid-glass.absolute,
+.liquid-glass.\!absolute {
+  position: absolute;
+}
+
 .liquid-glass::before {
   content: "";
   position: absolute;
@@ -54,6 +59,11 @@
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.2);
   position: relative;
   overflow: hidden;
+}
+
+.liquid-glass-strong.absolute,
+.liquid-glass-strong.\!absolute {
+  position: absolute;
 }
 
 .liquid-glass-strong::before {
