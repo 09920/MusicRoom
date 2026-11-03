@@ -39,6 +39,79 @@ export default function Room({ initialRoom, currentSocketId, userId, onLeaveRoom
     }, 2500);
   };
 
+  // Persist current room state to localStorage for instantaneous client self-healing
+  useEffect(() => {
+    if (room?.id) {
+      try {
+        const snapshot = {
+          id: room.id,
+          name: room.name,
+          pin: room.pin,
+          hostMode: room.hostMode,
+          mood: room.mood,
+          currentSong: room.currentSong,
+          playback: room.playback,
+          queue,
+          playedHistory: room.playedHistory || [],
+          autoMode,
+          updatedAt: Date.now()
+        };
+        localStorage.setItem('musicroom_active_room_snapshot', JSON.stringify(snapshot));
+      } catch (_) {}
+    }
+  }, [room?.id, room?.currentSong?.videoId, room?.playback?.isPlaying, queue, autoMode, room?.playedHistory]);
+
+  // Keep-alive heartbeat: ping server every 4 minutes to prevent Render free-tier dyno from sleeping
+  useEffect(() => {
+    const pingInterval = setInterval(() => {
+      fetch('/api/ping').catch(() => {});
+    }, 4 * 60 * 1000);
+
+    return () => clearInterval(pingInterval);
+  }, []);
+
+  const triggerAutoRecover = () => {
+    if (!room?.id) return;
+    let savedSnapshot = null;
+    try {
+      const raw = localStorage.getItem('musicroom_active_room_snapshot');
+      if (raw) savedSnapshot = JSON.parse(raw);
+    } catch (_) {}
+
+    const snapshot = savedSnapshot || {
+      id: room.id,
+      name: room.name,
+      pin: room.pin,
+      hostMode: room.hostMode,
+      mood: room.mood,
+      currentSong: room.currentSong,
+      playback: room.playback,
+      queue,
+      playedHistory: room.playedHistory || [],
+      autoMode
+    };
+
+    let savedName = '';
+    try {
+      savedName = localStorage.getItem('musicroom_user_name') || '';
+    } catch (_) {}
+
+    socket.emit('room:auto_recover', {
+      roomId: room.id,
+      roomSnapshot: {
+        ...snapshot,
+        hostName: savedName || 'Host',
+        userId
+      }
+    }, (res) => {
+      if (res?.success && res.room) {
+        setRoom(res.room);
+        setQueue(res.room.queue || []);
+        addToast('Room connection restored', 'success');
+      }
+    });
+  };
+
   useEffect(() => {
     const handleSynced = (data) => {
       setRoom((prev) => ({
@@ -95,6 +168,11 @@ export default function Room({ initialRoom, currentSocketId, userId, onLeaveRoom
     };
 
     const handleGeneralToast = (data) => {
+      // Silently intercept "Room not found" and heal the room automatically without throwing error toast!
+      if (data?.message === 'Room not found' || data?.message?.includes('not found')) {
+        triggerAutoRecover();
+        return;
+      }
       addToast(data.message, data.type || 'info');
     };
 
@@ -126,6 +204,9 @@ export default function Room({ initialRoom, currentSocketId, userId, onLeaveRoom
           if (res?.success && res.room) {
             setRoom(res.room);
             setQueue(res.room.queue || []);
+          } else {
+            // Room missing on server (e.g. after server reboot) -> resurrect instantly!
+            triggerAutoRecover();
           }
         });
       }
@@ -265,7 +346,10 @@ export default function Room({ initialRoom, currentSocketId, userId, onLeaveRoom
         onLeaveRoom={onLeaveRoom}
         onCopyInvite={handleCopyInvite}
         onOpenImport={() => setIsImportModalOpen(true)}
-        onOpenHistory={() => setIsHistoryOpen(true)}
+        isImportOpen={isImportModalOpen}
+        onToggleImport={() => setIsImportModalOpen((prev) => !prev)}
+        onToggleHistory={() => setIsHistoryOpen((prev) => !prev)}
+        isHistoryOpen={isHistoryOpen}
         historyCount={room?.playedHistory?.length || 0}
       />
 

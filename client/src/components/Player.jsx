@@ -32,7 +32,7 @@ export default function Player({
       const next = !prev;
       try {
         localStorage.setItem('musicroom_audio_only', String(next));
-      } catch {}
+      } catch { }
       return next;
     });
   };
@@ -54,7 +54,7 @@ export default function Player({
               onSongEnd();
             }
           }
-        } catch (_) {}
+        } catch (_) { }
       }
     }, 400);
 
@@ -70,7 +70,7 @@ export default function Player({
         } else {
           playerRef.current.setPlaybackQuality('auto');
         }
-      } catch (_) {}
+      } catch (_) { }
     }
   }, [isAudioOnly, currentSong?.videoId]);
 
@@ -98,7 +98,7 @@ export default function Player({
                   playerRef.current.playVideo();
                 }
               }
-            } catch (_) {}
+            } catch (_) { }
           }, 350);
         }
         return true;
@@ -123,7 +123,7 @@ export default function Player({
           onReady: (event) => {
             setIsReady(true);
             if (playerRefOut) playerRefOut.current = event.target;
-            
+
             event.target.setVolume(volume);
             if (isMuted) event.target.mute();
 
@@ -133,7 +133,7 @@ export default function Player({
             if (playback?.isPlaying) {
               const playPromise = event.target.playVideo();
               if (playPromise && playPromise.catch) {
-                playPromise.catch(() => {});
+                playPromise.catch(() => { });
               }
             }
           },
@@ -154,7 +154,7 @@ export default function Player({
                   if (dur > 10 && cur >= dur - 3.5) {
                     onSongEnd();
                   }
-                } catch (_) {}
+                } catch (_) { }
               }
             }
           },
@@ -251,7 +251,7 @@ export default function Player({
   useEffect(() => {
     if (!silentAudioRef.current) return;
     if (playback?.isPlaying) {
-      silentAudioRef.current.play().catch(() => {});
+      silentAudioRef.current.play().catch(() => { });
     } else {
       silentAudioRef.current.pause();
     }
@@ -277,7 +277,7 @@ export default function Player({
       const setAction = (action, handler) => {
         try {
           navigator.mediaSession.setActionHandler(action, handler);
-        } catch (_) {}
+        } catch (_) { }
       };
 
       setAction('play', () => {
@@ -340,7 +340,7 @@ export default function Player({
             if (playerRef.current.getPlayerState() !== 1) {
               playerRef.current.playVideo();
             }
-          } catch (_) {}
+          } catch (_) { }
         }
       }
     };
@@ -410,9 +410,8 @@ export default function Player({
 
       {/* Transition Shield: Covers YouTube video when ending to completely hide YouTube's native watch-next grid */}
       <div
-        className={`!absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/95 backdrop-blur-xl transition-opacity duration-300 pointer-events-none ${
-          isEnding ? 'opacity-100' : 'opacity-0'
-        }`}
+        className={`!absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/95 backdrop-blur-xl transition-opacity duration-300 pointer-events-none ${isEnding ? 'opacity-100' : 'opacity-0'
+          }`}
       >
         <div className="w-12 h-12 rounded-full liquid-glass flex items-center justify-center mb-2.5">
           <Disc3 className="w-6 h-6 text-white/80 animate-spin" />
@@ -423,9 +422,8 @@ export default function Player({
 
       {/* Audio-Only Visualizer Screen (Overlay over video) */}
       <div
-        className={`!absolute inset-0 z-10 flex flex-col items-center justify-center p-4 sm:p-6 text-center overflow-hidden bg-black/95 backdrop-blur-xl transition-all duration-300 ${
-          isAudioOnly ? 'opacity-100 pointer-events-auto visible' : 'opacity-0 pointer-events-none invisible'
-        }`}
+        className={`!absolute inset-0 z-10 flex flex-col items-center justify-center p-4 sm:p-6 text-center overflow-hidden bg-black/95 backdrop-blur-xl transition-all duration-300 ${isAudioOnly ? 'opacity-100 pointer-events-auto visible' : 'opacity-0 pointer-events-none invisible'
+          }`}
       >
         {/* Ambient blurred backdrop glow */}
         {currentSong?.thumbnail && (

@@ -1,5 +1,19 @@
 // server/roomManager.js
 const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
+
+// Persistent storage configuration
+const DATA_DIR = path.join(__dirname, 'data');
+const ROOMS_FILE = path.join(DATA_DIR, 'active_rooms.json');
+
+try {
+  if (!fs.existsSync(DATA_DIR)) {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+  }
+} catch (e) {
+  console.warn('[Persistence] Warning: Could not create data directory:', e.message);
+}
 
 // Generate readable random room ID like 'a8f3-91cd-77b2'
 function generateRoomId() {
@@ -11,6 +25,73 @@ function generateRoomId() {
 
 // In-memory store for active rooms
 const rooms = new Map();
+
+// Debounced disk save to ensure rooms survive Render server restarts
+let saveTimer = null;
+function saveRoomsToDisk() {
+  if (saveTimer) clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    try {
+      const serializableRooms = [];
+      const now = Date.now();
+      for (const [id, r] of rooms.entries()) {
+        // Keep rooms active within last 48 hours
+        if (now - (r.createdAt || 0) < 48 * 60 * 60 * 1000) {
+          serializableRooms.push({
+            id: r.id,
+            name: r.name,
+            pin: r.pin,
+            hostMode: r.hostMode,
+            mood: r.mood,
+            createdAt: r.createdAt,
+            currentSong: r.currentSong,
+            playback: r.playback,
+            history: r.history || [],
+            playedHistory: r.playedHistory || [],
+            queue: r.queue || [],
+            messages: (r.messages || []).slice(-40),
+            autoMode: r.autoMode ?? true
+          });
+        }
+      }
+      fs.writeFileSync(ROOMS_FILE, JSON.stringify(serializableRooms, null, 2), 'utf8');
+    } catch (err) {
+      console.warn('[Persistence] Save to disk error:', err.message);
+    }
+  }, 1200);
+}
+
+function loadRoomsFromDisk() {
+  try {
+    if (fs.existsSync(ROOMS_FILE)) {
+      const raw = fs.readFileSync(ROOMS_FILE, 'utf8');
+      const list = JSON.parse(raw);
+      if (Array.isArray(list)) {
+        const now = Date.now();
+        let loaded = 0;
+        for (const item of list) {
+          if (item?.id && (now - (item.createdAt || 0) < 48 * 60 * 60 * 1000)) {
+            rooms.set(item.id.toLowerCase().trim(), {
+              ...item,
+              members: [],
+              hostSocketId: null,
+              emptyTimeout: null
+            });
+            loaded++;
+          }
+        }
+        if (loaded > 0) {
+          console.log(`[Persistence] Restored ${loaded} room(s) from persistent disk cache`);
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('[Persistence] Load from disk error:', err.message);
+  }
+}
+
+// Load persisted rooms on module load
+loadRoomsFromDisk();
 
 class RoomManager {
   /**
@@ -52,7 +133,66 @@ class RoomManager {
     };
 
     rooms.set(roomId, room);
+    saveRoomsToDisk();
     return room;
+  }
+
+  /**
+   * Resurrect a room from a client snapshot upon auto-recovery
+   */
+  resurrectRoom(snapshot, hostSocketId) {
+    if (!snapshot || !snapshot.id) return null;
+    const roomId = snapshot.id.toLowerCase().trim();
+    let room = rooms.get(roomId);
+
+    if (room) {
+      if (room.emptyTimeout) {
+        clearTimeout(room.emptyTimeout);
+        room.emptyTimeout = null;
+      }
+      return room;
+    }
+
+    const cleanUserId = snapshot.userId || `user_${hostSocketId}`;
+    const hostMember = {
+      id: hostSocketId,
+      userId: cleanUserId,
+      name: snapshot.hostName || snapshot.name?.replace("'s Room", "") || 'Host',
+      isHost: true,
+      joinedAt: Date.now()
+    };
+
+    room = {
+      id: roomId,
+      name: snapshot.name || 'Recovered Room',
+      pin: snapshot.pin || null,
+      hostMode: snapshot.hostMode || 'friendly',
+      mood: snapshot.mood || 'Hindi',
+      hostSocketId,
+      createdAt: snapshot.createdAt || Date.now(),
+      members: [hostMember],
+      currentSong: snapshot.currentSong || null,
+      playback: snapshot.playback || {
+        isPlaying: false,
+        currentTime: 0,
+        lastUpdated: Date.now()
+      },
+      history: snapshot.history || [],
+      playedHistory: snapshot.playedHistory || [],
+      queue: Array.isArray(snapshot.queue) ? snapshot.queue : [],
+      messages: Array.isArray(snapshot.messages) ? snapshot.messages : [],
+      autoMode: snapshot.autoMode ?? true,
+      emptyTimeout: null
+    };
+
+    rooms.set(roomId, room);
+    saveRoomsToDisk();
+    console.log(`[Auto-Recover] Resurrected room ${roomId} with ${room.queue.length} songs for host ${hostSocketId}`);
+    return room;
+  }
+
+  getAllRoomCount() {
+    return rooms.size;
   }
 
   /**
@@ -78,6 +218,11 @@ class RoomManager {
   reconnectMember(roomId, { userId = null, name = null }, socketId) {
     const room = this.getRoom(roomId);
     if (!room) return null;
+
+    if (room.emptyTimeout) {
+      clearTimeout(room.emptyTimeout);
+      room.emptyTimeout = null;
+    }
 
     const cleanName = name?.trim();
     const cleanUserId = userId;
@@ -215,11 +360,12 @@ class RoomManager {
           room.hostSocketId = room.members[0].id;
         }
 
-        // If room is now empty, schedule auto-deletion after 15 minutes
+        // If room is now empty, schedule auto-deletion after 45 minutes (generous grace period)
         if (room.members.length === 0) {
           room.emptyTimeout = setTimeout(() => {
             rooms.delete(roomId);
-          }, 15 * 60 * 1000);
+            saveRoomsToDisk();
+          }, 45 * 60 * 1000);
         }
 
         return { room, leftMember };
@@ -272,6 +418,8 @@ class RoomManager {
       room.playback.currentTime = time;
       room.playback.lastUpdated = now;
     }
+
+    saveRoomsToDisk();
 
     return {
       room,
@@ -330,6 +478,8 @@ class RoomManager {
       lastUpdated: Date.now()
     };
 
+    saveRoomsToDisk();
+
     return {
       room,
       song: room.currentSong,
@@ -373,6 +523,7 @@ class RoomManager {
     };
 
     room.queue.push(queueItem);
+    saveRoomsToDisk();
 
     return {
       playedNow: false,
@@ -408,6 +559,7 @@ class RoomManager {
     }));
 
     room.queue.push(...formattedSongs);
+    saveRoomsToDisk();
 
     return {
       room,
@@ -465,6 +617,7 @@ class RoomManager {
     const index = room.queue.findIndex(item => item.queueId === queueId);
     if (index !== -1) {
       room.queue.splice(index, 1);
+      saveRoomsToDisk();
     }
 
     return { room, queue: room.queue };
@@ -482,6 +635,7 @@ class RoomManager {
     }
 
     room.queue = [];
+    saveRoomsToDisk();
     return { room, queue: room.queue };
   }
 
@@ -497,6 +651,7 @@ class RoomManager {
     }
 
     room.autoMode = !room.autoMode;
+    saveRoomsToDisk();
     const member = room.members.find(m => m.id === socketId);
     const actorName = member ? member.name : 'Someone';
 

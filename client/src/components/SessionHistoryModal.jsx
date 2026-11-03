@@ -1,8 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { History, Copy, Check, X, ExternalLink, Play, Disc3 } from 'lucide-react';
 
 export default function SessionHistoryModal({ isOpen, onClose, history = [], onPlaySong, canControl }) {
   const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -19,40 +28,47 @@ export default function SessionHistoryModal({ isOpen, onClose, history = [], onP
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+    <div 
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+      className="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200"
+    >
       <div className="relative w-full max-w-lg rounded-3xl liquid-glass-strong border border-white/10 p-5 sm:p-6 shadow-2xl flex flex-col max-h-[85vh]">
         
-        {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-white/10 shrink-0">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full liquid-glass flex items-center justify-center text-purple-400">
+        {/* Sticky Header with Title and Close Button */}
+        <div className="flex items-center justify-between pb-3.5 border-b border-white/10 shrink-0">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-8 h-8 rounded-full liquid-glass flex items-center justify-center text-purple-400 shrink-0">
               <History className="w-4 h-4" />
             </div>
-            <div>
-              <h3 className="font-heading italic text-xl text-white">Session History</h3>
-              <p className="text-[11px] text-white/50 font-body">
-                {history.length} songs played in this session
+            <div className="min-w-0">
+              <h3 className="font-heading italic text-xl text-white truncate">Session History</h3>
+              <p className="text-[11px] text-white/50 font-body truncate">
+                {history.length} {history.length === 1 ? 'song' : 'songs'} played in this session
               </p>
             </div>
           </div>
 
           <button
+            type="button"
             onClick={onClose}
-            className="w-8 h-8 rounded-full liquid-glass flex items-center justify-center text-white/60 hover:text-white transition-colors active:scale-90"
+            className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white/70 hover:text-white transition-all active:scale-90 shrink-0"
+            aria-label="Close session history"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Action bar */}
-        <div className="flex items-center justify-between py-3 shrink-0">
-          <span className="text-xs text-white/60 font-body">
-            All songs played during this room session
+        <div className="flex items-center justify-between py-2.5 shrink-0">
+          <span className="text-xs text-white/60 font-body truncate pr-2">
+            Tracks played during this session
           </span>
           {history.length > 0 && (
             <button
               onClick={handleCopyTracklist}
-              className="px-3 py-1.5 rounded-full liquid-glass text-xs font-medium text-white hover:bg-white/10 flex items-center gap-1.5 transition-all active:scale-95 border border-white/10"
+              className="px-3 py-1.5 rounded-full liquid-glass text-xs font-medium text-white hover:bg-white/10 flex items-center gap-1.5 transition-all active:scale-95 border border-white/10 shrink-0"
               title="Copy tracklist to clipboard"
             >
               {copied ? (
@@ -74,7 +90,7 @@ export default function SessionHistoryModal({ isOpen, onClose, history = [], onP
         <div className="flex-1 overflow-y-auto pr-1 space-y-2 min-h-[200px]">
           {history.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-center text-white/40 py-12">
-              <Disc3 className="w-10 h-10 text-white/20 mb-2 animate-spin-slow stroke-[1.5]" />
+              <Disc3 className="w-10 h-10 text-white/20 mb-2 animate-spin stroke-[1.5]" />
               <p className="font-medium text-white/60 font-body text-sm">No songs played yet</p>
               <p className="text-xs text-white/30 mt-1 font-body font-light">
                 Songs will automatically appear here as they play!
@@ -133,6 +149,20 @@ export default function SessionHistoryModal({ isOpen, onClose, history = [], onP
               </div>
             ))
           )}
+        </div>
+
+        {/* Mobile-Friendly Sticky Bottom Done / Close Button */}
+        <div className="pt-3 border-t border-white/10 shrink-0 flex items-center justify-between gap-3">
+          <span className="text-[11px] text-white/40 font-mono">
+            {history.length} {history.length === 1 ? 'track recorded' : 'tracks recorded'}
+          </span>
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-5 py-2 rounded-full bg-white text-black hover:bg-white/90 text-xs font-semibold flex items-center gap-1.5 transition-all active:scale-95 shadow-md shadow-white/10"
+          >
+            Close History
+          </button>
         </div>
 
       </div>

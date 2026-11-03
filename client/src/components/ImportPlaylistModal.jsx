@@ -67,7 +67,12 @@ export default function ImportPlaylistModal({ isOpen, onClose, onImportSuccess }
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
+    <div 
+      onClick={(e) => {
+        if (e.target === e.currentTarget) handleClose();
+      }}
+      className="fixed inset-0 z-[70] bg-black/85 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200"
+    >
       <div className="liquid-glass-strong rounded-[2rem] max-w-lg w-full p-5 sm:p-7 shadow-2xl relative">
         
         {/* Header with Title and Close Button */}

@@ -59,6 +59,15 @@ app.get('/api/room/:roomId', (req, res) => {
   });
 });
 
+// Lightweight keep-alive heartbeat endpoint for Render free tier
+app.get('/api/ping', (req, res) => {
+  res.json({
+    status: 'ok',
+    activeRooms: roomManager.getAllRoomCount?.() || 0,
+    timestamp: Date.now()
+  });
+});
+
 // Serve frontend build if available (for production / Render)
 const clientDistPath = path.join(__dirname, '../client/dist');
 app.use(express.static(clientDistPath));
@@ -105,6 +114,46 @@ io.on('connection', (socket) => {
     const state = roomManager.getPublicRoomState(result.room);
     if (typeof callback === 'function') {
       callback({ success: true, room: state });
+    }
+  });
+
+  // Auto-Recover room from client snapshot if ever dropped or missing on server
+  socket.on('room:auto_recover', (payload, callback) => {
+    try {
+      const rid = payload?.roomId || payload?.roomSnapshot?.id;
+      if (!rid) {
+        if (typeof callback === 'function') callback({ success: false, error: 'No room ID provided' });
+        return;
+      }
+
+      let room = roomManager.getRoom(rid);
+      if (!room && payload?.roomSnapshot) {
+        room = roomManager.resurrectRoom(payload.roomSnapshot, socket.id);
+      } else if (room) {
+        const result = roomManager.reconnectMember(rid, payload.roomSnapshot || {}, socket.id);
+        if (result?.room) room = result.room;
+      }
+
+      if (!room) {
+        if (typeof callback === 'function') callback({ success: false, error: 'Unable to recover room' });
+        return;
+      }
+
+      currentRoomId = room.id;
+      socket.join(room.id);
+
+      const state = roomManager.getPublicRoomState(room);
+      if (typeof callback === 'function') {
+        callback({ success: true, room: state, yourSocketId: socket.id });
+      }
+
+      io.in(room.id).emit('room:member_joined', {
+        members: room.members,
+        message: null
+      });
+    } catch (e) {
+      console.error('room:auto_recover error:', e);
+      if (typeof callback === 'function') callback({ success: false, error: 'Recovery failed' });
     }
   });
 

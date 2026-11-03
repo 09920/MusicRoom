@@ -1,7 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { Copy, Check, LogOut, Plus, Music2, ArrowUpRight, History, Download } from 'lucide-react';
 
-export default function Navbar({ room, onLeaveRoom, onCopyInvite, onOpenImport, onOpenHistory, historyCount = 0 }) {
+export default function Navbar({ 
+  room, 
+  onLeaveRoom, 
+  onCopyInvite, 
+  onOpenImport, 
+  onToggleHistory,
+  isHistoryOpen = false,
+  isImportOpen = false,
+  onToggleImport,
+  historyCount = 0 
+}) {
   const [copied, setCopied] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState(null);
 
@@ -72,23 +82,31 @@ export default function Navbar({ room, onLeaveRoom, onCopyInvite, onOpenImport, 
               </button>
             )}
 
-            {/* History Pill */}
-            {onOpenHistory && (
+            {/* History Pill: 1-Tap Toggle Open / Close */}
+            {onToggleHistory && (
               <button
-                onClick={onOpenHistory}
-                className="w-9 h-9 sm:w-auto px-0 sm:px-3 py-0 sm:py-1.5 rounded-full liquid-glass text-xs font-medium text-white/90 hover:text-white transition-all active:scale-95 flex items-center justify-center gap-1.5 shrink-0"
-                title="View all songs played in this session"
+                onClick={onToggleHistory}
+                className={`w-9 h-9 sm:w-auto px-0 sm:px-3 py-0 sm:py-1.5 rounded-full text-xs font-medium transition-all active:scale-95 flex items-center justify-center gap-1.5 shrink-0 ${
+                  isHistoryOpen
+                    ? 'bg-purple-600/30 text-purple-200 border border-purple-500/50 shadow-md shadow-purple-500/20'
+                    : 'liquid-glass text-white/90 hover:text-white'
+                }`}
+                title={isHistoryOpen ? "Close session history" : "View all songs played in this session"}
                 aria-label="Session History"
               >
-                <History className="w-4 h-4 sm:w-3.5 sm:h-3.5 text-purple-400" />
+                <History className={`w-4 h-4 sm:w-3.5 sm:h-3.5 ${isHistoryOpen ? 'text-purple-300' : 'text-purple-400'}`} />
                 <span className="hidden sm:inline">History {historyCount > 0 ? `(${historyCount})` : ''}</span>
               </button>
             )}
 
             {/* Import Playlist: Primary Pill */}
             <button
-              onClick={onOpenImport}
-              className="w-9 h-9 sm:w-auto px-0 sm:px-3.5 py-0 sm:py-1.5 rounded-full bg-white text-black hover:bg-white/90 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all active:scale-95 shadow-md shadow-white/10 shrink-0"
+              onClick={onToggleImport || onOpenImport}
+              className={`w-9 h-9 sm:w-auto px-0 sm:px-3.5 py-0 sm:py-1.5 rounded-full text-xs font-semibold flex items-center justify-center gap-1.5 transition-all active:scale-95 shadow-md shadow-white/10 shrink-0 ${
+                isImportOpen
+                  ? 'bg-zinc-800 text-white border border-white/30'
+                  : 'bg-white text-black hover:bg-white/90'
+              }`}
               title="Import YouTube or Spotify Playlist"
               aria-label="Import Playlist"
             >
