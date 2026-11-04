@@ -16,8 +16,12 @@ export default function Player({
 }) {
   const playerRef = useRef(null);
   const silentAudioRef = useRef(null);
+  const lastServerTimeRef = useRef(0);
+  const bufferStallCountRef = useRef(0);
   const [isReady, setIsReady] = useState(false);
   const [isEnding, setIsEnding] = useState(false);
+  const [showSyncBadge, setShowSyncBadge] = useState(false);
+  const [syncDrift, setSyncDrift] = useState(0);
   const isRemoteActionRef = useRef(false);
   const [isAudioOnly, setIsAudioOnly] = useState(() => {
     try {
@@ -61,11 +65,12 @@ export default function Player({
     return () => clearInterval(endCheckInterval);
   }, [isHost, onSongEnd]);
 
-  // Set 144p quality when in audio-only mode to save ~85% mobile data & battery
+  // Set 144p quality when in audio-only mode or on mobile to save ~85% mobile data & prevent buffering
   useEffect(() => {
     if (playerRef.current && typeof playerRef.current.setPlaybackQuality === 'function') {
       try {
-        if (isAudioOnly) {
+        const isMobile = /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        if (isAudioOnly || isMobile) {
           playerRef.current.setPlaybackQuality('tiny');
         } else {
           playerRef.current.setPlaybackQuality('auto');
@@ -126,6 +131,13 @@ export default function Player({
 
             event.target.setVolume(volume);
             if (isMuted) event.target.mute();
+
+            try {
+              const isMobile = /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+              if (isAudioOnly || isMobile) {
+                event.target.setPlaybackQuality('tiny');
+              }
+            } catch (_) { }
 
             if (playback?.currentTime > 0) {
               event.target.seekTo(playback.currentTime, true);
@@ -201,6 +213,13 @@ export default function Player({
 
       try {
         const { action, currentTime, isPlaying } = data;
+        lastServerTimeRef.current = currentTime;
+
+        // Reset rate on explicit sync actions
+        if (typeof playerRef.current.setPlaybackRate === 'function') {
+          playerRef.current.setPlaybackRate(1.0);
+        }
+
         if (action === 'play' || isPlaying) {
           playerRef.current.seekTo(currentTime, true);
           playerRef.current.playVideo();
@@ -210,6 +229,7 @@ export default function Player({
         } else if (action === 'seek') {
           playerRef.current.seekTo(currentTime, true);
         }
+        setShowSyncBadge(false);
       } catch (err) {
         console.error('Player sync error:', err);
       } finally {
@@ -220,17 +240,65 @@ export default function Player({
     };
 
     const handleHeartbeat = (data) => {
-      if (!playerRef.current || !isReady) return;
+      // Host is source of truth; never adjust host playback
+      if (!playerRef.current || !isReady || isHost) return;
       try {
         if (typeof playerRef.current.getCurrentTime !== 'function') return;
+
+        const state = typeof playerRef.current.getPlayerState === 'function'
+          ? playerRef.current.getPlayerState()
+          : -1;
+
+        // CRITICAL GUARD: Never interrupt YouTube while it is actively downloading / buffering stream chunks!
+        if (state === 3) return;
+
         const localTime = playerRef.current.getCurrentTime();
         const serverTime = data.currentTime;
-        const drift = Math.abs(localTime - serverTime);
+        lastServerTimeRef.current = serverTime;
+        const timeDiff = serverTime - localTime; // Positive = listener is behind host
+        const drift = Math.abs(timeDiff);
 
-        if (drift > 1.8) {
-          playerRef.current.seekTo(serverTime, true);
-          if (data.isPlaying && playerRef.current.getPlayerState() !== 1) {
-            playerRef.current.playVideo();
+        setSyncDrift(timeDiff);
+
+        // 1. Tightly in sync (drift < 1.0s): keep normal 1.0x rate
+        if (drift < 1.0) {
+          setShowSyncBadge(false);
+          if (typeof playerRef.current.getPlaybackRate === 'function') {
+            if (playerRef.current.getPlaybackRate() !== 1.0) {
+              playerRef.current.setPlaybackRate(1.0);
+            }
+          }
+          return;
+        }
+
+        // 2. Minor drift (1.0s - 4.5s): Smooth Speed Catch-Up (NO skip cuts!)
+        if (drift >= 1.0 && drift <= 4.5 && data.isPlaying) {
+          setShowSyncBadge(false);
+          if (typeof playerRef.current.setPlaybackRate === 'function') {
+            if (timeDiff > 0) {
+              // Listener is behind -> speed up slightly without audible pitch change
+              playerRef.current.setPlaybackRate(1.08);
+            } else {
+              // Listener is slightly ahead -> slow down smoothly
+              playerRef.current.setPlaybackRate(0.94);
+            }
+          }
+          return;
+        }
+
+        // 3. Moderate drift (4.5s - 15s): Show 1-tap "Sync with Host" badge instead of harsh audio jump
+        if (drift > 4.5) {
+          setShowSyncBadge(true);
+          // Only hard seek if listener is massively out of sync (> 15s) and currently playing
+          if (drift > 15 && data.isPlaying) {
+            playerRef.current.seekTo(serverTime, true);
+            if (typeof playerRef.current.setPlaybackRate === 'function') {
+              playerRef.current.setPlaybackRate(1.0);
+            }
+            if (state !== 1) {
+              playerRef.current.playVideo();
+            }
+            setShowSyncBadge(false);
           }
         }
       } catch (err) {
@@ -245,7 +313,38 @@ export default function Player({
       socket.off('player:synced', handleSynced);
       socket.off('player:heartbeat', handleHeartbeat);
     };
-  }, [isReady]);
+  }, [isReady, isHost]);
+
+  // Buffer Watchdog: If YouTube stays stuck in state 3 (Buffering) for > 4.5 seconds, unfreeze & force 144p
+  useEffect(() => {
+    const watchdogInterval = setInterval(() => {
+      if (!playerRef.current || !isReady) return;
+      try {
+        const state = typeof playerRef.current.getPlayerState === 'function'
+          ? playerRef.current.getPlayerState()
+          : -1;
+
+        if (state === 3 && playback?.isPlaying) {
+          bufferStallCountRef.current = (bufferStallCountRef.current || 0) + 1;
+          // Stalled for ~4 seconds
+          if (bufferStallCountRef.current >= 4) {
+            console.log('Buffer stall watchdog: restoring playback at 144p');
+            if (typeof playerRef.current.setPlaybackQuality === 'function') {
+              playerRef.current.setPlaybackQuality('tiny');
+            }
+            if (typeof playerRef.current.playVideo === 'function') {
+              playerRef.current.playVideo();
+            }
+            bufferStallCountRef.current = 0;
+          }
+        } else {
+          bufferStallCountRef.current = 0;
+        }
+      } catch (_) { }
+    }, 1000);
+
+    return () => clearInterval(watchdogInterval);
+  }, [isReady, playback?.isPlaying]);
 
   // Audio Keep-Alive Anchor to maintain Android OS background audio focus
   useEffect(() => {
@@ -352,6 +451,25 @@ export default function Player({
       window.removeEventListener('focus', handleVisibilityChange);
     };
   }, [playback?.isPlaying]);
+
+  const handleManualSync = () => {
+    if (!playerRef.current) return;
+    try {
+      const targetTime = lastServerTimeRef.current || 0;
+      if (typeof playerRef.current.seekTo === 'function') {
+        playerRef.current.seekTo(targetTime, true);
+      }
+      if (typeof playerRef.current.setPlaybackRate === 'function') {
+        playerRef.current.setPlaybackRate(1.0);
+      }
+      if (typeof playerRef.current.playVideo === 'function') {
+        playerRef.current.playVideo();
+      }
+      setShowSyncBadge(false);
+    } catch (err) {
+      console.error('Manual sync error:', err);
+    }
+  };
 
   // Clean Liquid-Glass Fresh Start State
   if (!currentSong) {
@@ -476,11 +594,37 @@ export default function Player({
         </div>
       </div>
 
+      {/* 1-Tap Sync with Host Floating Badge */}
+      {showSyncBadge && !isHost && playback?.isPlaying && (
+        <button
+          onClick={handleManualSync}
+          className="!absolute bottom-3.5 left-3.5 z-20 px-3 py-1.5 rounded-full liquid-glass-strong text-amber-300 hover:text-amber-200 border border-amber-500/40 text-xs font-medium flex items-center gap-1.5 shadow-xl animate-pulse active:scale-95 transition-all"
+          title="Click to instantly sync with host"
+        >
+          <Zap className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+          <span>Sync with Host ({Math.max(1, Math.round(Math.abs(syncDrift)))}s behind)</span>
+        </button>
+      )}
+
+      {/* Touch Shield: Intercepts mobile touches to prevent YouTube iframe from stealing focus, showing pause icons, or popping native UI */}
+      <div
+        onClick={() => {
+          if (canControl && onPlaybackChange) {
+            const nextPlaying = !playback?.isPlaying;
+            socket.emit('player:action', {
+              action: nextPlaying ? 'play' : 'pause',
+              currentTime: playerRef.current?.getCurrentTime ? playerRef.current.getCurrentTime() : 0
+            });
+          }
+        }}
+        className="!absolute inset-0 z-[5] bg-transparent cursor-pointer"
+        title={canControl ? (playback?.isPlaying ? "Click to Pause" : "Click to Play") : "MusicRoom Stream"}
+      />
+
       {/* YouTube IFrame container: STATIC props so React never interferes with the iframe */}
       <div className="!absolute inset-0 z-0 w-full h-full pointer-events-none">
         <div id="youtube-iframe-target" className="w-full h-full" />
       </div>
-      <div className="!absolute inset-0 bg-transparent pointer-events-none z-0" />
 
       {/* Invisible HTML5 Audio Keep-Alive Anchor to maintain Android OS background audio focus */}
       <audio
