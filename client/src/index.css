@@ -8,7 +8,7 @@
     touch-action: manipulation;
   }
   body {
-    @apply bg-[#090a0f] text-[#e3e1ee] overflow-x-hidden;
+    @apply bg-surface text-on-surface overflow-x-hidden;
     font-family: 'Inter', system-ui, sans-serif;
     min-height: 100dvh;
     -webkit-font-smoothing: antialiased;

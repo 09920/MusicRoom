@@ -1,33 +1,5 @@
 import React, { useState } from 'react';
-import { 
-  Compass, 
-  Search, 
-  Library, 
-  ListMusic, 
-  Plus, 
-  Users, 
-  MessageSquare, 
-  Send, 
-  Play, 
-  Pause, 
-  SkipBack, 
-  SkipForward, 
-  Heart, 
-  Volume2, 
-  VolumeX, 
-  Radio, 
-  Video, 
-  Headphones, 
-  Maximize2,
-  Trash2,
-  Music2,
-  LayoutGrid,
-  Sparkles,
-  Download,
-  FolderPlus
-} from 'lucide-react';
 import { usePlayer } from '../context/PlayerContext';
-import { socket } from '../socket';
 
 function formatTime(sec) {
   if (isNaN(sec) || sec === null || sec === undefined) return '0:00';
@@ -41,388 +13,306 @@ export function DesktopLeftSidebar() {
     activeTab,
     setActiveTab,
     playlists,
-    librarySubTab,
-    setLibrarySubTab,
     setPlaylistModalMode,
-    playPlaylist,
     openPlaylist,
     activeRoom,
     roomMembers,
     setIsPartyModalOpen,
     setIsImportModalOpen,
-    setSelectedMood
+    likedSongs,
+    playPlaylist
   } = usePlayer();
 
   return (
-    <aside className="w-60 xl:w-64 shrink-0 border-r border-white/[0.08] p-4 flex flex-col justify-between h-[calc(100vh-96px)] bg-[#0d0e16]/80 backdrop-blur-2xl select-none">
-      <div className="space-y-5 overflow-y-auto pr-1 no-scrollbar">
-        {/* Brand: Aether Sound Studio (Stitch Mockup) */}
+    <aside className="fixed left-0 top-0 bottom-20 w-64 bg-surface-container-low z-40 flex flex-col justify-between shadow-[0_1px_8px_rgba(0,0,0,0.04)] select-none border-r border-surface-container-high">
+      <div className="flex flex-col flex-1 min-h-0">
+        
+        {/* Brand Header */}
         <div 
           onClick={() => setActiveTab('discover')}
-          className="flex items-center gap-3 px-1 py-1 cursor-pointer group"
+          className="px-gutter-sm pt-space-lg pb-space-md flex items-center justify-between cursor-pointer group"
         >
-          <img 
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuDENrmzmKL9KqZ4D7hQkQXZUu9zQC1k3dQg44UK6O7tfFDjbPU-Dj3aLMyhpOWpe9df8vsxGpZZUi7mZDkEHGTlktP4Npdv76h4lkXoAC-p7LqHPdoy2MoAcemcbv0A7vvbvCYrgcys7YWW6lzF0Tcnf_aYKsukYd9iTOtocoSts_udHkz2Zc5-aGdV-GI8c4UZsy_Sngu-PucjzYT2GMRo2zxxiDUxrwdWtmLvFOU" 
-            alt="Aether Sound Logo" 
-            className="h-8 w-auto object-contain group-hover:scale-105 transition-transform" 
-          />
-          <div className="flex flex-col">
-            <span className="font-headline font-bold text-lg text-white tracking-tight leading-none">
-              Aether
-            </span>
-            <span className="font-mono text-[9px] text-[#4cd7f6] tracking-widest uppercase mt-0.5 font-bold">
-              Sound Studio
+          <div className="flex items-center gap-space-sm">
+            <img 
+              alt="MusicRoom Brand Mark" 
+              className="h-8 w-auto object-contain transition-transform group-hover:scale-105" 
+              src="https://lh3.googleusercontent.com/aida/ALJJyrBOkg2RAx8dgowYF5zHZZ2e5aYwPREUsOUawFJlwR7Rt3x95vsabcN1lAzcarKZWgPGIQ1fpHcfi5H-6uAF0niJe2Skch_9yiGnmulyJS_rt8a9RAe-_zRprOlra9AWWFC-VPITVQXvE42EXKTBz14gFfkBhLUjToMJ32DhfDfStFc-ngsHLucBEwMfwE01y7MhUOC_3nlAfqe28xOxFYzZ6MJOqTp3X27z-pmgQKU" 
+            />
+            <span className="font-title text-title-lg font-bold text-on-surface tracking-tight">
+              MusicRoom
             </span>
           </div>
         </div>
 
-        {/* Section 1: Main Menu */}
-        <div className="space-y-1">
-          <span className="px-2 text-[10px] font-mono uppercase tracking-wider text-[#958ea0] font-semibold">
+        {/* Section: Menu */}
+        <div className="px-gutter-sm pt-space-xs">
+          <p className="px-space-sm pb-space-xs text-label-sm font-label-sm text-outline uppercase tracking-wider font-semibold">
             Menu
-          </span>
-          <nav className="space-y-1 pt-1">
+          </p>
+          <nav className="flex flex-col gap-1">
             <button
               type="button"
               onClick={() => setActiveTab('discover')}
-              className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-headline font-semibold transition-all ${
+              className={`flex items-center gap-space-sm px-space-sm py-2 rounded-lg transition-colors text-left ${
                 activeTab === 'discover'
-                  ? 'bg-[#a078ff] text-[#340080] shadow-[0_0_16px_rgba(160,120,255,0.35)] font-bold'
-                  : 'text-[#cbc3d7] hover:text-white hover:bg-[#1e1f28]'
+                  ? 'bg-surface-container-high text-primary font-bold'
+                  : 'text-on-surface-variant hover:bg-surface-container hover:text-on-surface'
               }`}
             >
-              <Compass className="w-4 h-4 text-[#4cd7f6]" />
-              <span>Discover</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                setActiveTab('discover');
-                setSelectedMood('Trending');
-              }}
-              className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-headline font-semibold text-[#cbc3d7] hover:text-white hover:bg-[#1e1f28] transition-all"
-            >
-              <Radio className="w-4 h-4" />
-              <span>Radio</span>
+              <span className="material-symbols-outlined text-title-md font-normal">explore</span>
+              <span className="font-title text-title-sm font-medium">Discovery</span>
             </button>
 
             <button
               type="button"
               onClick={() => setActiveTab('search')}
-              className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-headline font-semibold transition-all ${
+              className={`flex items-center gap-space-sm px-space-sm py-2 rounded-lg transition-colors text-left ${
                 activeTab === 'search'
-                  ? 'bg-[#a078ff] text-[#340080] shadow-[0_0_16px_rgba(160,120,255,0.35)] font-bold'
-                  : 'text-[#cbc3d7] hover:text-white hover:bg-[#1e1f28]'
+                  ? 'bg-surface-container-high text-primary font-bold'
+                  : 'text-on-surface-variant hover:bg-surface-container hover:text-on-surface'
               }`}
             >
-              <LayoutGrid className="w-4 h-4" />
-              <span>Explore Genres</span>
+              <span className="material-symbols-outlined text-title-md font-normal">search</span>
+              <span className="font-title text-title-sm font-medium">Search &amp; Explore</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab('library')}
+              className={`flex items-center gap-space-sm px-space-sm py-2 rounded-lg transition-colors text-left ${
+                activeTab === 'library'
+                  ? 'bg-surface-container-high text-primary font-bold'
+                  : 'text-on-surface-variant hover:bg-surface-container hover:text-on-surface'
+              }`}
+            >
+              <span className="material-symbols-outlined text-title-md font-normal">library_music</span>
+              <span className="font-title text-title-sm font-medium">Your Library</span>
             </button>
 
             <button
               type="button"
               onClick={() => setIsPartyModalOpen(true)}
-              className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-headline font-semibold text-[#cbc3d7] hover:text-[#4cd7f6] hover:bg-[#1e1f28] transition-all group"
+              className="flex items-center justify-between px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors group text-left"
             >
-              <Users className="w-4 h-4 text-[#4cd7f6] group-hover:scale-110 transition-transform" />
-              <div className="flex items-center justify-between flex-1">
-                <span>Live Sessions</span>
-                <span className="w-2 h-2 rounded-full bg-[#ff516a] animate-pulse" />
+              <div className="flex items-center gap-space-sm">
+                <span className="material-symbols-outlined text-title-md font-normal text-secondary">podcasts</span>
+                <span className="font-title text-title-sm font-medium">Aux Room</span>
               </div>
-            </button>
-          </nav>
-        </div>
-
-        {/* Section 2: Your Library */}
-        <div className="space-y-1">
-          <span className="px-2 text-[10px] font-mono uppercase tracking-wider text-[#958ea0] font-semibold">
-            Your Library
-          </span>
-          <nav className="space-y-1 pt-1">
-            <button
-              type="button"
-              onClick={() => {
-                setActiveTab('library');
-                setLibrarySubTab('smart-mixes');
-              }}
-              className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-headline font-semibold transition-all ${
-                activeTab === 'library' && librarySubTab === 'smart-mixes'
-                  ? 'bg-[#a078ff] text-[#340080] shadow-[0_0_16px_rgba(160,120,255,0.35)]'
-                  : 'text-[#cbc3d7] hover:text-white hover:bg-[#1e1f28]'
-              }`}
-            >
-              <Sparkles className="w-4 h-4 text-[#d0bcff]" />
-              <span>Made for You</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                setActiveTab('library');
-                setLibrarySubTab('liked');
-              }}
-              className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-headline font-semibold transition-all ${
-                activeTab === 'library' && librarySubTab === 'liked'
-                  ? 'bg-[#a078ff] text-[#340080] shadow-[0_0_16px_rgba(160,120,255,0.35)]'
-                  : 'text-[#cbc3d7] hover:text-white hover:bg-[#1e1f28]'
-              }`}
-            >
-              <Heart className="w-4 h-4 text-[#ff516a]" />
-              <span>Liked Songs</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                setActiveTab('library');
-                setLibrarySubTab('playlists');
-              }}
-              className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-headline font-semibold transition-all ${
-                activeTab === 'library' && librarySubTab === 'playlists'
-                  ? 'bg-[#a078ff] text-[#340080] shadow-[0_0_16px_rgba(160,120,255,0.35)]'
-                  : 'text-[#cbc3d7] hover:text-white hover:bg-[#1e1f28]'
-              }`}
-            >
-              <ListMusic className="w-4 h-4 text-[#4cd7f6]" />
-              <span>Recent Playlists</span>
+              {activeRoom ? (
+                <span className="w-2 h-2 rounded-full bg-secondary animate-pulse" title="Connected to Party" />
+              ) : (
+                <span className="text-[10px] font-metric-mono px-1.5 py-0.5 rounded bg-surface-container-highest text-secondary uppercase font-semibold">
+                  Live
+                </span>
+              )}
             </button>
 
             <button
               type="button"
               onClick={() => setIsImportModalOpen(true)}
-              className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-headline font-semibold text-[#cbc3d7] hover:text-white hover:bg-[#1e1f28] transition-all"
+              className="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors text-left"
             >
-              <Download className="w-4 h-4 text-[#a078ff]" />
-              <span>Import Playlist</span>
+              <span className="material-symbols-outlined text-title-md font-normal text-primary">sync_alt</span>
+              <span className="font-title text-title-sm font-medium">Playlist Importer</span>
             </button>
           </nav>
         </div>
 
-        {/* Live Collab telemetry strip if room active */}
-        {activeRoom && (
-          <div className="p-2.5 rounded-xl bg-[#1a1b24] border border-[#a078ff]/30 space-y-1">
-            <div className="flex items-center justify-between text-[11px] font-mono">
-              <span className="text-[#4cd7f6] flex items-center gap-1.5 font-semibold">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#4cd7f6] animate-pulse" />
-                #{activeRoom.id}
-              </span>
-              <span className="text-[#cbc3d7]/60">0.12ms sync</span>
-            </div>
-            <span className="text-[10px] text-[#cbc3d7] block">
-              {roomMembers.length} peers connected in-sync
+        {/* Section: Playlists */}
+        <div className="flex-1 flex flex-col min-h-0 px-gutter-sm mt-space-md">
+          <div className="flex items-center justify-between px-space-sm pb-space-xs">
+            <span className="text-label-sm font-label-sm text-outline uppercase tracking-wider font-semibold">
+              Playlists
             </span>
+            <button
+              type="button"
+              onClick={() => setPlaylistModalMode('create')}
+              className="flex items-center text-outline hover:text-on-surface text-label-sm font-label-sm p-1 rounded hover:bg-surface-container transition-colors"
+              title="Create new playlist"
+            >
+              <span className="material-symbols-outlined text-title-sm">add</span>
+            </button>
           </div>
-        )}
 
-        {/* User Playlists */}
-        {playlists.length > 0 && (
-          <div className="border-t border-white/[0.08] pt-3">
-            <div className="flex items-center justify-between px-2 mb-2">
-              <span className="text-[10px] font-mono uppercase tracking-wider text-[#958ea0] font-semibold">
-                Your Playlists
+          <div className="flex-1 overflow-y-auto flex flex-col gap-1 pr-1">
+            {/* Liked Songs Entry */}
+            <button
+              type="button"
+              onClick={() => {
+                setActiveTab('library');
+              }}
+              className="flex items-center justify-between px-space-sm py-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors text-left"
+            >
+              <div className="flex items-center gap-2 truncate">
+                <span className="material-symbols-outlined text-title-sm text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>
+                  favorite
+                </span>
+                <span className="truncate font-body-sm text-body-sm font-medium">Liked Songs</span>
+              </div>
+              <span className="font-metric-mono text-metric-mono text-outline">
+                {likedSongs ? likedSongs.length : 342}
               </span>
-            </div>
-            <div className="space-y-0.5 max-h-36 overflow-y-auto pr-1">
-              {playlists.map((pl) => (
-                <button
-                  key={pl.id}
-                  type="button"
-                  onClick={() => openPlaylist(pl)}
-                  className="w-full text-left px-2.5 py-1.5 rounded-lg text-xs text-[#cbc3d7] hover:text-white hover:bg-[#1e1f28] truncate transition-colors flex items-center gap-2"
-                >
-                  <ListMusic className="w-3.5 h-3.5 text-[#a078ff] shrink-0" />
-                  <span className="truncate">{pl.name}</span>
-                </button>
-              ))}
-            </div>
+            </button>
+
+            {/* Curated Presets */}
+            <button
+              type="button"
+              onClick={() => playPlaylist('lofi-focus')}
+              className="flex items-center justify-between px-space-sm py-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors text-left group"
+            >
+              <span className="truncate font-body-sm text-body-sm group-hover:text-primary transition-colors">
+                Deep Lo-Fi Focus
+              </span>
+              <span className="font-metric-mono text-[10px] text-outline">44</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => playPlaylist('synthwave')}
+              className="flex items-center justify-between px-space-sm py-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors text-left group"
+            >
+              <span className="truncate font-body-sm text-body-sm group-hover:text-primary transition-colors">
+                Synthwave 2088
+              </span>
+              <span className="font-metric-mono text-[10px] text-outline">50</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => playPlaylist('techno')}
+              className="flex items-center justify-between px-space-sm py-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors text-left group"
+            >
+              <span className="truncate font-body-sm text-body-sm group-hover:text-primary transition-colors">
+                Melodic Techno Club
+              </span>
+              <span className="font-metric-mono text-[10px] text-outline">38</span>
+            </button>
+
+            {/* User Custom Playlists */}
+            {playlists && playlists.map((pl) => (
+              <button
+                key={pl.id}
+                type="button"
+                onClick={() => openPlaylist(pl)}
+                className="flex items-center justify-between px-space-sm py-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors text-left group"
+              >
+                <span className="truncate font-body-sm text-body-sm group-hover:text-primary transition-colors">
+                  {pl.name}
+                </span>
+                <span className="font-metric-mono text-[10px] text-outline">
+                  {pl.songs ? pl.songs.length : 0}
+                </span>
+              </button>
+            ))}
           </div>
-        )}
-      </div>
-
-      {/* New Playlist Action & Footer */}
-      <div className="pt-3 border-t border-white/[0.08] flex flex-col gap-2.5">
-        <button
-          type="button"
-          onClick={() => setPlaylistModalMode('create')}
-          className="flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-full bg-[#1e1f28] hover:bg-[#282933] text-white font-headline text-xs font-semibold transition-all border border-white/5 active:scale-95 shadow-md"
-        >
-          <Plus className="w-4 h-4 text-[#d0bcff]" />
-          <span>New Playlist</span>
-        </button>
-
-        <div className="flex items-center justify-between px-2">
-          <span className="text-[10px] font-mono text-[#958ea0]">Studio Lossless DAC</span>
-          <span className="w-2 h-2 rounded-full bg-[#4cd7f6] animate-pulse" title="192kHz Master Active" />
         </div>
+
+        {/* Bottom CTA Button */}
+        <div className="p-gutter-sm border-t border-surface-container-high/60">
+          <button
+            type="button"
+            onClick={() => setPlaylistModalMode('create')}
+            className="w-full flex items-center justify-center gap-space-xs py-2.5 px-space-md rounded-lg bg-surface-container-high hover:bg-surface-bright text-on-surface font-title text-title-sm font-semibold transition-all shadow-[0_1px_8px_rgba(0,0,0,0.04)] active:scale-95"
+          >
+            <span className="material-symbols-outlined text-title-md text-primary">playlist_add</span>
+            <span>New Playlist</span>
+          </button>
+        </div>
+
       </div>
     </aside>
   );
 }
 
-export function DesktopRightSidebar() {
+export function DesktopTopHeader() {
   const {
-    currentSong,
-    queue,
-    removeFromQueue,
-    clearQueue,
-    playSong,
+    setActiveTab,
+    setIsPartyModalOpen,
     activeRoom,
-    roomMembers,
-    roomMessages
+    roomMembers
   } = usePlayer();
 
-  const [chatText, setChatText] = useState('');
-
-  const handleSendChat = (e) => {
-    e.preventDefault();
-    if (!chatText.trim() || !activeRoom) return;
-
-    let savedName = '';
-    try { savedName = localStorage.getItem('musicroom_user_name') || 'Guest'; } catch {}
-
-    socket.emit('chat:send', {
-      roomId: activeRoom.id,
-      text: chatText.trim(),
-      senderName: savedName
-    });
-    setChatText('');
-  };
-
   return (
-    <aside className="w-72 xl:w-80 shrink-0 border-l border-white/10 p-4 flex flex-col justify-between h-[calc(100vh-80px)] liquid-glass select-none">
-      
-      {/* Top: Queue Section */}
-      <div className="flex-1 flex flex-col min-h-0">
-        <div className="flex items-center justify-between pb-2.5 border-b border-white/10 shrink-0">
-          <div className="flex items-center gap-2">
-            <ListMusic className="w-4 h-4 text-purple-400" />
-            <h4 className="font-heading italic text-sm text-white">Live Queue</h4>
+    <header className="fixed top-0 left-64 right-0 h-16 bg-surface/85 backdrop-blur-xl z-30 flex items-center justify-between px-gutter border-b border-surface-container-high/60 shadow-[0_1px_8px_rgba(0,0,0,0.04)]">
+      {/* Quick Search Trigger */}
+      <div className="flex items-center gap-space-md max-w-md w-full">
+        <button
+          type="button"
+          onClick={() => setActiveTab('search')}
+          className="w-full flex items-center justify-between bg-surface-container-low hover:bg-surface-container px-space-md py-2 rounded-full text-on-surface-variant transition-colors border border-surface-container-high/50"
+        >
+          <div className="flex items-center gap-space-sm">
+            <span className="material-symbols-outlined text-title-md text-outline">search</span>
+            <span className="font-body text-body-sm text-outline">Search tracks, playlists, artists...</span>
           </div>
-          {queue.length > 0 && (
-            <button
-              type="button"
-              onClick={clearQueue}
-              className="text-[10px] text-white/40 hover:text-rose-400 font-mono transition-colors"
-            >
-              Clear
-            </button>
-          )}
-        </div>
-
-        {/* Now Playing */}
-        {currentSong && (
-          <div className="py-2.5 border-b border-white/5 shrink-0">
-            <span className="text-[9px] uppercase font-mono tracking-wider text-purple-400 block mb-1">
-              ▶ Now Playing
-            </span>
-            <div className="flex items-center gap-2.5 p-1.5 rounded-xl bg-white/5">
-              <img
-                src={currentSong.thumbnail || `https://i.ytimg.com/vi/${currentSong.videoId}/hqdefault.jpg`}
-                alt=""
-                className="w-8 h-8 rounded-lg object-cover"
-              />
-              <div className="min-w-0 flex-1">
-                <p className="text-xs font-semibold text-white truncate">{currentSong.title}</p>
-                <p className="text-[10px] text-white/40 truncate">{currentSong.channelTitle}</p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Up Next List */}
-        <div className="flex-1 overflow-y-auto py-2 space-y-1 pr-1 min-h-[100px]">
-          <span className="text-[9px] uppercase font-mono tracking-wider text-white/30 block mb-1">
-            Up Next ({queue.length})
-          </span>
-          {queue.length === 0 ? (
-            <div className="py-8 text-center text-white/30 text-xs font-light">
-              Queue is empty
-            </div>
-          ) : (
-            queue.map((song, idx) => (
-              <div
-                key={`${song.videoId}-${idx}`}
-                className="flex items-center justify-between p-1.5 rounded-xl liquid-glass hover:bg-white/5 group text-xs"
-              >
-                <div className="flex items-center gap-2 min-w-0 flex-1">
-                  <span className="text-[10px] font-mono text-white/30 w-3 text-right">
-                    {idx + 1}
-                  </span>
-                  <p className="text-white truncate flex-1">{song.title}</p>
-                </div>
-                <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      playSong(song, true);
-                      removeFromQueue(idx);
-                    }}
-                    className="p-1 text-white hover:text-purple-300"
-                    title="Play now"
-                  >
-                    <Play className="w-3 h-3 fill-current" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => removeFromQueue(idx)}
-                    className="p-1 text-white/40 hover:text-rose-400"
-                    title="Remove"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                  </button>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
+          <kbd className="px-space-xs py-0.5 rounded bg-surface-container-high text-outline text-label-sm font-label-sm uppercase font-mono">
+            Ctrl+K
+          </kbd>
+        </button>
       </div>
 
-      {/* Bottom: Party Room Chat & Members (Appears when in a room!) */}
-      {activeRoom && (
-        <div className="border-t border-white/10 pt-2.5 mt-2 flex flex-col h-56 shrink-0">
-          <div className="flex items-center justify-between pb-1.5 shrink-0">
-            <span className="text-xs font-semibold text-white flex items-center gap-1.5">
-              <Users className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Room Chat ({roomMembers.length}👥)</span>
-            </span>
-            <span className="text-[10px] text-purple-300 font-mono">{activeRoom.id}</span>
-          </div>
-
-          {/* Messages Feed */}
-          <div className="flex-1 overflow-y-auto space-y-1.5 pr-1 py-1 text-xs">
-            {roomMessages.length === 0 ? (
-              <p className="text-center text-white/30 text-[11px] py-4">No messages yet. Say hi!</p>
-            ) : (
-              roomMessages.map((msg, idx) => (
-                <div key={idx} className="p-1.5 rounded-lg bg-white/5 text-[11px]">
-                  <span className="font-semibold text-purple-300 block">{msg.senderName}:</span>
-                  <span className="text-white/80">{msg.text}</span>
-                </div>
-              ))
+      {/* Navigation Shortcuts & User Status */}
+      <div className="flex items-center gap-space-md">
+        <nav className="hidden md:flex items-center gap-space-md text-body-sm text-on-surface-variant font-medium">
+          <button 
+            type="button" 
+            onClick={() => setActiveTab('discover')}
+            className="hover:text-on-surface transition-colors"
+          >
+            Discover
+          </button>
+          <button 
+            type="button" 
+            onClick={() => setActiveTab('search')}
+            className="hover:text-on-surface transition-colors"
+          >
+            Search
+          </button>
+          <button 
+            type="button" 
+            onClick={() => setActiveTab('library')}
+            className="hover:text-on-surface transition-colors"
+          >
+            Library
+          </button>
+          <button 
+            type="button" 
+            onClick={() => setIsPartyModalOpen(true)}
+            className="hover:text-secondary transition-colors flex items-center gap-1.5"
+          >
+            <span>Aux Room</span>
+            {activeRoom && (
+              <span className="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse" />
             )}
-          </div>
+          </button>
+        </nav>
 
-          {/* Chat input */}
-          <form onSubmit={handleSendChat} className="flex gap-1 pt-1.5 shrink-0">
-            <input
-              type="text"
-              value={chatText}
-              onChange={(e) => setChatText(e.target.value)}
-              placeholder="Type message..."
-              className="flex-1 px-2.5 py-1.5 rounded-lg liquid-glass text-xs text-white focus:outline-none border border-white/10"
-            />
-            <button
-              type="submit"
-              className="p-1.5 rounded-lg bg-purple-600 text-white hover:bg-purple-500 transition-colors"
-            >
-              <Send className="w-3.5 h-3.5" />
-            </button>
-          </form>
+        {/* Aux Room Connect Action */}
+        <button
+          type="button"
+          onClick={() => setIsPartyModalOpen(true)}
+          className={`flex items-center gap-1.5 px-space-md py-1.5 rounded-full font-title text-title-sm font-semibold transition-all shadow-sm ${
+            activeRoom 
+              ? 'bg-secondary text-on-secondary shadow-glow-emerald' 
+              : 'bg-surface-container-high hover:bg-surface-bright text-on-surface'
+          }`}
+        >
+          <span className="material-symbols-outlined text-title-sm">
+            {activeRoom ? 'podcasts' : 'sensors'}
+          </span>
+          <span>{activeRoom ? `Room #${activeRoom.id} (${roomMembers.length})` : 'Join Aux Room'}</span>
+        </button>
+
+        {/* Profile Avatar */}
+        <div className="relative flex items-center cursor-pointer" title="MusicRoom Session Profile">
+          <img 
+            alt="Profile Avatar" 
+            className="w-8 h-8 rounded-full object-cover ring-2 ring-primary/40 hover:ring-primary transition-all" 
+            src="https://lh3.googleusercontent.com/aida-public/AB6AXuCAHwDvGARDDVyKPZKt921jmiMDxRisc9Jbts1ryL_XwOVChyNE_S8ScaKyf3u2pVDCts-S1B13lo5Zz7S4932UWwCoH5EVeJqPnxKA2J1hxBjxycRXzJw7XNOYiNz48KOQqcFNxNua8rcTTRoZxlEnj1O4KjhEkC0kigETYBaGQUkNCRjnArkPuC6uEJ1L3hLAWL4HthsF9STx5Jp9gcocSBWn6M4kunNeHmOvLkg" 
+          />
         </div>
-      )}
-
-    </aside>
+      </div>
+    </header>
   );
 }
 
@@ -436,19 +326,17 @@ export function DesktopPlayerBar() {
     prevSong,
     isLiked,
     toggleLike,
-    isAudioOnly,
-    toggleAudioOnly,
-    radioMode,
-    toggleRadio,
     volume,
     setVolume,
     isMuted,
     setIsMuted,
     setIsFullScreen,
     isQueueOpen,
-    setIsQueueOpen,
-    queue
+    setIsQueueOpen
   } = usePlayer();
+
+  const [isShuffle, setIsShuffle] = useState(false);
+  const [isRepeat, setIsRepeat] = useState(false);
 
   if (!currentSong) return null;
 
@@ -458,199 +346,204 @@ export function DesktopPlayerBar() {
     : 0;
 
   return (
-    <footer className="fixed bottom-3 left-4 right-4 lg:left-[272px] lg:right-6 h-20 max-h-20 z-40 rounded-2xl bg-[#12131c]/95 backdrop-blur-2xl border border-white/[0.08] px-5 flex items-center justify-between shadow-[0_20px_40px_-15px_rgba(0,0,0,0.8)] select-none">
+    <footer className="fixed bottom-0 left-0 right-0 h-20 bg-surface-container-lowest/95 backdrop-blur-2xl z-50 px-gutter border-t border-surface-container-high/80 flex items-center justify-between shadow-[0_-4px_20px_rgba(0,0,0,0.4)] select-none">
       
-      {/* Left: Thumbnail & Title/Artist [❤] */}
-      <div className="flex items-center gap-3 w-1/4 min-w-[180px] max-w-[280px] shrink-0 overflow-hidden">
-        <div
+      {/* 1. Left: Track Artwork & Identity */}
+      <div className="flex items-center gap-space-md w-1/4 min-w-[200px] max-w-sm">
+        <div 
           onClick={() => setIsFullScreen(true)}
-          className={`relative w-[52px] h-[52px] min-w-[52px] min-h-[52px] max-w-[52px] max-h-[52px] rounded-xl overflow-hidden shadow-lg bg-[#0d0e16] shrink-0 aspect-square cursor-pointer group border border-white/10 ${playback.isPlaying ? 'ring-2 ring-[#a078ff]/50 shadow-[0_0_20px_rgba(160,120,255,0.3)]' : ''}`}
+          className="w-12 h-12 rounded-lg bg-surface-container-high overflow-hidden flex-shrink-0 flex items-center justify-center cursor-pointer group shadow-sm relative border border-white/5"
+          title="Open Lyrics & Now Playing Studio"
         >
           <img
             src={currentSong.thumbnail || `https://i.ytimg.com/vi/${currentSong.videoId}/hqdefault.jpg`}
-            alt=""
+            alt={currentSong.title}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform"
           />
-          <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity backdrop-blur-[2px]">
-            <Maximize2 className="w-4 h-4 text-white" />
+          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+            <span className="material-symbols-outlined text-white text-title-md">open_in_full</span>
           </div>
-          {playback.isPlaying && (
-            <div className="absolute bottom-1 right-1 flex items-center gap-0.5 bg-black/80 px-1 py-0.5 rounded backdrop-blur-sm">
-              <span className="w-0.5 h-2 bg-[#4cd7f6] rounded-full animate-eq-1" />
-              <span className="w-0.5 h-3 bg-[#4cd7f6] rounded-full animate-eq-2" />
-              <span className="w-0.5 h-1.5 bg-[#4cd7f6] rounded-full animate-eq-3" />
-            </div>
-          )}
         </div>
 
-        <div className="min-w-0 flex-1 overflow-hidden">
-          <h4
+        <div className="flex flex-col min-w-0 flex-1">
+          <span 
             onClick={() => setIsFullScreen(true)}
-            className="font-headline text-xs sm:text-sm font-semibold text-white truncate cursor-pointer hover:text-[#d0bcff] transition-colors leading-tight block"
+            className="truncate text-body-sm font-semibold text-on-surface cursor-pointer hover:text-primary transition-colors leading-tight"
             title={currentSong.title}
           >
             {currentSong.title}
-          </h4>
-          <p className="font-body text-[11px] text-[#cbc3d7]/60 truncate font-normal mt-0.5 block">
-            {currentSong.channelTitle || 'YouTube Music'}
-          </p>
+          </span>
+          <span className="truncate text-label-sm text-on-surface-variant font-medium mt-0.5">
+            {currentSong.channelTitle || 'Artist'}
+          </span>
         </div>
 
         <button
           type="button"
           onClick={() => toggleLike(currentSong)}
-          className="text-white/40 hover:text-[#ff516a] p-1.5 rounded-full transition-colors active:scale-90 shrink-0 hover:bg-white/5"
-          title={liked ? "Liked" : "Like"}
+          className={`p-1 transition-colors ${
+            liked ? 'text-primary' : 'text-on-surface-variant hover:text-primary'
+          }`}
+          title={liked ? "Remove from Liked" : "Like track"}
         >
-          <Heart className={`w-4 h-4 ${liked ? 'fill-[#ff516a] text-[#ff516a]' : ''}`} />
+          <span 
+            className="material-symbols-outlined text-title-md" 
+            style={{ fontVariationSettings: liked ? "'FILL' 1" : "'FILL' 0" }}
+          >
+            {liked ? 'favorite' : 'favorite_border'}
+          </span>
         </button>
       </div>
 
-      {/* Center: Controls & Scrubber */}
-      <div className="flex flex-col items-center justify-center gap-1 flex-1 max-w-xl px-4 min-w-0">
-        {/* Buttons: ⏮ ⏯ ⏭ */}
-        <div className="flex items-center gap-4">
+      {/* 2. Center: Controls & Scrubber */}
+      <div className="flex flex-col items-center justify-center w-2/4 max-w-xl px-space-md">
+        {/* Controls Row */}
+        <div className="flex items-center gap-space-md mb-1.5">
+          <button
+            type="button"
+            onClick={() => setIsShuffle(!isShuffle)}
+            className={`transition-colors p-1 ${isShuffle ? 'text-primary' : 'text-on-surface-variant hover:text-on-surface'}`}
+            title="Shuffle"
+          >
+            <span className="material-symbols-outlined text-body-md">shuffle</span>
+          </button>
+
           <button
             type="button"
             onClick={prevSong}
-            className="text-[#cbc3d7] hover:text-white transition-colors active:scale-90"
-            title="Previous"
+            className="text-on-surface hover:text-primary transition-colors p-1"
+            title="Previous track"
           >
-            <SkipBack className="w-4 h-4 fill-current" />
+            <span className="material-symbols-outlined text-title-md">skip_previous</span>
           </button>
 
           <button
             type="button"
             onClick={togglePlayPause}
-            className="w-10 h-10 rounded-full bg-[#a078ff] text-[#340080] flex items-center justify-center hover:scale-105 active:scale-95 transition-transform shadow-[0_0_16px_rgba(160,120,255,0.45)] shrink-0"
+            className="w-10 h-10 rounded-full bg-primary hover:bg-primary-container text-on-primary flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-md"
             title={playback.isPlaying ? "Pause" : "Play"}
           >
-            {playback.isPlaying ? (
-              <Pause className="w-4 h-4 fill-current" />
-            ) : (
-              <Play className="w-4 h-4 fill-current translate-x-0.5" />
-            )}
+            <span 
+              className="material-symbols-outlined text-headline-sm" 
+              style={{ fontVariationSettings: "'FILL' 1" }}
+            >
+              {playback.isPlaying ? 'pause' : 'play_arrow'}
+            </span>
           </button>
 
           <button
             type="button"
             onClick={nextSong}
-            className="text-[#cbc3d7] hover:text-white transition-colors active:scale-90"
-            title="Next"
+            className="text-on-surface hover:text-primary transition-colors p-1"
+            title="Next track"
           >
-            <SkipForward className="w-4 h-4 fill-current" />
+            <span className="material-symbols-outlined text-title-md">skip_next</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setIsRepeat(!isRepeat)}
+            className={`transition-colors p-1 ${isRepeat ? 'text-primary' : 'text-on-surface-variant hover:text-on-surface'}`}
+            title="Repeat"
+          >
+            <span className="material-symbols-outlined text-body-md">repeat</span>
           </button>
         </div>
 
-        {/* High-Precision Scrubber */}
-        <div className="flex items-center gap-2.5 w-full">
-          <span className="text-[10px] font-mono text-[#cbc3d7]/70 w-8 text-right shrink-0">
+        {/* Scrubber Row */}
+        <div className="w-full flex items-center gap-space-sm">
+          <span className="text-label-sm font-metric-mono text-outline min-w-[34px] text-right">
             {formatTime(playback.currentTime)}
           </span>
-          <input
-            type="range"
-            min="0"
-            max={playback.duration > 0 ? playback.duration : 100}
-            value={playback.currentTime || 0}
-            onChange={(e) => seekTo(Number(e.target.value))}
-            style={{
-              background: `linear-gradient(to right, #4cd7f6 ${progressPercent}%, rgba(255, 255, 255, 0.12) ${progressPercent}%)`
+          <div 
+            onClick={(e) => {
+              const rect = e.currentTarget.getBoundingClientRect();
+              const clickX = e.clientX - rect.left;
+              const ratio = Math.max(0, Math.min(1, clickX / rect.width));
+              seekTo(ratio * playback.duration);
             }}
-            className="flex-1 h-1 rounded-lg appearance-none cursor-pointer accent-[#4cd7f6] hover:h-1.5 transition-all shadow-inner"
-          />
-          <span className="text-[10px] font-mono text-[#cbc3d7]/70 w-8 shrink-0">
+            className="relative flex-1 h-1.5 bg-surface-container-high rounded-full overflow-hidden cursor-pointer group py-1"
+          >
+            <div className="absolute top-1/2 -translate-y-1/2 left-0 right-0 h-1 bg-surface-container-high rounded-full">
+              <div
+                className="h-full bg-primary rounded-full relative group-hover:bg-primary-container transition-all"
+                style={{ width: `${progressPercent}%` }}
+              >
+                <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-white opacity-0 group-hover:opacity-100 shadow transition-opacity" />
+              </div>
+            </div>
+          </div>
+          <span className="text-label-sm font-metric-mono text-outline min-w-[34px]">
             {formatTime(playback.duration)}
           </span>
         </div>
       </div>
 
-      {/* Right: Audio/Video, Radio, Volume & Expand */}
-      <div className="flex items-center justify-end gap-2.5 w-1/4 min-w-[200px] shrink-0">
-        {/* Spatial Audio / 144p toggle badge */}
-        <button
-          type="button"
-          onClick={toggleAudioOnly}
-          className={`px-2.5 py-1 rounded-full text-[10px] font-mono font-medium border transition-all ${
-            isAudioOnly
-              ? 'bg-[#a078ff]/20 text-[#d0bcff] border-[#a078ff]/40 shadow-sm'
-              : 'bg-[#1a1b24] text-[#cbc3d7] hover:text-white border-white/10'
-          }`}
-          title="Toggle Stream Mode"
-        >
-          {isAudioOnly ? 'Lossless Audio' : 'Video Mode'}
-        </button>
-
-        {/* Radio toggle */}
-        <button
-          type="button"
-          onClick={toggleRadio}
-          className={`px-2.5 py-1 rounded-full text-[10px] font-mono font-medium border transition-all ${
-            radioMode
-              ? 'bg-[#4cd7f6]/20 text-[#4cd7f6] border-[#4cd7f6]/40'
-              : 'bg-[#1a1b24] text-[#cbc3d7]/60 border-white/10'
-          }`}
-          title="Endless Radio"
-        >
-          Radio {radioMode ? 'ON' : 'OFF'}
-        </button>
-
-        {/* Volume */}
-        <div className="flex items-center gap-1.5">
-          <button
-            type="button"
-            onClick={() => setIsMuted((prev) => !prev)}
-            className="text-[#cbc3d7] hover:text-white transition-colors"
-          >
-            {isMuted || volume === 0 ? (
-              <VolumeX className="w-3.5 h-3.5 text-[#ff516a]" />
-            ) : (
-              <Volume2 className="w-3.5 h-3.5" />
-            )}
-          </button>
-          <input
-            type="range"
-            min="0"
-            max="100"
-            value={isMuted ? 0 : volume}
-            onChange={(e) => {
-              setVolume(Number(e.target.value));
-              if (isMuted) setIsMuted(false);
-            }}
-            className="w-14 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer accent-[#4cd7f6]"
-          />
+      {/* 3. Right: Quality Badge, Lyrics Studio, Volume & Queue */}
+      <div className="flex items-center justify-end gap-space-sm w-1/4 min-w-[200px]">
+        {/* Hi-Fi Lossless Chip */}
+        <div className="hidden xl:flex items-center gap-1 bg-surface-container px-2 py-0.5 rounded-full border border-surface-container-high">
+          <span className="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+          <span className="text-[10px] font-metric-mono text-secondary uppercase font-semibold">
+            24-bit/96kHz
+          </span>
         </div>
 
-        {/* Up Next Drawer toggle */}
-        <button
-          type="button"
-          onClick={() => setIsQueueOpen((prev) => !prev)}
-          className={`p-1.5 rounded-full transition-all active:scale-90 relative ${
-            isQueueOpen
-              ? 'bg-[#a078ff] text-[#340080] shadow-[0_0_12px_rgba(160,120,255,0.4)]'
-              : 'text-[#cbc3d7] hover:text-white hover:bg-white/10'
-          }`}
-          title="Up Next (YouTube Music style)"
-        >
-          <ListMusic className="w-4 h-4" />
-          {queue.length > 0 && (
-            <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-[#ff516a] text-[9px] font-mono font-bold text-white flex items-center justify-center">
-              {queue.length > 9 ? '9+' : queue.length}
-            </span>
-          )}
-        </button>
-
-        {/* Expand to Full Screen */}
+        {/* Lyrics Studio Button */}
         <button
           type="button"
           onClick={() => setIsFullScreen(true)}
-          className="text-[#cbc3d7] hover:text-white p-1 rounded-full transition-colors active:scale-90"
-          title="Full screen player"
+          className="p-1.5 rounded-lg text-on-surface-variant hover:text-primary hover:bg-surface-container transition-colors"
+          title="Open Synchronized Lyrics Studio"
         >
-          <Maximize2 className="w-4 h-4" />
+          <span className="material-symbols-outlined text-title-md">mic</span>
+        </button>
+
+        {/* Volume Control */}
+        <div className="flex items-center gap-1.5 text-on-surface-variant">
+          <button
+            type="button"
+            onClick={() => setIsMuted(!isMuted)}
+            className="hover:text-on-surface transition-colors"
+            title={isMuted ? "Unmute" : "Mute"}
+          >
+            <span className="material-symbols-outlined text-title-md">
+              {isMuted || volume === 0 ? 'volume_off' : volume > 50 ? 'volume_up' : 'volume_down'}
+            </span>
+          </button>
+          <div 
+            onClick={(e) => {
+              const rect = e.currentTarget.getBoundingClientRect();
+              const clickX = e.clientX - rect.left;
+              const ratio = Math.max(0, Math.min(1, clickX / rect.width));
+              setVolume(Math.round(ratio * 100));
+            }}
+            className="w-20 h-1.5 bg-surface-container-high rounded-full overflow-hidden cursor-pointer relative py-1"
+          >
+            <div className="absolute top-1/2 -translate-y-1/2 left-0 right-0 h-1 bg-surface-container-high rounded-full">
+              <div 
+                className="h-full bg-on-surface-variant rounded-full" 
+                style={{ width: `${isMuted ? 0 : volume}%` }} 
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Up Next Drawer Toggle */}
+        <button
+          type="button"
+          onClick={() => setIsQueueOpen(!isQueueOpen)}
+          className={`p-1.5 rounded-lg transition-colors ${
+            isQueueOpen 
+              ? 'bg-surface-container-high text-primary' 
+              : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container'
+          }`}
+          title="Up Next Queue"
+        >
+          <span className="material-symbols-outlined text-title-md">queue_music</span>
         </button>
       </div>
 
     </footer>
   );
 }
-

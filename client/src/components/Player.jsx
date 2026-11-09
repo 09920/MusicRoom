@@ -75,7 +75,7 @@ export default function Player({
           const cur = p.getCurrentTime() || 0;
           const dur = typeof p.getDuration === 'function' ? p.getDuration() || 0 : 0;
           const state = typeof p.getPlayerState === 'function' ? p.getPlayerState() : -1;
-          
+
           if (onPlaybackChange) {
             onPlaybackChange({
               currentTime: cur,
@@ -83,7 +83,7 @@ export default function Player({
               isPlaying: state === 1
             });
           }
-        } catch (_) {}
+        } catch (_) { }
       }
     }, 250);
 
