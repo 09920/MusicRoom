@@ -458,13 +458,13 @@ export function DesktopPlayerBar() {
     : 0;
 
   return (
-    <footer className="fixed bottom-3 left-4 right-4 h-22 z-40 rounded-2xl bg-[#12131c]/92 backdrop-blur-2xl border border-white/[0.08] px-6 flex items-center justify-between shadow-[0_20px_40px_-15px_rgba(0,0,0,0.8)] select-none">
+    <footer className="fixed bottom-3 left-4 right-4 lg:left-[272px] lg:right-6 h-20 max-h-20 z-40 rounded-2xl bg-[#12131c]/95 backdrop-blur-2xl border border-white/[0.08] px-5 flex items-center justify-between shadow-[0_20px_40px_-15px_rgba(0,0,0,0.8)] select-none">
       
       {/* Left: Thumbnail & Title/Artist [❤] */}
-      <div className="flex items-center gap-3.5 w-1/4 min-w-[220px]">
+      <div className="flex items-center gap-3 w-1/4 min-w-[180px] max-w-[280px] shrink-0 overflow-hidden">
         <div
           onClick={() => setIsFullScreen(true)}
-          className={`relative w-13 h-13 rounded-xl overflow-hidden shadow-lg bg-[#0d0e16] shrink-0 cursor-pointer group border border-white/10 ${playback.isPlaying ? 'ring-2 ring-[#a078ff]/50 shadow-[0_0_20px_rgba(160,120,255,0.3)]' : ''}`}
+          className={`relative w-[52px] h-[52px] min-w-[52px] min-h-[52px] max-w-[52px] max-h-[52px] rounded-xl overflow-hidden shadow-lg bg-[#0d0e16] shrink-0 aspect-square cursor-pointer group border border-white/10 ${playback.isPlaying ? 'ring-2 ring-[#a078ff]/50 shadow-[0_0_20px_rgba(160,120,255,0.3)]' : ''}`}
         >
           <img
             src={currentSong.thumbnail || `https://i.ytimg.com/vi/${currentSong.videoId}/hqdefault.jpg`}
@@ -483,14 +483,15 @@ export function DesktopPlayerBar() {
           )}
         </div>
 
-        <div className="min-w-0 flex-1">
+        <div className="min-w-0 flex-1 overflow-hidden">
           <h4
             onClick={() => setIsFullScreen(true)}
-            className="font-headline text-xs sm:text-sm font-semibold text-white truncate cursor-pointer hover:text-[#d0bcff] transition-colors leading-tight"
+            className="font-headline text-xs sm:text-sm font-semibold text-white truncate cursor-pointer hover:text-[#d0bcff] transition-colors leading-tight block"
+            title={currentSong.title}
           >
             {currentSong.title}
           </h4>
-          <p className="font-body text-[11px] text-[#cbc3d7]/60 truncate font-normal mt-0.5">
+          <p className="font-body text-[11px] text-[#cbc3d7]/60 truncate font-normal mt-0.5 block">
             {currentSong.channelTitle || 'YouTube Music'}
           </p>
         </div>
@@ -506,7 +507,7 @@ export function DesktopPlayerBar() {
       </div>
 
       {/* Center: Controls & Scrubber */}
-      <div className="flex flex-col items-center gap-1.5 w-2/4 max-w-xl">
+      <div className="flex flex-col items-center justify-center gap-1 flex-1 max-w-xl px-4 min-w-0">
         {/* Buttons: ⏮ ⏯ ⏭ */}
         <div className="flex items-center gap-4">
           <button
@@ -521,7 +522,7 @@ export function DesktopPlayerBar() {
           <button
             type="button"
             onClick={togglePlayPause}
-            className="w-11 h-11 rounded-full bg-[#a078ff] text-[#340080] flex items-center justify-center hover:scale-105 active:scale-95 transition-transform shadow-[0_0_16px_rgba(160,120,255,0.45)]"
+            className="w-10 h-10 rounded-full bg-[#a078ff] text-[#340080] flex items-center justify-center hover:scale-105 active:scale-95 transition-transform shadow-[0_0_16px_rgba(160,120,255,0.45)] shrink-0"
             title={playback.isPlaying ? "Pause" : "Play"}
           >
             {playback.isPlaying ? (
@@ -542,8 +543,8 @@ export function DesktopPlayerBar() {
         </div>
 
         {/* High-Precision Scrubber */}
-        <div className="flex items-center gap-3 w-full">
-          <span className="text-[11px] font-mono text-[#cbc3d7]/70 w-8 text-right shrink-0">
+        <div className="flex items-center gap-2.5 w-full">
+          <span className="text-[10px] font-mono text-[#cbc3d7]/70 w-8 text-right shrink-0">
             {formatTime(playback.currentTime)}
           </span>
           <input
@@ -555,21 +556,21 @@ export function DesktopPlayerBar() {
             style={{
               background: `linear-gradient(to right, #4cd7f6 ${progressPercent}%, rgba(255, 255, 255, 0.12) ${progressPercent}%)`
             }}
-            className="flex-1 h-1.5 rounded-lg appearance-none cursor-pointer accent-[#4cd7f6] hover:h-2 transition-all shadow-inner"
+            className="flex-1 h-1 rounded-lg appearance-none cursor-pointer accent-[#4cd7f6] hover:h-1.5 transition-all shadow-inner"
           />
-          <span className="text-[11px] font-mono text-[#cbc3d7]/70 w-8 shrink-0">
+          <span className="text-[10px] font-mono text-[#cbc3d7]/70 w-8 shrink-0">
             {formatTime(playback.duration)}
           </span>
         </div>
       </div>
 
       {/* Right: Audio/Video, Radio, Volume & Expand */}
-      <div className="flex items-center justify-end gap-3 w-1/4 min-w-[220px]">
+      <div className="flex items-center justify-end gap-2.5 w-1/4 min-w-[200px] shrink-0">
         {/* Spatial Audio / 144p toggle badge */}
         <button
           type="button"
           onClick={toggleAudioOnly}
-          className={`px-3 py-1 rounded-full text-[11px] font-mono font-medium border transition-all ${
+          className={`px-2.5 py-1 rounded-full text-[10px] font-mono font-medium border transition-all ${
             isAudioOnly
               ? 'bg-[#a078ff]/20 text-[#d0bcff] border-[#a078ff]/40 shadow-sm'
               : 'bg-[#1a1b24] text-[#cbc3d7] hover:text-white border-white/10'
@@ -583,7 +584,7 @@ export function DesktopPlayerBar() {
         <button
           type="button"
           onClick={toggleRadio}
-          className={`px-3 py-1 rounded-full text-[11px] font-mono font-medium border transition-all ${
+          className={`px-2.5 py-1 rounded-full text-[10px] font-mono font-medium border transition-all ${
             radioMode
               ? 'bg-[#4cd7f6]/20 text-[#4cd7f6] border-[#4cd7f6]/40'
               : 'bg-[#1a1b24] text-[#cbc3d7]/60 border-white/10'
@@ -601,9 +602,9 @@ export function DesktopPlayerBar() {
             className="text-[#cbc3d7] hover:text-white transition-colors"
           >
             {isMuted || volume === 0 ? (
-              <VolumeX className="w-4 h-4 text-[#ff516a]" />
+              <VolumeX className="w-3.5 h-3.5 text-[#ff516a]" />
             ) : (
-              <Volume2 className="w-4 h-4" />
+              <Volume2 className="w-3.5 h-3.5" />
             )}
           </button>
           <input
@@ -615,7 +616,7 @@ export function DesktopPlayerBar() {
               setVolume(Number(e.target.value));
               if (isMuted) setIsMuted(false);
             }}
-            className="w-16 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer accent-[#4cd7f6]"
+            className="w-14 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer accent-[#4cd7f6]"
           />
         </div>
 
