@@ -16,6 +16,7 @@ export default function Player({
 }) {
   const playerRef = useRef(null);
   const silentAudioRef = useRef(null);
+  const lastLoadedVideoIdRef = useRef(null);
   const lastServerTimeRef = useRef(0);
   const bufferStallCountRef = useRef(0);
   const [isReady, setIsReady] = useState(false);
@@ -117,9 +118,12 @@ export default function Player({
         if (playerRefOut) playerRefOut.current = playerRef.current;
         if (typeof window !== 'undefined') window.musicroom_player = playerRef.current;
 
+        const isNewTrack = lastLoadedVideoIdRef.current !== currentSong.videoId;
+        lastLoadedVideoIdRef.current = currentSong.videoId;
+
         playerRef.current.loadVideoById({
           videoId: currentSong.videoId,
-          startSeconds: playback?.currentTime || 0
+          startSeconds: isNewTrack ? 0 : (playback?.currentTime || 0)
         });
         if (playback?.isPlaying !== false) {
           playerRef.current.playVideo();
@@ -167,10 +171,13 @@ export default function Player({
               }
             } catch (_) { }
 
-            if (playback?.currentTime > 0) {
+            const isNewTrack = lastLoadedVideoIdRef.current !== currentSong.videoId;
+            lastLoadedVideoIdRef.current = currentSong.videoId;
+
+            if (playback?.currentTime > 0 && !isNewTrack) {
               event.target.seekTo(playback.currentTime, true);
             }
-            if (playback?.isPlaying) {
+            if (playback?.isPlaying !== false) {
               const playPromise = event.target.playVideo();
               if (playPromise && playPromise.catch) {
                 playPromise.catch(() => { });
@@ -213,8 +220,8 @@ export default function Player({
           },
           onError: (event) => {
             console.warn('YouTube Player error:', event.data);
-            // Only host advances on unplayable restricted video
-            if (isHost && (event.data === 150 || event.data === 101)) {
+            // Advance to next track on any unplayable or restricted video (both in solo and room host)
+            if (canControl || isHost) {
               if (onSongEnd) onSongEnd();
             }
           }

@@ -52,8 +52,8 @@ export const TOP_100_HITS = [
     title: 'Millionaire',
     artist: 'Yo Yo Honey Singh',
     channelTitle: 'Yo Yo Honey Singh',
-    videoId: 'hBCrkxP6L4A',
-    thumbnail: 'https://i.ytimg.com/vi/hBCrkxP6L4A/hqdefault.jpg',
+    videoId: 'XO8wew38VM8',
+    thumbnail: 'https://i.ytimg.com/vi/XO8wew38VM8/hqdefault.jpg',
     duration: 201
   },
   {
@@ -478,8 +478,8 @@ export const INSTAGRAM_TRENDING_HITS = [
     title: 'Millionaire',
     artist: 'Yo Yo Honey Singh',
     channelTitle: 'Yo Yo Honey Singh',
-    videoId: 'hBCrkxP6L4A',
-    thumbnail: 'https://i.ytimg.com/vi/hBCrkxP6L4A/hqdefault.jpg',
+    videoId: 'XO8wew38VM8',
+    thumbnail: 'https://i.ytimg.com/vi/XO8wew38VM8/hqdefault.jpg',
     duration: 201
   },
   {
@@ -751,8 +751,8 @@ export const BOLLYWOOD_ROMANTIC_HITS = [
     title: 'Shayad',
     artist: 'Arijit Singh, Pritam',
     channelTitle: 'Sony Music India',
-    videoId: 'k70n_2Z2w-g',
-    thumbnail: 'https://i.ytimg.com/vi/k70n_2Z2w-g/hqdefault.jpg',
+    videoId: 'MJyKN-8UncM',
+    thumbnail: 'https://i.ytimg.com/vi/MJyKN-8UncM/hqdefault.jpg',
     duration: 248
   },
   {
@@ -1006,9 +1006,233 @@ export const INDIE_HINDI_HITS = [
   }
 ];
 
+// Daily Mix 1 - Melodic Downtempo, Electronic & Ambient
+export const DAILY_MIX_1 = [
+  {
+    rank: 1,
+    title: 'Kerala',
+    artist: 'Bonobo',
+    channelTitle: 'Bonobo',
+    videoId: 'S0Q4gqBUs7c',
+    thumbnail: 'https://i.ytimg.com/vi/S0Q4gqBUs7c/hqdefault.jpg',
+    duration: 238
+  },
+  {
+    rank: 2,
+    title: 'Singularity',
+    artist: 'Jon Hopkins',
+    channelTitle: 'Jon Hopkins',
+    videoId: 'lkvnpHFajt0',
+    thumbnail: 'https://i.ytimg.com/vi/lkvnpHFajt0/hqdefault.jpg',
+    duration: 389
+  },
+  {
+    rank: 3,
+    title: 'Awake',
+    artist: 'Tycho',
+    channelTitle: 'Music Z',
+    videoId: 'd9j-rEWa96Y',
+    thumbnail: 'https://i.ytimg.com/vi/d9j-rEWa96Y/hqdefault.jpg',
+    duration: 280
+  },
+  {
+    rank: 4,
+    title: 'Innerbloom',
+    artist: 'RÜFÜS DU SOL',
+    channelTitle: 'RÜFÜS DU SOL',
+    videoId: 'Tx9zMFodNtA',
+    thumbnail: 'https://i.ytimg.com/vi/Tx9zMFodNtA/hqdefault.jpg',
+    duration: 578
+  },
+  {
+    rank: 5,
+    title: 'Nightcall',
+    artist: 'Kavinsky',
+    channelTitle: 'Record Makers and KAVINSKY',
+    videoId: 'MV_3Dpw-BRY',
+    thumbnail: 'https://i.ytimg.com/vi/MV_3Dpw-BRY/hqdefault.jpg',
+    duration: 259
+  }
+];
+
+// Discover Weekly - High-Energy Viral Global Hits
+export const DISCOVER_WEEKLY = [
+  {
+    rank: 1,
+    title: 'Die With A Smile',
+    artist: 'Lady Gaga, Bruno Mars',
+    channelTitle: 'Lady Gaga',
+    videoId: 'kPa7bsKwL-c',
+    thumbnail: 'https://i.ytimg.com/vi/kPa7bsKwL-c/hqdefault.jpg',
+    duration: 251
+  },
+  {
+    rank: 2,
+    title: 'Espresso',
+    artist: 'Sabrina Carpenter',
+    channelTitle: 'Sabrina Carpenter',
+    videoId: 'eVTXPUF4Oz4',
+    thumbnail: 'https://i.ytimg.com/vi/eVTXPUF4Oz4/hqdefault.jpg',
+    duration: 175
+  },
+  {
+    rank: 3,
+    title: 'Big Dawgs',
+    artist: 'Hanumankind, Kalmi',
+    channelTitle: 'Hanumankind',
+    videoId: 'hOHKltAiKXQ',
+    thumbnail: 'https://i.ytimg.com/vi/hOHKltAiKXQ/hqdefault.jpg',
+    duration: 236
+  },
+  {
+    rank: 4,
+    title: 'Millionaire',
+    artist: 'Yo Yo Honey Singh',
+    channelTitle: 'Yo Yo Honey Singh',
+    videoId: 'XO8wew38VM8',
+    thumbnail: 'https://i.ytimg.com/vi/XO8wew38VM8/hqdefault.jpg',
+    duration: 201
+  },
+  {
+    rank: 5,
+    title: 'Tauba Tauba',
+    artist: 'Karan Aujla',
+    channelTitle: 'Karan Aujla',
+    videoId: 'LK7-_dgAVQE',
+    thumbnail: 'https://i.ytimg.com/vi/LK7-_dgAVQE/hqdefault.jpg',
+    duration: 204
+  },
+  {
+    rank: 6,
+    title: 'Blinding Lights',
+    artist: 'The Weeknd',
+    channelTitle: 'The Weeknd',
+    videoId: '4NRXx6U8ABQ',
+    thumbnail: 'https://i.ytimg.com/vi/4NRXx6U8ABQ/hqdefault.jpg',
+    duration: 200
+  }
+];
+
+// 165 BPM Driving Fast - Neon High Velocity Synthwave & Bass
+export const FAST_165BPM_DRIVING = [
+  {
+    rank: 1,
+    title: 'Nightcall',
+    artist: 'Kavinsky',
+    channelTitle: 'Record Makers and KAVINSKY',
+    videoId: 'MV_3Dpw-BRY',
+    thumbnail: 'https://i.ytimg.com/vi/MV_3Dpw-BRY/hqdefault.jpg',
+    duration: 259
+  },
+  {
+    rank: 2,
+    title: 'Starboy',
+    artist: 'The Weeknd ft. Daft Punk',
+    channelTitle: 'The Weeknd',
+    videoId: '34Na4j8AVgA',
+    thumbnail: 'https://i.ytimg.com/vi/34Na4j8AVgA/hqdefault.jpg',
+    duration: 230
+  },
+  {
+    rank: 3,
+    title: 'Big Dawgs',
+    artist: 'Hanumankind, Kalmi',
+    channelTitle: 'Hanumankind',
+    videoId: 'hOHKltAiKXQ',
+    thumbnail: 'https://i.ytimg.com/vi/hOHKltAiKXQ/hqdefault.jpg',
+    duration: 236
+  },
+  {
+    rank: 4,
+    title: 'Blinding Lights',
+    artist: 'The Weeknd',
+    channelTitle: 'The Weeknd',
+    videoId: '4NRXx6U8ABQ',
+    thumbnail: 'https://i.ytimg.com/vi/4NRXx6U8ABQ/hqdefault.jpg',
+    duration: 200
+  }
+];
+
+// Deep Focus Neural - Ambient Generative & Study Soundscapes
+export const DEEP_FOCUS_NEURAL = [
+  {
+    rank: 1,
+    title: 'Best of lofi hip hop [beats to relax/study to]',
+    artist: 'Lofi Girl',
+    channelTitle: 'Lofi Girl',
+    videoId: 'n61ULEU7CO0',
+    thumbnail: 'https://i.ytimg.com/vi/n61ULEU7CO0/hqdefault.jpg',
+    duration: 1800
+  },
+  {
+    rank: 2,
+    title: 'Singularity',
+    artist: 'Jon Hopkins',
+    channelTitle: 'Jon Hopkins',
+    videoId: 'lkvnpHFajt0',
+    thumbnail: 'https://i.ytimg.com/vi/lkvnpHFajt0/hqdefault.jpg',
+    duration: 389
+  },
+  {
+    rank: 3,
+    title: 'Awake',
+    artist: 'Tycho',
+    channelTitle: 'Music Z',
+    videoId: 'd9j-rEWa96Y',
+    thumbnail: 'https://i.ytimg.com/vi/d9j-rEWa96Y/hqdefault.jpg',
+    duration: 280
+  }
+];
+
+// Late Night Lofi Drift - Warm Vinyl Chillhop
+export const LATE_NIGHT_LOFI = [
+  {
+    rank: 1,
+    title: 'Lofi Beats to Chill & Sleep To',
+    artist: 'Lofi Girl',
+    channelTitle: 'Lofi Girl',
+    videoId: 'n61ULEU7CO0',
+    thumbnail: 'https://i.ytimg.com/vi/n61ULEU7CO0/hqdefault.jpg',
+    duration: 1800
+  },
+  {
+    rank: 2,
+    title: 'Kerala',
+    artist: 'Bonobo',
+    channelTitle: 'Bonobo',
+    videoId: 'S0Q4gqBUs7c',
+    thumbnail: 'https://i.ytimg.com/vi/S0Q4gqBUs7c/hqdefault.jpg',
+    duration: 238
+  },
+  {
+    rank: 3,
+    title: 'Innerbloom',
+    artist: 'RÜFÜS DU SOL',
+    channelTitle: 'RÜFÜS DU SOL',
+    videoId: 'Tx9zMFodNtA',
+    thumbnail: 'https://i.ytimg.com/vi/Tx9zMFodNtA/hqdefault.jpg',
+    duration: 578
+  }
+];
+
 export function getTracksForCompilation(compilationOrTitle) {
   const title = (typeof compilationOrTitle === 'string' ? compilationOrTitle : compilationOrTitle?.title || '').toLowerCase();
   
+  if (title.includes('daily mix') || title.includes('bonobo') || title.includes('tycho')) {
+    return DAILY_MIX_1;
+  }
+  if (title.includes('discover weekly')) {
+    return DISCOVER_WEEKLY;
+  }
+  if (title.includes('165 bpm') || title.includes('driving') || title.includes('synthwave')) {
+    return FAST_165BPM_DRIVING;
+  }
+  if (title.includes('focus') || title.includes('neural')) {
+    return DEEP_FOCUS_NEURAL;
+  }
+  if (title.includes('lofi') || title.includes('drift')) {
+    return LATE_NIGHT_LOFI;
+  }
   if (title.includes('indie') || title.includes('hindi hits') || title.includes('acoustic')) {
     return INDIE_HINDI_HITS;
   }
@@ -1026,6 +1250,6 @@ export function getTracksForCompilation(compilationOrTitle) {
 
 export function isCompilationOrMix(title) {
   if (!title) return false;
-  return /top 100|top hits|mashup|playlist|nonstop|non-stop|collection|compilation|best of|all songs|viral songs|instagram|romantic|trending/i.test(title);
+  return /daily mix|discover weekly|top 100|top hits|mashup|playlist|nonstop|non-stop|collection|compilation|best of|all songs|viral songs|instagram|romantic|trending/i.test(title);
 }
 

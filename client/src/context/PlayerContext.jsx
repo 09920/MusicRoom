@@ -12,10 +12,10 @@ export function usePlayer() {
 }
 
 const DEFAULT_SONG = {
-  videoId: 'hBCrkxP6L4A',
+  videoId: 'XO8wew38VM8',
   title: 'Millionaire',
   channelTitle: 'Yo Yo Honey Singh',
-  thumbnail: 'https://i.ytimg.com/vi/hBCrkxP6L4A/hqdefault.jpg',
+  thumbnail: 'https://i.ytimg.com/vi/XO8wew38VM8/hqdefault.jpg',
   duration: 202
 };
 
@@ -339,11 +339,19 @@ export function PlayerProvider({ children }) {
         currentTime: 0
       }));
 
-      if (playerRef.current) {
+      const p = playerRef.current || (typeof window !== 'undefined' ? window.musicroom_player : null);
+      if (p) {
         try {
-          if (typeof playerRef.current.loadVideoById === 'function') {
-            playerRef.current.loadVideoById({ videoId: song.videoId, startSeconds: 0 });
-            if (immediatePlay) playerRef.current.playVideo();
+          if (typeof p.loadVideoById === 'function') {
+            p.loadVideoById({ videoId: song.videoId, startSeconds: 0 });
+            if (immediatePlay) {
+              p.playVideo();
+              setTimeout(() => {
+                try {
+                  if (typeof p.playVideo === 'function') p.playVideo();
+                } catch (_) {}
+              }, 300);
+            }
           }
         } catch (_) {}
       }

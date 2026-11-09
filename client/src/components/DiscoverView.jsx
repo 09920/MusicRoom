@@ -22,7 +22,19 @@ import {
 } from 'lucide-react';
 import { usePlayer } from '../context/PlayerContext';
 import { socket } from '../socket';
-import { isCompilationOrMix, TOP_100_HITS, INSTAGRAM_TRENDING_HITS, INDIE_HINDI_HITS, BOLLYWOOD_ROMANTIC_HITS, PUNJABI_VIRAL_HITS } from '../data/topHitsData';
+import { 
+  isCompilationOrMix, 
+  TOP_100_HITS, 
+  INSTAGRAM_TRENDING_HITS, 
+  INDIE_HINDI_HITS, 
+  BOLLYWOOD_ROMANTIC_HITS, 
+  PUNJABI_VIRAL_HITS,
+  DAILY_MIX_1,
+  DISCOVER_WEEKLY,
+  FAST_165BPM_DRIVING,
+  DEEP_FOCUS_NEURAL,
+  LATE_NIGHT_LOFI
+} from '../data/topHitsData';
 
 const MOODS = [
   { id: 'Trending', label: '🔥 Trending' },
@@ -87,26 +99,26 @@ const QUICK_JUMP_CARDS = [
   {
     id: 'daily1',
     title: 'Daily Mix 1',
-    subtitle: 'Bonobo, Four Tet, Tycho',
+    subtitle: 'Bonobo, Jon Hopkins, Tycho',
     thumbnail: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDjye0Let52bzvmPjLVezPrVXh28CGKsndCk0GXPaHQtnVRAoxsD6kc_dSQIZsny0kA1jhqM0_45cW44OzbA8RljZAk73YnJgwW9qNCla-x-g-JACzdmD5goyXwaC6Wz6mko-injvp8btpFFNROY8SmjdLwJb5qjEcipf-6xzvmmSbdvToygB0gmg21uVwciCl0q8qYqODfX08u35fa_16wUSav23bw5z0YZjtgAFg',
-    videoId: 'hBCrkxP6L4A',
-    isPlaylist: false
+    isPlaylist: true,
+    playlistData: DAILY_MIX_1
   },
   {
     id: 'synthwave',
     title: 'Synthwave Essentials',
-    subtitle: 'Gunship, The Midnight',
+    subtitle: 'Kavinsky, The Weeknd',
     thumbnail: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAVuURaNxu_eyfalbUAQU7vzWR1h3bbEGmaHENvk1tsfs8np5tw4QflVbTfO0jpk2o3q2XIhO6dwoicTeFLdZEHuDkssJvpj__Y3jNyKDjXRF_JxJalz-NQQKjqYeb7ZrcLhwcbDkTd1tUee8M2cdLGnMxPiMseJXhY3Ws5cpS2vNYBvMmKyWTfrAQ4BSsgFkyH53wilxzlhELv5kyIlyDI2VXEE7Bbkt07zXKXUNs',
-    videoId: 'k70n_2Z2w-g',
-    isPlaylist: false
+    isPlaylist: true,
+    playlistData: FAST_165BPM_DRIVING
   },
   {
     id: 'lofi',
     title: 'Release Radar',
-    subtitle: 'Chillhop, Kudasa, Nujabes',
+    subtitle: 'Lofi Girl, Bonobo, Innerbloom',
     thumbnail: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBBg1YPy_iFSOLmv-MXzURt9-3iAT6Z35Z15ZtNCWRJ2saNl0WTgSvvkGn-K_47wG_T6M0NnUQEfVnoBsNKyxNn_Uuo2LA-vHDt-JQDyIWimlolUiP2GpN-jCSwIPFXly9EQD9JqCq4eZw72gnQkSv_oJR2Rw1a9pO2j-cs7xu3oKfeplhEPMLa_Y-RHJw6LPd1mFsmKGOx7nUWDvre4QmxU54wzDuo7ROYzLfvUSk',
-    videoId: 'LK7-_dgAVQE',
-    isPlaylist: false
+    isPlaylist: true,
+    playlistData: LATE_NIGHT_LOFI
   }
 ];
 
@@ -117,45 +129,45 @@ const CURATED_MIXES = [
     tag: 'DAILY',
     tagColor: 'text-[#d0bcff]',
     title: 'Daily Mix 1',
-    artists: 'Jon Hopkins, Bonobo, Rival Consoles',
+    artists: 'Bonobo, Jon Hopkins, Tycho, RÜFÜS DU SOL',
     thumbnail: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDU4NtcYuU5EEfElmt87geZWJ4CPTv_xD0SNs-IkZ0ZB6wQrLfp3fiVhJW2O_gzkQe9PTnKPGE56cGtiOI6P2-Cu9Y5nsSgL0TQoBA8sEu-XiCpg6wvCSY-BQaODb4xIkG1Yq_-Nz03fPXajfUV1cU74PlL-TJMj19swi-HFLbOjUGtuf_wjK71zeXrzkQ78PSZ7be0Yt4WN1lhLpwzvGOQ69PqJlo_FDUrsXOh4K4',
-    videoId: 'hBCrkxP6L4A'
+    songs: DAILY_MIX_1
   },
   {
     id: 'mix-2',
     tag: 'WEEKLY',
     tagColor: 'text-[#4cd7f6]',
     title: 'Discover Weekly',
-    artists: 'Fresh underground electronic & indie',
+    artists: 'Lady Gaga, Sabrina Carpenter, The Weeknd, Karan Aujla',
     thumbnail: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBvpsD41O2HhnYj8lm30-CjSvQErCbkjQXUsEX9LjkE2m7rk1jp9iSEmcAb6ppVUDIIdg06mkY4ubCMIiKQFT7PhTmLoLnWxIVEgb5ZI6mFz6JBgXdJXWTFLeuwok5y4bbd2_TvUGan4_iPG14IaGTKN3B48pvCcXyrEYBBfTD8I39v_eZk4izDCLWBPBEfI3AaQy7LSUW_W74WhmfhDhzkHbXH2zqkM8aIpuXbx3w',
-    videoId: 'k70n_2Z2w-g'
+    songs: DISCOVER_WEEKLY
   },
   {
     id: 'mix-3',
     tag: '165 BPM',
     tagColor: 'text-[#ff516a]',
     title: '165 BPM Driving Fast',
-    artists: 'High voltage futuristic pop & bass',
+    artists: 'Kavinsky, The Weeknd, Hanumankind',
     thumbnail: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBvVirDmK0wQTOpxJiNjyEBV-WwplGWQeYdFsT_kDgT0NpZh9WwkqVGTVYZLqg9vpOW1xsdS5ic4Q90Z3E1vb8cj9VaWko7YKxb5N5dibwINee--9Vd4nyqBOql5Zqqs5JGd6NELAYoKBiNe1kupa5pvV3rqQ6hj_EdDa4Xe-jQCgOCI2rZP46Eml9aJdt4Uc3Vj7oaBu7Bpt57iNMQQC49RNQ9rU_V3dm4UCwg7qE',
-    videoId: 'LK7-_dgAVQE'
+    songs: FAST_165BPM_DRIVING
   },
   {
     id: 'mix-4',
     tag: 'FOCUS',
     tagColor: 'text-[#cbc3d7]',
     title: 'Deep Focus Neural',
-    artists: 'Binaural drone, generative synthesis',
+    artists: 'Lofi Girl, Jon Hopkins, Tycho',
     thumbnail: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCL8FHciEzJX-HYbQjywyvEfDo4oCIlcOkr6rreai1FXnSUvf0dM_a494q5qNNSgEJ3KYL3ORG8jglBQZcqVGZOEXH9BUqucWYpIiXd2fUj6crj1j_d8HomcdqBL8b_r_nCvDQYWUR33TcFh5ZjFufB_XYvD4HBG6rjh5kibpkl2u6QEtBqweEQrEuhbJ2K1pZAFBucpi0jsDVNiG8rULdKG9WdMOKkEo7aWtJIf04',
-    videoId: 'ElZfdU54Cp8'
+    songs: DEEP_FOCUS_NEURAL
   },
   {
     id: 'mix-5',
     tag: 'LOFI',
     tagColor: 'text-[#4cd7f6]',
     title: 'Late Night Lofi Drift',
-    artists: 'Warm vinyl dust, mellow Fender Rhodes',
+    artists: 'Lofi Girl, Bonobo, RÜFÜS DU SOL',
     thumbnail: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBCEqms7JQGCRfu9ULMRYJv4x0AQZvTi-OkSEFExE4XFM2OQP8E-Dl007MtiHmIeDvyQa54rZvQ6HUcHy7d6A3rKuGfQPY4wLJ4D4jwqr9s0Vmddq-Bx1GN8ePHJ7aqShYkI6oGEtO8uHMQovm7q_5amjljjdytdfF8KpzF-HF8I-KP6L2Zy4o0aPfDTQ2MdFy7vMzu4k-eYTioJbdHEGMO1uoaFIWOUE8WT54i3r8',
-    videoId: 'hBCrkxP6L4A'
+    songs: LATE_NIGHT_LOFI
   }
 ];
 
@@ -168,7 +180,7 @@ const TRENDING_TOP_5 = [
     album: 'OutRun Redux',
     streams: '142.5M',
     duration: '4:12',
-    videoId: 'hBCrkxP6L4A',
+    videoId: 'MV_3Dpw-BRY',
     thumbnail: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBaGyPQ5Zrj51v00Vz7niB9gap-6Aq1y4_HfidLCbu5FwvN27cyIolXNmtuWybKqWB9Jnz0ykuvs5M-lXPc7cxcONbGpMDakGFVVPOmg1w8-iQoCaVg7KH8hL5OEqCKWZEl8bnxyQASySnVxchm9YfQYSnap13ziaBI9AbYqGmSipl6lTuJVBGnCkmKGPkDl5SjUDiBzV6MAoCNTFqWs6FiltbINRNs4G7cljlvQRA'
   },
   {
@@ -178,7 +190,7 @@ const TRENDING_TOP_5 = [
     album: 'II Deluxe',
     streams: '118.2M',
     duration: '5:44',
-    videoId: 'k70n_2Z2w-g',
+    videoId: 'F91YsVxz9bA',
     thumbnail: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAt_xZ8o52noraVvkZH4f8-X75EJc_Q7h81mmvTWAGfFpQlea1V0jOtQFvrIV0lfsE6_GWBmK6OUTSBjLt2e6j0CSJBxx8gSkfHCbnnSjw_YHb0RbFkvocCfOnZxqXlDWt0VvitQJPfe6jpYwTVxGZsOHI1P8IemdDZyyZT8JBikVsl0y7uOJBrmvYjOJuDqpsw7C2Ts3nxHXnPAf3m7A9HZC0CufIv2iPVDR6jYJM'
   },
   {
@@ -208,7 +220,7 @@ const TRENDING_TOP_5 = [
     album: 'Yearning for the Infinite',
     streams: '74.1M',
     duration: '4:52',
-    videoId: 'hBCrkxP6L4A',
+    videoId: 'MV_3Dpw-BRY',
     thumbnail: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDiVhxpAVioEJLrI5XFiOq6zCCa0S40vnutB8MI09RpenR-a68Pu0iSdnkfhc1FVDnuO656Sq-MTuG3qxq0iq_4g5RhnOYg3THs-2w7bkPo_G96oTHNAmo8FXTZUS-TG1FmDXaYzr-578QWEaEQAT_48luMRl93Mgna5PpX0fkuTZFxXvGvNWSdTy7qCyBcUATnP5JXDvX13Hll5F6EoalnBW-aull47mja2hEQpRA'
   }
 ];
@@ -254,20 +266,36 @@ export default function DiscoverView({ onOpenAiTheme }) {
 
   const handleQuickJumpClick = (card) => {
     if (card.isPlaylist && card.playlistData) {
-      openPlaylist(card.playlistData);
-    } else {
+      if (card.id === 'daily1' || card.id === 'synthwave' || card.id === 'lofi') {
+        playFromCollection(card.playlistData, 0, card.title);
+      } else {
+        openPlaylist(card.playlistData);
+      }
+    } else if (card.videoId) {
       playSong({
-        videoId: card.videoId || 'hBCrkxP6L4A',
+        videoId: card.videoId,
         title: card.title,
         channelTitle: card.subtitle,
         thumbnail: card.thumbnail
-      });
+      }, true);
+    }
+  };
+
+  const handleMixClick = (mix) => {
+    if (mix.songs && mix.songs.length > 0) {
+      playFromCollection(mix.songs, 0, mix.title);
+    } else if (mix.videoId) {
+      playSong({
+        videoId: mix.videoId,
+        title: mix.title,
+        channelTitle: mix.artists || mix.subtitle,
+        thumbnail: mix.thumbnail
+      }, true);
     }
   };
 
   const handleSpotlightPlay = () => {
-    // Play featured album / top hits
-    openPlaylist(TOP_100_HITS);
+    playFromCollection(DAILY_MIX_1, 0, 'CHROMA - Deluxe Edition');
   };
 
   return (
@@ -370,7 +398,20 @@ export default function DiscoverView({ onOpenAiTheme }) {
               <button
                 type="button"
                 aria-label={`Play ${card.title}`}
-                className="opacity-0 group-hover:opacity-100 mr-1 w-9 h-9 rounded-full bg-[#a078ff] text-[#340080] flex items-center justify-center shadow-lg transition-all duration-200 transform translate-x-1 group-hover:translate-x-0 hover:scale-105 shrink-0"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (card.isPlaylist && card.playlistData) {
+                    playFromCollection(card.playlistData, 0, card.title);
+                  } else if (card.videoId) {
+                    playSong({
+                      videoId: card.videoId,
+                      title: card.title,
+                      channelTitle: card.subtitle,
+                      thumbnail: card.thumbnail
+                    }, true);
+                  }
+                }}
+                className="opacity-0 group-hover:opacity-100 mr-1 w-9 h-9 rounded-full bg-[#a078ff] text-[#340080] flex items-center justify-center shadow-lg transition-all duration-200 transform translate-x-1 group-hover:translate-x-0 hover:scale-110 active:scale-95 shrink-0"
               >
                 <Play className="w-4 h-4 fill-current translate-x-0.5" />
               </button>
@@ -544,14 +585,7 @@ export default function DiscoverView({ onOpenAiTheme }) {
           {CURATED_MIXES.map((mix) => (
             <div
               key={mix.id}
-              onClick={() => {
-                playSong({
-                  videoId: mix.videoId,
-                  title: mix.title,
-                  channelTitle: mix.artists,
-                  thumbnail: mix.thumbnail
-                });
-              }}
+              onClick={() => handleMixClick(mix)}
               className="group flex flex-col p-3 rounded-xl bg-[#1a1b24]/90 hover:bg-[#1e1f28] border border-white/[0.06] hover:border-violet-500/30 transition-all cursor-pointer shadow-sm"
             >
               <div className="relative w-full aspect-square rounded-lg overflow-hidden bg-[#282933] mb-2.5 shadow-md">
@@ -567,7 +601,11 @@ export default function DiscoverView({ onOpenAiTheme }) {
                 <button
                   type="button"
                   aria-label={`Play ${mix.title}`}
-                  className="absolute bottom-2.5 right-2.5 w-10 h-10 rounded-full bg-[#a078ff] text-[#340080] flex items-center justify-center opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all shadow-[0_4px_16px_rgba(160,120,255,0.4)]"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleMixClick(mix);
+                  }}
+                  className="absolute bottom-2.5 right-2.5 w-10 h-10 rounded-full bg-[#a078ff] text-[#340080] flex items-center justify-center opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all shadow-[0_4px_16px_rgba(160,120,255,0.4)] hover:scale-110 active:scale-90"
                 >
                   <Play className="w-4 h-4 fill-current translate-x-0.5" />
                 </button>
@@ -616,19 +654,24 @@ export default function DiscoverView({ onOpenAiTheme }) {
             </div>
 
             {/* Track Rows */}
-            {TRENDING_TOP_5.map((track) => {
+            {TRENDING_TOP_5.map((track, trackIdx) => {
               const isPlayingThis = currentSong?.videoId === track.videoId && playback.isPlaying;
               const liked = isLiked(track.videoId);
 
               return (
                 <div
                   key={track.rank}
-                  onClick={() => playSong({
-                    videoId: track.videoId,
-                    title: track.title,
-                    channelTitle: track.artist,
-                    thumbnail: track.thumbnail
-                  })}
+                  onClick={() => playFromCollection(
+                    TRENDING_TOP_5.map(t => ({
+                      videoId: t.videoId,
+                      title: t.title,
+                      channelTitle: t.artist,
+                      thumbnail: t.thumbnail,
+                      duration: t.duration
+                    })),
+                    trackIdx,
+                    'Trending Worldwide'
+                  )}
                   className={`group grid grid-cols-12 items-center px-3 py-2.5 rounded-xl transition-all cursor-pointer ${
                     isPlayingThis 
                       ? 'bg-[#1e1f28] border border-violet-500/30 shadow-md'
@@ -831,11 +874,11 @@ export default function DiscoverView({ onOpenAiTheme }) {
               <button
                 type="button"
                 onClick={() => playSong({
-                  videoId: 'hBCrkxP6L4A',
+                  videoId: 'Tx9zMFodNtA',
                   title: 'Berlin Underground Lab (Live)',
-                  channelTitle: 'Marcel Dettmann',
+                  channelTitle: 'Marcel Dettmann • Berghain Archival Mix',
                   thumbnail: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDU4NtcYuU5EEfElmt87geZWJ4CPTv_xD0SNs-IkZ0ZB6wQrLfp3fiVhJW2O_gzkQe9PTnKPGE56cGtiOI6P2-Cu9Y5nsSgL0TQoBA8sEu-XiCpg6wvCSY-BQaODb4xIkG1Yq_-Nz03fPXajfUV1cU74PlL-TJMj19swi-HFLbOjUGtuf_wjK71zeXrzkQ78PSZ7be0Yt4WN1lhLpwzvGOQ69PqJlo_FDUrsXOh4K4'
-                })}
+                }, true)}
                 className="flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#a078ff] text-[#340080] font-headline text-xs font-bold hover:scale-105 transition-transform shadow-[0_0_16px_rgba(160,120,255,0.35)]"
               >
                 <Radio className="w-3.5 h-3.5" />
@@ -867,11 +910,11 @@ export default function DiscoverView({ onOpenAiTheme }) {
               <button
                 type="button"
                 onClick={() => playSong({
-                  videoId: 'k70n_2Z2w-g',
+                  videoId: 'MV_3Dpw-BRY',
                   title: 'Tokyo Modular Frequencies (Live)',
-                  channelTitle: 'Ken Ishii',
+                  channelTitle: 'Ken Ishii • Shibuya FM Live Wire',
                   thumbnail: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBvpsD41O2HhnYj8lm30-CjSvQErCbkjQXUsEX9LjkE2m7rk1jp9iSEmcAb6ppVUDIIdg06mkY4ubCMIiKQFT7PhTmLoLnWxIVEgb5ZI6mFz6JBgXdJXWTFLeuwok5y4bbd2_TvUGan4_iPG14IaGTKN3B48pvCcXyrEYBBfTD8I39v_eZk4izDCLWBPBEfI3AaQy7LSUW_W74WhmfhDhzkHbXH2zqkM8aIpuXbx3w'
-                })}
+                }, true)}
                 className="flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#383843] hover:bg-[#a078ff] text-[#e3e1ee] hover:text-[#340080] font-headline text-xs font-bold transition-all shadow-md"
               >
                 <Radio className="w-3.5 h-3.5" />
