@@ -15,7 +15,10 @@ import {
   Activity, 
   Volume2, 
   Zap,
-  ArrowRight
+  ArrowRight,
+  ChevronLeft,
+  ChevronRight,
+  Bell
 } from 'lucide-react';
 import { usePlayer } from '../context/PlayerContext';
 import { socket } from '../socket';
@@ -45,7 +48,7 @@ const QUICK_JUMP_CARDS = [
     id: 'top100',
     title: 'Top 100 Hits Spotify',
     subtitle: 'JsVibes Music • 100 Songs',
-    thumbnail: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300&q=80',
+    thumbnail: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDOAjK1YTT5fxrH325Zf648-xr5bwJ0RDIHY1YeV0S3yczppb_DsGRIlFX6YRpqwyMG1niJPwZTvRpV37lAmhXbmrHDDyseyniTFq0fDve9ZBZaueMdcmKmo54YyTMeWgdfcq3o-I2S3psdvedL8CydpHjk9sK9RpNLihv54BLTnh6PldbPW9CJGmB8PrWbihiZKhNANtlNRHfNP5LC0iPfHlXuFHyoM0fs-ujYVhs',
     isPlaylist: true,
     playlistData: TOP_100_HITS
   },
@@ -53,7 +56,7 @@ const QUICK_JUMP_CARDS = [
     id: 'instagram',
     title: 'Trending Instagram Mashup',
     subtitle: 'Voxwaves • Viral Reels 2026',
-    thumbnail: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=300&q=80',
+    thumbnail: 'https://lh3.googleusercontent.com/aida-public/AB6AXuD8ZEwTBm-NQDVM-LGIdRXoCA9NNyHjFB-KOlxv2le9THxTbTSWNuTQIlCJ36Ct0yIlb0NJnRGHQhQVkUnxCaq1XiqJCCbrJdv104K6UPEikssm_kVfzVh0vpjtT4_epxzqWCibGbXLlG3wzuV0sNinmDjuKcNJY6bUs_sizIlt_nInEl55cESvP9S2npaHWsirpvARMpqWUTJ5ujO6Cre6DRTclg-7fYqvbUeCCAY',
     isPlaylist: true,
     playlistData: INSTAGRAM_TRENDING_HITS
   },
@@ -61,7 +64,7 @@ const QUICK_JUMP_CARDS = [
     id: 'indie-hindi',
     title: 'Indie Hindi Hits',
     subtitle: 'Rochit Bansal • 35 Tracks',
-    thumbnail: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=300&q=80',
+    thumbnail: 'https://lh3.googleusercontent.com/aida-public/AB6AXuC5z-XlVYJXzimuqy0R7A59vThAVIBT3Ptv41_y-wDJQ6_KXKm-B3hm46eyha_CvEHz43iFdnJTFs5pm8NHJWkFgfrzxCnh8f_mrnBYyTdn-7G4I4RG_uYGk1xzl6Vk6cmvF8qt8RCrh4h5Isll2WYMQW3bDbxZIhFJG6eeaugPKo3K-N9UindHlkN74MCL0hyi-FO8ciQ8Q5esQYTXOUaTMc1_78umvm9wsenOeJA',
     isPlaylist: true,
     playlistData: INDIE_HINDI_HITS
   },
@@ -69,7 +72,7 @@ const QUICK_JUMP_CARDS = [
     id: 'romantic',
     title: 'Bollywood Romantic',
     subtitle: 'Grow Music • Love Vibes',
-    thumbnail: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300&q=80',
+    thumbnail: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCq-Ot3cF8LHqNzo3bxic0M0WKJfIYB0WCz4fgbK9Hif4VMIHrhEQYrpdJRHCMgWN-brimWfZM1dL7r5xjlNFOmFSSnPIjQsfOtkIS_v65h5jRyw3piRuyB_Q0ye8H0uCLNEcybgxWudxpeya2JKKw8bSWSKQ7i2_VBWIeap4cqedlcHLYal-KkEVcpXJnSX8cDAbuKhaKdVEj0uzoJjANCpkNCF3jKIQQDMK53iW8',
     isPlaylist: true,
     playlistData: BOLLYWOOD_ROMANTIC_HITS
   },
@@ -77,7 +80,7 @@ const QUICK_JUMP_CARDS = [
     id: 'punjabi',
     title: 'Punjabi Viral Hits',
     subtitle: 'Desi Beats • High Energy',
-    thumbnail: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=300&q=80',
+    thumbnail: 'https://lh3.googleusercontent.com/aida-public/AB6AXuD6mRiJ8DM55Bv4uop8V3FaK7YFsEbDr9Zx5GP_9KbIHw35CjEsgVENB3jnkd0UX1_B3IZJ5Ao1sVQH5zarxKQYVAA3I_9D6F8zJc80kApK6s9vD6cz-zl1eITe39DAGYUH0Cj6n-H0ZCwr3fuK3EA8IMJ3jnhYPuwt6hcN5m6IBFn7Wb-sX5_6ALlXuvZXjCy-9-ym8yu4aIfkpZ6Ycr3AZDKhm87z5O7sBMGD3IY',
     isPlaylist: true,
     playlistData: PUNJABI_VIRAL_HITS
   },
@@ -85,7 +88,7 @@ const QUICK_JUMP_CARDS = [
     id: 'daily1',
     title: 'Daily Mix 1',
     subtitle: 'Bonobo, Four Tet, Tycho',
-    thumbnail: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=300&q=80',
+    thumbnail: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDjye0Let52bzvmPjLVezPrVXh28CGKsndCk0GXPaHQtnVRAoxsD6kc_dSQIZsny0kA1jhqM0_45cW44OzbA8RljZAk73YnJgwW9qNCla-x-g-JACzdmD5goyXwaC6Wz6mko-injvp8btpFFNROY8SmjdLwJb5qjEcipf-6xzvmmSbdvToygB0gmg21uVwciCl0q8qYqODfX08u35fa_16wUSav23bw5z0YZjtgAFg',
     videoId: 'hBCrkxP6L4A',
     isPlaylist: false
   },
@@ -93,15 +96,15 @@ const QUICK_JUMP_CARDS = [
     id: 'synthwave',
     title: 'Synthwave Essentials',
     subtitle: 'Gunship, The Midnight',
-    thumbnail: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=300&q=80',
+    thumbnail: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAVuURaNxu_eyfalbUAQU7vzWR1h3bbEGmaHENvk1tsfs8np5tw4QflVbTfO0jpk2o3q2XIhO6dwoicTeFLdZEHuDkssJvpj__Y3jNyKDjXRF_JxJalz-NQQKjqYeb7ZrcLhwcbDkTd1tUee8M2cdLGnMxPiMseJXhY3Ws5cpS2vNYBvMmKyWTfrAQ4BSsgFkyH53wilxzlhELv5kyIlyDI2VXEE7Bbkt07zXKXUNs',
     videoId: 'k70n_2Z2w-g',
     isPlaylist: false
   },
   {
     id: 'lofi',
-    title: 'Late Night Lofi',
+    title: 'Release Radar',
     subtitle: 'Chillhop, Kudasa, Nujabes',
-    thumbnail: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=300&q=80',
+    thumbnail: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBBg1YPy_iFSOLmv-MXzURt9-3iAT6Z35Z15ZtNCWRJ2saNl0WTgSvvkGn-K_47wG_T6M0NnUQEfVnoBsNKyxNn_Uuo2LA-vHDt-JQDyIWimlolUiP2GpN-jCSwIPFXly9EQD9JqCq4eZw72gnQkSv_oJR2Rw1a9pO2j-cs7xu3oKfeplhEPMLa_Y-RHJw6LPd1mFsmKGOx7nUWDvre4QmxU54wzDuo7ROYzLfvUSk',
     videoId: 'LK7-_dgAVQE',
     isPlaylist: false
   }
@@ -115,7 +118,7 @@ const CURATED_MIXES = [
     tagColor: 'text-[#d0bcff]',
     title: 'Daily Mix 1',
     artists: 'Jon Hopkins, Bonobo, Rival Consoles',
-    thumbnail: 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?w=400&q=80',
+    thumbnail: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDU4NtcYuU5EEfElmt87geZWJ4CPTv_xD0SNs-IkZ0ZB6wQrLfp3fiVhJW2O_gzkQe9PTnKPGE56cGtiOI6P2-Cu9Y5nsSgL0TQoBA8sEu-XiCpg6wvCSY-BQaODb4xIkG1Yq_-Nz03fPXajfUV1cU74PlL-TJMj19swi-HFLbOjUGtuf_wjK71zeXrzkQ78PSZ7be0Yt4WN1lhLpwzvGOQ69PqJlo_FDUrsXOh4K4',
     videoId: 'hBCrkxP6L4A'
   },
   {
@@ -124,34 +127,34 @@ const CURATED_MIXES = [
     tagColor: 'text-[#4cd7f6]',
     title: 'Discover Weekly',
     artists: 'Fresh underground electronic & indie',
-    thumbnail: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&q=80',
+    thumbnail: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBvpsD41O2HhnYj8lm30-CjSvQErCbkjQXUsEX9LjkE2m7rk1jp9iSEmcAb6ppVUDIIdg06mkY4ubCMIiKQFT7PhTmLoLnWxIVEgb5ZI6mFz6JBgXdJXWTFLeuwok5y4bbd2_TvUGan4_iPG14IaGTKN3B48pvCcXyrEYBBfTD8I39v_eZk4izDCLWBPBEfI3AaQy7LSUW_W74WhmfhDhzkHbXH2zqkM8aIpuXbx3w',
     videoId: 'k70n_2Z2w-g'
   },
   {
     id: 'mix-3',
     tag: '165 BPM',
     tagColor: 'text-[#ff516a]',
-    title: 'Hyperpop Energy',
+    title: '165 BPM Driving Fast',
     artists: 'High voltage futuristic pop & bass',
-    thumbnail: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=400&q=80',
+    thumbnail: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBvVirDmK0wQTOpxJiNjyEBV-WwplGWQeYdFsT_kDgT0NpZh9WwkqVGTVYZLqg9vpOW1xsdS5ic4Q90Z3E1vb8cj9VaWko7YKxb5N5dibwINee--9Vd4nyqBOql5Zqqs5JGd6NELAYoKBiNe1kupa5pvV3rqQ6hj_EdDa4Xe-jQCgOCI2rZP46Eml9aJdt4Uc3Vj7oaBu7Bpt57iNMQQC49RNQ9rU_V3dm4UCwg7qE',
     videoId: 'LK7-_dgAVQE'
   },
   {
     id: 'mix-4',
     tag: 'FOCUS',
     tagColor: 'text-[#cbc3d7]',
-    title: 'Deep Focus Flow',
+    title: 'Deep Focus Neural',
     artists: 'Binaural drone, generative synthesis',
-    thumbnail: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=400&q=80',
+    thumbnail: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCL8FHciEzJX-HYbQjywyvEfDo4oCIlcOkr6rreai1FXnSUvf0dM_a494q5qNNSgEJ3KYL3ORG8jglBQZcqVGZOEXH9BUqucWYpIiXd2fUj6crj1j_d8HomcdqBL8b_r_nCvDQYWUR33TcFh5ZjFufB_XYvD4HBG6rjh5kibpkl2u6QEtBqweEQrEuhbJ2K1pZAFBucpi0jsDVNiG8rULdKG9WdMOKkEo7aWtJIf04',
     videoId: 'ElZfdU54Cp8'
   },
   {
     id: 'mix-5',
     tag: 'LOFI',
     tagColor: 'text-[#4cd7f6]',
-    title: 'Afterhours Lofi',
+    title: 'Late Night Lofi Drift',
     artists: 'Warm vinyl dust, mellow Fender Rhodes',
-    thumbnail: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400&q=80',
+    thumbnail: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBCEqms7JQGCRfu9ULMRYJv4x0AQZvTi-OkSEFExE4XFM2OQP8E-Dl007MtiHmIeDvyQa54rZvQ6HUcHy7d6A3rKuGfQPY4wLJ4D4jwqr9s0Vmddq-Bx1GN8ePHJ7aqShYkI6oGEtO8uHMQovm7q_5amjljjdytdfF8KpzF-HF8I-KP6L2Zy4o0aPfDTQ2MdFy7vMzu4k-eYTioJbdHEGMO1uoaFIWOUE8WT54i3r8',
     videoId: 'hBCrkxP6L4A'
   }
 ];
@@ -160,53 +163,53 @@ const CURATED_MIXES = [
 const TRENDING_TOP_5 = [
   {
     rank: '01',
-    title: 'Solaris (Extended Mix)',
-    artist: 'Lane 8 & Arctic Lake',
-    album: 'Reviver Echoes',
+    title: 'Neon Horizons',
+    artist: 'Kavinsky & The Weeknd',
+    album: 'OutRun Redux',
     streams: '142.5M',
-    duration: '6:12',
+    duration: '4:12',
     videoId: 'hBCrkxP6L4A',
-    thumbnail: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=300&q=80'
+    thumbnail: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBaGyPQ5Zrj51v00Vz7niB9gap-6Aq1y4_HfidLCbu5FwvN27cyIolXNmtuWybKqWB9Jnz0ykuvs5M-lXPc7cxcONbGpMDakGFVVPOmg1w8-iQoCaVg7KH8hL5OEqCKWZEl8bnxyQASySnVxchm9YfQYSnap13ziaBI9AbYqGmSipl6lTuJVBGnCkmKGPkDl5SjUDiBzV6MAoCNTFqWs6FiltbINRNs4G7cljlvQRA'
   },
   {
     rank: '02',
-    title: 'Neon Genesis',
-    artist: 'Fred again.. & Skrillex',
-    album: 'USB Sessions 04',
+    title: 'Breathe Into Life',
+    artist: 'Kiasmos',
+    album: 'II Deluxe',
     streams: '118.2M',
-    duration: '3:44',
+    duration: '5:44',
     videoId: 'k70n_2Z2w-g',
-    thumbnail: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=300&q=80'
+    thumbnail: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAt_xZ8o52noraVvkZH4f8-X75EJc_Q7h81mmvTWAGfFpQlea1V0jOtQFvrIV0lfsE6_GWBmK6OUTSBjLt2e6j0CSJBxx8gSkfHCbnnSjw_YHb0RbFkvocCfOnZxqXlDWt0VvitQJPfe6jpYwTVxGZsOHI1P8IemdDZyyZT8JBikVsl0y7uOJBrmvYjOJuDqpsw7C2Ts3nxHXnPAf3m7A9HZC0CufIv2iPVDR6jYJM'
   },
   {
     rank: '03',
-    title: 'Subterranean',
-    artist: 'Bicep feat. Clara La San',
-    album: 'Chroma 003',
+    title: 'Singularity',
+    artist: 'Jon Hopkins',
+    album: 'Singularity',
     streams: '96.8M',
-    duration: '4:51',
+    duration: '6:29',
     videoId: 'LK7-_dgAVQE',
-    thumbnail: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=300&q=80'
+    thumbnail: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCC28w8dKDPKEpSxXTx0hJEsjkrx6XS1QQSNNHQCKXq0guwUeb4kOPHJaeb9i47tjoEIIK-lMCa4gdSNRErYfAgUQE7HDuoia0n9FjssHRQI6FnO0NdV8UK65iPgqozqJ9TKF-lNpytMbXrV29Wx_G035e2tEOIvh5xAzvFyrKkeQJdhXWLHMAYkHn-W5wZkBVdFwRnrKt08n7B4844jz9HykVN-j3M2j-xwsw9n5E'
   },
   {
     rank: '04',
-    title: 'Elysium Pulse',
-    artist: 'RÜFÜS DU SOL',
-    album: 'Inhale / Exhale',
+    title: 'Subterranean',
+    artist: 'Stephan Bodzin',
+    album: 'Boavista',
     streams: '88.4M',
-    duration: '5:18',
+    duration: '7:18',
     videoId: 'ElZfdU54Cp8',
-    thumbnail: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300&q=80'
+    thumbnail: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCYIwtPVJr28Os48tndKhLTnLHSpdlWy4txoFCtYpYvmM-uM4i-3pWztyDm8Y_FPdBTseP3YuqZwZBEUShxknXUVFb6UZGGSTks3ChzQvpzXVsy5vgXQQyYyGyPN78ek_IeqC0k5Q5tgu8cnm5ULDS5I_uhWuWs8G6VJblw81wjaX-6OipVxrbV9ddqyTGCidfRiDGbkMZy4otB0UnDo4-2AqA6L7AfMi4Qz5n7NTM'
   },
   {
     rank: '05',
-    title: 'Starlight Echoes',
-    artist: 'Tourist',
-    album: 'Memory Shore',
+    title: 'Ascension',
+    artist: 'Max Cooper',
+    album: 'Yearning for the Infinite',
     streams: '74.1M',
-    duration: '4:07',
+    duration: '4:52',
     videoId: 'hBCrkxP6L4A',
-    thumbnail: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=300&q=80'
+    thumbnail: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDiVhxpAVioEJLrI5XFiOq6zCCa0S40vnutB8MI09RpenR-a68Pu0iSdnkfhc1FVDnuO656Sq-MTuG3qxq0iq_4g5RhnOYg3THs-2w7bkPo_G96oTHNAmo8FXTZUS-TG1FmDXaYzr-578QWEaEQAT_48luMRl93Mgna5PpX0fkuTZFxXvGvNWSdTy7qCyBcUATnP5JXDvX13Hll5F6EoalnBW-aull47mja2hEQpRA'
   }
 ];
 
@@ -495,7 +498,7 @@ export default function DiscoverView({ onOpenAiTheme }) {
             {/* Album Sleeve Front Layer */}
             <div className="relative z-10 w-56 h-56 sm:w-64 sm:h-64 rounded-xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.7)] group border border-white/10">
               <img
-                src="https://images.unsplash.com/photo-1550684848-fac1c5b4e853?w=500&q=80"
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuCgOU3aR9pRjtwLaRIYdMerrVtvHA5XPG0rzVbNNry74cvIdQoWH8D8wlUeOmxE-75OPpnD5iasb1GS0TIRBup76-Cijb821-RcMluJc1N5rHEM_e52IdqJSNvpSQV4_ad6-JORJ4uJcdyfo-UbNgtZ5Mtx8JCJADN4B77fxYc_lNy3goWkZYykqNM0XS-Ogzy866eELZ1wI-0-S_555Bu_meWLlNAhjj143KD_e1k"
                 alt="Chroma Deluxe Edition Artwork"
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
               />
@@ -762,7 +765,155 @@ export default function DiscoverView({ onOpenAiTheme }) {
       </section>
 
       {/* =========================================================================
-          SECTION 5: Real-Time Trending Now in {selectedMood} Grid
+          SECTION 5: Live Audio Sessions & Radio Broadcasts (Stitch Original)
+      ========================================================================= */}
+      <section className="flex flex-col gap-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <span className="relative flex h-3 w-3">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#ff516a] opacity-75" />
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-[#ff516a]" />
+            </span>
+            <div className="flex flex-col">
+              <div className="flex items-center gap-2">
+                <h2 className="font-headline text-xl sm:text-2xl font-bold text-[#e3e1ee] tracking-tight">
+                  Live Audio Sessions
+                </h2>
+                <span className="px-2 py-0.5 rounded-full bg-[#ff516a] text-[#5b0017] font-mono text-[10px] font-bold uppercase">
+                  On Air
+                </span>
+              </div>
+              <span className="font-body text-xs text-[#cbc3d7]/70">
+                Real-time uncompressed master radio streams curated by world-class producers
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            <button 
+              aria-label="Previous live stream" 
+              type="button"
+              className="w-8 h-8 rounded-full bg-[#1e1f28] hover:bg-[#282933] text-[#e3e1ee] flex items-center justify-center transition-colors border border-white/5"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <button 
+              aria-label="Next live stream" 
+              type="button"
+              className="w-8 h-8 rounded-full bg-[#1e1f28] hover:bg-[#282933] text-[#e3e1ee] flex items-center justify-center transition-colors border border-white/5"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Live Card 1: Berlin */}
+          <div className="relative group rounded-2xl overflow-hidden bg-gradient-to-br from-[#1a1b24] to-[#0d0e16] hover:bg-[#1e1f28] transition-all p-5 flex flex-col justify-between h-56 shadow-lg border border-white/[0.06]">
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0d0e16] via-[#0d0e16]/40 to-transparent pointer-events-none" />
+            <div className="relative z-10 flex items-start justify-between">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#ff516a]/90 backdrop-blur-md text-[#5b0017] font-mono text-[10px] font-bold">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#5b0017] animate-pulse" /> LIVE NOW
+              </span>
+              <span className="px-2.5 py-1 rounded-full bg-[#0d0e16]/80 backdrop-blur-md font-mono text-[11px] text-[#4cd7f6] border border-white/5">
+                24.8k listening
+              </span>
+            </div>
+            <div className="relative z-10 flex items-end justify-between gap-3">
+              <div className="flex flex-col min-w-0">
+                <span className="font-headline text-base font-bold text-white truncate">
+                  Berlin Underground Lab
+                </span>
+                <span className="font-body text-xs text-[#cbc3d7]/70 truncate">
+                  Hosted by Marcel Dettmann • Berghain Archival Mix
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => playSong({
+                  videoId: 'hBCrkxP6L4A',
+                  title: 'Berlin Underground Lab (Live)',
+                  channelTitle: 'Marcel Dettmann',
+                  thumbnail: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDU4NtcYuU5EEfElmt87geZWJ4CPTv_xD0SNs-IkZ0ZB6wQrLfp3fiVhJW2O_gzkQe9PTnKPGE56cGtiOI6P2-Cu9Y5nsSgL0TQoBA8sEu-XiCpg6wvCSY-BQaODb4xIkG1Yq_-Nz03fPXajfUV1cU74PlL-TJMj19swi-HFLbOjUGtuf_wjK71zeXrzkQ78PSZ7be0Yt4WN1lhLpwzvGOQ69PqJlo_FDUrsXOh4K4'
+                })}
+                className="flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#a078ff] text-[#340080] font-headline text-xs font-bold hover:scale-105 transition-transform shadow-[0_0_16px_rgba(160,120,255,0.35)]"
+              >
+                <Radio className="w-3.5 h-3.5" />
+                <span>Tune In</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Live Card 2: Tokyo */}
+          <div className="relative group rounded-2xl overflow-hidden bg-gradient-to-br from-[#1a1b24] to-[#0d0e16] hover:bg-[#1e1f28] transition-all p-5 flex flex-col justify-between h-56 shadow-lg border border-white/[0.06]">
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0d0e16] via-[#0d0e16]/40 to-transparent pointer-events-none" />
+            <div className="relative z-10 flex items-start justify-between">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#ff516a]/90 backdrop-blur-md text-[#5b0017] font-mono text-[10px] font-bold">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#5b0017] animate-pulse" /> LIVE NOW
+              </span>
+              <span className="px-2.5 py-1 rounded-full bg-[#0d0e16]/80 backdrop-blur-md font-mono text-[11px] text-[#4cd7f6] border border-white/5">
+                18.3k listening
+              </span>
+            </div>
+            <div className="relative z-10 flex items-end justify-between gap-3">
+              <div className="flex flex-col min-w-0">
+                <span className="font-headline text-base font-bold text-white truncate">
+                  Tokyo Modular Frequencies
+                </span>
+                <span className="font-body text-xs text-[#cbc3d7]/70 truncate">
+                  Hosted by Ken Ishii • Shibuya FM Live Wire
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => playSong({
+                  videoId: 'k70n_2Z2w-g',
+                  title: 'Tokyo Modular Frequencies (Live)',
+                  channelTitle: 'Ken Ishii',
+                  thumbnail: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBvpsD41O2HhnYj8lm30-CjSvQErCbkjQXUsEX9LjkE2m7rk1jp9iSEmcAb6ppVUDIIdg06mkY4ubCMIiKQFT7PhTmLoLnWxIVEgb5ZI6mFz6JBgXdJXWTFLeuwok5y4bbd2_TvUGan4_iPG14IaGTKN3B48pvCcXyrEYBBfTD8I39v_eZk4izDCLWBPBEfI3AaQy7LSUW_W74WhmfhDhzkHbXH2zqkM8aIpuXbx3w'
+                })}
+                className="flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#383843] hover:bg-[#a078ff] text-[#e3e1ee] hover:text-[#340080] font-headline text-xs font-bold transition-all shadow-md"
+              >
+                <Radio className="w-3.5 h-3.5" />
+                <span>Tune In</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Live Card 3: NTS Sanctuary */}
+          <div className="relative group rounded-2xl overflow-hidden bg-gradient-to-br from-[#1a1b24] to-[#0d0e16] hover:bg-[#1e1f28] transition-all p-5 flex flex-col justify-between h-56 shadow-lg border border-white/[0.06]">
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0d0e16] via-[#0d0e16]/40 to-transparent pointer-events-none" />
+            <div className="relative z-10 flex items-start justify-between">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#4cd7f6]/20 backdrop-blur-md text-[#4cd7f6] font-mono text-[10px] font-bold border border-[#4cd7f6]/30">
+                SCHEDULED
+              </span>
+              <span className="px-2.5 py-1 rounded-full bg-[#0d0e16]/80 backdrop-blur-md font-mono text-[11px] text-[#cbc3d7]/60 border border-white/5">
+                Starts in 42m
+              </span>
+            </div>
+            <div className="relative z-10 flex items-end justify-between gap-3">
+              <div className="flex flex-col min-w-0">
+                <span className="font-headline text-base font-bold text-white truncate">
+                  NTS Ambient Sanctuary
+                </span>
+                <span className="font-body text-xs text-[#cbc3d7]/70 truncate">
+                  Hosted by Tim Hecker • Infinite Harmonics
+                </span>
+              </div>
+              <button
+                type="button"
+                className="flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#383843] hover:bg-[#a078ff] text-[#e3e1ee] hover:text-[#340080] font-headline text-xs font-bold transition-all shadow-md"
+              >
+                <Bell className="w-3.5 h-3.5" />
+                <span>Notify</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================================
+          SECTION 6: Real-Time Trending Now in {selectedMood} Grid
       ========================================================================= */}
       <section className="space-y-4">
         <div className="flex items-center justify-between">

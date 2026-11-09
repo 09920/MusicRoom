@@ -1,17 +1,17 @@
 import React, { useState, useMemo } from 'react';
-import { 
-  ArrowLeft, 
-  Play, 
-  Pause, 
-  Shuffle, 
-  BookmarkPlus, 
-  Check, 
-  MoreVertical, 
-  Heart, 
-  Plus, 
-  Search, 
-  Music2, 
-  Share2, 
+import {
+  ArrowLeft,
+  Play,
+  Pause,
+  Shuffle,
+  BookmarkPlus,
+  Check,
+  MoreVertical,
+  Heart,
+  Plus,
+  Search,
+  Music2,
+  Share2,
   SlidersHorizontal,
   Clock,
   Sparkles,
@@ -535,11 +535,10 @@ export default function PlaylistView() {
                   key={tab}
                   type="button"
                   onClick={() => setActiveDiscographyTab(tab)}
-                  className={`px-3.5 py-1 rounded-full font-label text-xs transition-colors whitespace-nowrap ${
-                    activeDiscographyTab === tab
+                  className={`px-3.5 py-1 rounded-full font-label text-xs transition-colors whitespace-nowrap ${activeDiscographyTab === tab
                       ? 'bg-primary-container text-on-primary-container font-semibold shadow-sm'
                       : 'text-on-surface-variant hover:text-on-surface'
-                  }`}
+                    }`}
                 >
                   {tab}
                 </button>
