@@ -116,7 +116,7 @@ export default function SearchView() {
               <div className="flex items-center justify-between px-1">
                 <div className="flex items-center gap-2">
                   <Clock className="w-3.5 h-3.5 text-white/50" />
-                  <h3 className="font-heading italic text-base text-white">Recent Searches</h3>
+                  <h3 className="font-heading font-bold text-base text-white">Recent Searches</h3>
                 </div>
                 <button
                   type="button"
@@ -136,7 +136,7 @@ export default function SearchView() {
                       setQuery(term);
                       executeSearch(term);
                     }}
-                    className="px-3.5 py-1.5 rounded-full liquid-glass text-xs font-medium text-white/80 hover:text-white hover:bg-white/10 border border-white/10 transition-all active:scale-95 flex items-center gap-1.5"
+                    className="px-3.5 py-1.5 rounded-full bg-[#161822] text-xs font-medium text-white/90 hover:text-white hover:bg-[#1f2230] border border-white/[0.08] transition-all active:scale-95 flex items-center gap-1.5"
                   >
                     <span>{term}</span>
                   </button>
@@ -148,8 +148,8 @@ export default function SearchView() {
           {/* Quick Discover Searches */}
           <div className="space-y-3">
             <div className="flex items-center gap-2 px-1">
-              <Sparkles className="w-3.5 h-3.5 text-purple-400" />
-              <h3 className="font-heading italic text-base text-white">Popular Searches</h3>
+              <Sparkles className="w-3.5 h-3.5 text-[#9d8df1]" />
+              <h3 className="font-heading font-bold text-base text-white">Popular Searches</h3>
             </div>
 
             <div className="flex flex-wrap gap-2 px-1">
@@ -170,7 +170,7 @@ export default function SearchView() {
                     setQuery(suggestion);
                     executeSearch(suggestion);
                   }}
-                  className="px-3.5 py-1.5 rounded-full liquid-glass text-xs font-medium text-purple-200 hover:text-white bg-purple-600/10 hover:bg-purple-600/20 border border-purple-500/20 transition-all active:scale-95"
+                  className="px-3.5 py-1.5 rounded-full bg-[#181a26] text-xs font-medium text-[#9d8df1] hover:text-white hover:bg-[#202336] border border-[#9d8df1]/20 transition-all active:scale-95"
                 >
                   {suggestion}
                 </button>
@@ -198,7 +198,7 @@ export default function SearchView() {
               return (
                 <div
                   key={`search-${song.videoId}`}
-                  className="flex items-center justify-between p-2.5 rounded-2xl liquid-glass hover:bg-white/10 transition-all group border border-white/5"
+                  className="flex items-center justify-between p-2.5 rounded-2xl bg-[#12141d] border border-white/[0.06] hover:bg-[#181a24] transition-all group"
                 >
                   {/* Thumbnail & Title/Artist */}
                   <div
@@ -213,17 +213,17 @@ export default function SearchView() {
                         loading="lazy"
                       />
                       {isPlayingThis && (
-                        <div className="absolute inset-0 bg-purple-600/60 backdrop-blur-sm flex items-center justify-center">
-                          <span className="w-2.5 h-2.5 rounded-full bg-white animate-ping" />
+                        <div className="absolute inset-0 bg-[#9d8df1]/60 backdrop-blur-sm flex items-center justify-center">
+                          <span className="w-2.5 h-2.5 rounded-full bg-[#0d0e14] animate-ping" />
                         </div>
                       )}
                     </div>
 
                     <div className="min-w-0 flex-1">
-                      <h4 className="text-xs sm:text-sm font-semibold text-white truncate leading-tight group-hover:text-purple-300 transition-colors">
+                      <h4 className="text-xs sm:text-sm font-bold text-white truncate leading-tight group-hover:text-[#9d8df1] transition-colors font-heading">
                         {song.title}
                       </h4>
-                      <p className="text-[11px] text-white/50 truncate font-light mt-0.5">
+                      <p className="text-[11px] text-[#8e92a4] truncate font-medium mt-0.5">
                         {song.channelTitle || 'YouTube Music'}
                       </p>
                     </div>
@@ -272,3 +272,4 @@ export default function SearchView() {
     </div>
   );
 }
+

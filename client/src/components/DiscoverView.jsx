@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Play, MoreVertical, Sparkles, Flame, Heart, Disc3, Clock } from 'lucide-react';
+import { Play, MoreVertical, Heart, Disc3 } from 'lucide-react';
 import { usePlayer } from '../context/PlayerContext';
 import { socket } from '../socket';
 
 const MOODS = [
-  { id: 'Trending', label: '🔥 Trending' },
-  { id: 'Hindi Hits', label: '🇮🇳 Hindi Hits' },
-  { id: 'Chill Lo-Fi', label: '☕ Chill Lo-Fi' },
-  { id: 'Punjabi', label: '⚡ Punjabi' },
-  { id: 'Romantic', label: '❤️ Romantic' },
-  { id: 'English Pop', label: '🌐 English Pop' },
-  { id: 'Workout', label: '💪 Workout' }
+  { id: 'Trending', label: 'Trending' },
+  { id: 'Hindi Hits', label: 'Hindi Hits' },
+  { id: 'Chill Lo-Fi', label: 'Chill Lo-Fi' },
+  { id: 'Punjabi', label: 'Punjabi' },
+  { id: 'Romantic', label: 'Romantic' },
+  { id: 'English Pop', label: 'English Pop' },
+  { id: 'Workout', label: 'Workout' }
 ];
 
 function getDynamicGreeting() {
@@ -18,8 +18,16 @@ function getDynamicGreeting() {
   if (hour >= 5 && hour < 12) return 'Good morning';
   if (hour >= 12 && hour < 17) return 'Good afternoon';
   if (hour >= 17 && hour < 22) return 'Good evening';
-  return 'Late night vibe';
+  return 'Good evening';
 }
+
+// Starter fallback vibes for "Continue listening" if local history is fresh
+const STARTER_VIBES = [
+  { videoId: 'hBCrkxP6L4A', title: 'Midnight Drive', channelTitle: 'Nova Lane', thumbnail: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=300&q=80', gradient: 'from-purple-500 via-indigo-500 to-pink-500' },
+  { videoId: 'k70n_2Z2w-g', title: 'Slow Monsoon', channelTitle: 'Kabir and Co', thumbnail: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300&q=80', gradient: 'from-cyan-500 via-blue-500 to-indigo-600' },
+  { videoId: 'LK7-_dgAVQE', title: 'Neon Sunset', channelTitle: 'Aura Collective', thumbnail: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=300&q=80', gradient: 'from-orange-500 via-rose-500 to-pink-600' },
+  { videoId: 'ElZfdU54Cp8', title: 'Golden Hour', channelTitle: 'Samir Beats', thumbnail: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300&q=80', gradient: 'from-amber-500 via-yellow-500 to-orange-500' }
+];
 
 export default function DiscoverView() {
   const {
@@ -50,22 +58,21 @@ export default function DiscoverView() {
 
   const greeting = getDynamicGreeting();
 
+  // Combine real history with starter tiles
+  const continueList = (history && history.length > 0) ? history.slice(0, 8) : STARTER_VIBES;
+
   return (
-    <div className="space-y-6 pb-24 sm:pb-28">
+    <div className="space-y-6 pb-28">
       
-      {/* Dynamic Greeting Header */}
-      <div className="pt-2 px-1">
-        <div className="flex items-center gap-2 mb-1">
-          <Sparkles className="w-4 h-4 text-purple-400" />
-          <span className="text-xs uppercase tracking-widest text-purple-300 font-mono">Curated For You</span>
-        </div>
-        <h2 className="font-heading italic text-2xl sm:text-3xl text-white tracking-tight">
+      {/* 1. Header: "Good evening" */}
+      <div className="pt-1">
+        <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight font-heading">
           {greeting}
         </h2>
       </div>
 
-      {/* Mood Pills (Horizontally Scrollable) */}
-      <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 px-1 -mx-1">
+      {/* 2. Mood Pills (Horizontally Scrollable, pastel active pill) */}
+      <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 -mx-1 px-1">
         {MOODS.map((mood) => {
           const isSelected = selectedMood === mood.id;
           return (
@@ -73,10 +80,10 @@ export default function DiscoverView() {
               key={mood.id}
               type="button"
               onClick={() => setSelectedMood(mood.id)}
-              className={`px-4 py-2 rounded-full text-xs font-medium whitespace-nowrap transition-all active:scale-95 shrink-0 border ${
+              className={`px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all active:scale-95 shrink-0 ${
                 isSelected
-                  ? 'bg-purple-600 text-white border-purple-500/80 shadow-lg shadow-purple-600/30'
-                  : 'liquid-glass text-white/70 hover:text-white border-white/10 hover:bg-white/10'
+                  ? 'bg-[#9d8df1] text-[#0d0e14] shadow-md'
+                  : 'bg-[#161822] text-white/90 hover:text-white border border-white/[0.08] hover:bg-[#1f2230]'
               }`}
             >
               {mood.label}
@@ -85,82 +92,65 @@ export default function DiscoverView() {
         })}
       </div>
 
-      {/* Continue Listening Shelf (Hidden if empty) */}
-      {history && history.length > 0 && (
-        <div className="space-y-3">
-          <div className="flex items-center justify-between px-1">
-            <div className="flex items-center gap-2">
-              <Clock className="w-3.5 h-3.5 text-white/50" />
-              <h3 className="font-heading italic text-lg text-white">Continue Listening</h3>
-            </div>
-            <span className="text-[11px] text-white/40 font-mono">{history.length} recent</span>
-          </div>
+      {/* 3. Continue listening Shelf */}
+      <div className="space-y-2.5">
+        <h3 className="text-base font-bold text-white font-heading">
+          Continue listening
+        </h3>
 
-          <div className="flex items-center gap-3 overflow-x-auto no-scrollbar pb-2 px-1 -mx-1">
-            {history.slice(0, 10).map((song) => {
-              const isPlayingThis = currentSong?.videoId === song.videoId && playback.isPlaying;
-              return (
-                <div
-                  key={`history-${song.videoId}`}
-                  onClick={() => playSong(song, true)}
-                  className="group relative w-32 sm:w-36 shrink-0 rounded-2xl liquid-glass p-2.5 cursor-pointer hover:bg-white/10 transition-all border border-white/5 shadow-lg active:scale-95"
-                >
-                  <div className="relative aspect-square rounded-xl overflow-hidden mb-2 bg-black/60 shadow">
-                    <img
-                      src={song.thumbnail || `https://i.ytimg.com/vi/${song.videoId}/hqdefault.jpg`}
-                      alt={song.title}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                    <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <div className="w-8 h-8 rounded-full bg-white text-black flex items-center justify-center shadow-lg">
-                        <Play className="w-3.5 h-3.5 fill-black translate-x-0.5" />
-                      </div>
-                    </div>
-                    {isPlayingThis && (
-                      <div className="absolute bottom-1.5 right-1.5 px-2 py-0.5 rounded-full bg-purple-600 text-[9px] font-semibold text-white shadow">
-                        Playing
-                      </div>
-                    )}
+        <div className="flex items-center gap-3 overflow-x-auto no-scrollbar pb-1 -mx-1 px-1">
+          {continueList.map((song, idx) => {
+            const isPlayingThis = currentSong?.videoId === song.videoId && playback.isPlaying;
+            return (
+              <div
+                key={`continue-${song.videoId || idx}`}
+                onClick={() => playSong(song, true)}
+                className="group relative w-24 h-24 sm:w-28 sm:h-28 shrink-0 rounded-2xl overflow-hidden cursor-pointer shadow-lg active:scale-95 transition-all bg-[#12141d] border border-white/[0.06]"
+              >
+                {song.thumbnail ? (
+                  <img
+                    src={song.thumbnail}
+                    alt={song.title}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                ) : (
+                  <div className={`w-full h-full bg-gradient-to-tr ${song.gradient || 'from-purple-600 to-indigo-600'}`} />
+                )}
+
+                {/* Subtle dark gradient overlay */}
+                <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-full bg-white text-black opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center shadow-lg">
+                    <Play className="w-3.5 h-3.5 fill-black translate-x-0.5" />
                   </div>
-                  <p className="text-xs font-medium text-white truncate group-hover:text-purple-300">
-                    {song.title}
-                  </p>
-                  <p className="text-[10px] text-white/40 truncate font-light mt-0.5">
-                    {song.channelTitle || 'YouTube'}
-                  </p>
                 </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
 
-      {/* Trending Now Grid (2-Column on Mobile, 3/4 Column on Tablet/Desktop) */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between px-1">
-          <div className="flex items-center gap-2">
-            <Flame className="w-4 h-4 text-amber-400" />
-            <h3 className="font-heading italic text-lg sm:text-xl text-white">
-              Trending in {selectedMood}
-            </h3>
-          </div>
-          <span className="text-[11px] text-white/40 font-mono">
-            {trendingSongs.length} tracks
-          </span>
+                {isPlayingThis && (
+                  <div className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#9d8df1] animate-ping" />
+                )}
+              </div>
+            );
+          })}
         </div>
+      </div>
+
+      {/* 4. Trending now Section (2-Column Grid on Mobile) */}
+      <div className="space-y-3">
+        <h3 className="text-base font-bold text-white font-heading">
+          Trending now
+        </h3>
 
         {loading ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div key={i} className="rounded-2xl liquid-glass p-3 h-44 animate-pulse flex flex-col justify-end">
-                <div className="w-full h-28 bg-white/5 rounded-xl mb-2" />
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="rounded-2xl bg-[#12141d] p-3 h-48 animate-pulse flex flex-col justify-between">
+                <div className="w-full aspect-square bg-white/5 rounded-xl mb-2" />
                 <div className="w-3/4 h-3 bg-white/10 rounded mb-1" />
                 <div className="w-1/2 h-2.5 bg-white/5 rounded" />
               </div>
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-3 sm:gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
             {trendingSongs.map((song) => {
               const isPlayingThis = currentSong?.videoId === song.videoId && playback.isPlaying;
               const liked = isLiked(song.videoId);
@@ -168,7 +158,7 @@ export default function DiscoverView() {
               return (
                 <div
                   key={`trending-${song.videoId}`}
-                  className="group relative rounded-2xl liquid-glass p-3 transition-all hover:bg-white/10 border border-white/5 shadow-xl flex flex-col justify-between"
+                  className="group relative rounded-2xl bg-[#12141d] border border-white/[0.06] p-3 transition-all hover:bg-[#181a24] shadow-xl flex flex-col justify-between"
                 >
                   {/* Artwork & Play Overlay */}
                   <div
@@ -182,16 +172,16 @@ export default function DiscoverView() {
                       loading="lazy"
                     />
 
-                    {/* Hover / Active Play Button */}
-                    <div className="absolute inset-0 bg-black/35 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    {/* Hover Play Button */}
+                    <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                       <div className="w-10 h-10 rounded-full bg-white text-black flex items-center justify-center shadow-xl active:scale-90 transition-transform">
                         <Play className="w-4 h-4 fill-black translate-x-0.5" />
                       </div>
                     </div>
 
                     {isPlayingThis && (
-                      <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-purple-600/90 backdrop-blur-md text-[9px] font-semibold text-white shadow flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />
+                      <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-[#9d8df1] text-[9px] font-bold text-[#0d0e14] shadow flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#0d0e14] animate-ping" />
                         <span>Playing</span>
                       </div>
                     )}
@@ -201,22 +191,22 @@ export default function DiscoverView() {
                   <div className="min-w-0 flex-1 mb-1">
                     <h4
                       onClick={() => playSong(song, true)}
-                      className="text-xs sm:text-sm font-semibold text-white truncate leading-tight group-hover:text-purple-300 cursor-pointer transition-colors"
+                      className="text-sm font-bold text-white truncate leading-tight group-hover:text-[#9d8df1] cursor-pointer transition-colors font-heading"
                       title={song.title}
                     >
                       {song.title}
                     </h4>
-                    <p className="text-[11px] text-white/50 truncate font-light mt-0.5 font-body">
+                    <p className="text-xs text-[#8e92a4] font-medium truncate mt-0.5">
                       {song.channelTitle || 'YouTube Music'}
                     </p>
                   </div>
 
-                  {/* Bottom Row: Heart & 3-Dot Menu */}
-                  <div className="flex items-center justify-between pt-1 border-t border-white/5 mt-1">
+                  {/* Card Bottom Row: Heart & 3-Dot Menu */}
+                  <div className="flex items-center justify-between pt-1 border-t border-white/[0.04] mt-1">
                     <button
                       type="button"
                       onClick={() => toggleLike(song)}
-                      className="text-white/40 hover:text-rose-400 transition-colors active:scale-90"
+                      className="text-white/40 hover:text-rose-400 transition-colors active:scale-90 p-0.5"
                       title={liked ? "Liked" : "Like"}
                     >
                       <Heart
@@ -229,7 +219,7 @@ export default function DiscoverView() {
                     <button
                       type="button"
                       onClick={() => openSongMenu(song)}
-                      className="text-white/40 hover:text-white p-1 rounded-full transition-colors active:scale-90"
+                      className="text-white/40 hover:text-white p-0.5 rounded-full transition-colors active:scale-90"
                       title="More options"
                     >
                       <MoreVertical className="w-3.5 h-3.5" />

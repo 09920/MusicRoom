@@ -117,16 +117,20 @@ function MainLayout() {
         <MobileTopBar />
 
         {/* Scrollable Content Area */}
-        <main className="flex-1 px-3.5 sm:px-5 py-3 overflow-y-auto">
+        <main className="flex-1 px-4 py-3 overflow-y-auto">
           {activeTab === 'discover' && <DiscoverView />}
           {activeTab === 'search' && <SearchView />}
           {activeTab === 'library' && <LibraryView />}
         </main>
 
-        {/* Fixed Bottom Container: Mini-Player + Tab Bar */}
-        <div className="fixed bottom-0 inset-x-0 z-40">
-          <MiniPlayer />
-          <MobileBottomTabBar />
+        {/* Fixed Bottom Container: Floating Mini-Player + Tab Bar */}
+        <div className="fixed bottom-0 inset-x-0 z-40 pointer-events-none">
+          <div className="pointer-events-auto">
+            <MiniPlayer />
+          </div>
+          <div className="pointer-events-auto">
+            <MobileBottomTabBar />
+          </div>
         </div>
       </div>
 

@@ -8,10 +8,16 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        heading: ["'Instrument Serif'", 'serif'],
-        body: ["'Barlow'", 'sans-serif'],
+        heading: ["'Inter'", 'system-ui', '-apple-system', 'sans-serif'],
+        body: ["'Inter'", "'Barlow'", 'system-ui', 'sans-serif'],
+        serif: ["'Instrument Serif'", 'serif'],
       },
       colors: {
+        accent: {
+          lavender: '#9d8df1',
+          lavenderLight: '#b5a9f5',
+          lavenderDark: '#8573ec',
+        },
         brand: {
           50: '#f5f3ff',
           100: '#ede9fe',

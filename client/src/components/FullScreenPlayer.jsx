@@ -169,10 +169,10 @@ export default function FullScreenPlayer() {
         {/* Track Title, Artist & Action Buttons ([❤] [＋ playlist]) */}
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0 flex-1">
-            <h3 className="font-heading italic text-xl sm:text-2xl text-white truncate leading-tight">
+            <h3 className="font-heading font-bold text-xl sm:text-2xl text-white truncate leading-tight">
               {currentSong.title}
             </h3>
-            <p className="text-xs sm:text-sm text-white/50 truncate font-body mt-0.5 font-light">
+            <p className="text-xs sm:text-sm text-[#8e92a4] truncate font-medium mt-0.5">
               {currentSong.channelTitle || 'YouTube Music'}
             </p>
           </div>
@@ -182,7 +182,7 @@ export default function FullScreenPlayer() {
             <button
               type="button"
               onClick={() => toggleLike(currentSong)}
-              className="w-10 h-10 rounded-full liquid-glass flex items-center justify-center transition-all active:scale-90"
+              className="w-10 h-10 rounded-full bg-[#181a24] border border-white/10 flex items-center justify-center transition-all active:scale-90"
               title={liked ? "Unlike" : "Like"}
               aria-label="Like song"
             >
@@ -199,7 +199,7 @@ export default function FullScreenPlayer() {
             <button
               type="button"
               onClick={() => openAddToPlaylistModal(currentSong)}
-              className="w-10 h-10 rounded-full liquid-glass flex items-center justify-center text-white/60 hover:text-white transition-all active:scale-90"
+              className="w-10 h-10 rounded-full bg-[#181a24] border border-white/10 flex items-center justify-center text-white/60 hover:text-white transition-all active:scale-90"
               title="Add to playlist"
               aria-label="Add to playlist"
             >
@@ -216,7 +216,7 @@ export default function FullScreenPlayer() {
             max={playback.duration || 100}
             value={playback.currentTime || 0}
             onChange={handleSeekChange}
-            className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-purple-500 transition-all hover:h-2"
+            className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-[#9d8df1] transition-all hover:h-2"
           />
           <div className="flex justify-between text-[11px] font-mono text-white/40">
             <span>{formatTime(playback.currentTime)}</span>
@@ -478,3 +478,4 @@ export default function FullScreenPlayer() {
     </div>
   );
 }
+
