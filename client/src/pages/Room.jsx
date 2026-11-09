@@ -11,7 +11,6 @@ import ImportPlaylistModal from '../components/ImportPlaylistModal';
 import SessionHistoryModal from '../components/SessionHistoryModal';
 import Toast from '../components/Toast';
 import TapToJoin from '../components/TapToJoin';
-import FadingVideo from '../components/FadingVideo';
 import { Shield, Users, MessageSquare, Copy, LogOut, Music2, History } from 'lucide-react';
 
 export default function Room({ initialRoom, currentSocketId, userId, onLeaveRoom }) {
@@ -336,11 +335,8 @@ export default function Room({ initialRoom, currentSocketId, userId, onLeaveRoom
 
   return (
     <div className="min-h-screen min-h-[100dvh] bg-black pb-16 font-body relative overflow-x-hidden">
-      {/* Subtle Cinematic Video Background */}
-      <FadingVideo
-        src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260418_080021_d598092b-c4c2-4e53-8e46-94cf9064cd50.mp4"
-        className="fixed inset-0 w-full h-full object-cover opacity-25 pointer-events-none z-0"
-      />
+      {/* Subtle Static Ambient Background (Replaced moving video) */}
+      <div className="fixed inset-0 bg-gradient-to-t from-[#12131c] via-[#0d0e16] to-black opacity-90 pointer-events-none z-0" />
 
       {needsTapToJoin && room.currentSong && (
         <TapToJoin onJoin={handleTapToJoin} roomName={room?.name} />

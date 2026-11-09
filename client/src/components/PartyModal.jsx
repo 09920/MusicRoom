@@ -444,7 +444,7 @@ export default function PartyModal() {
                     {/* Center Vinyl Label with Image */}
                     <div className="relative z-10 w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden shadow-[0_0_20px_rgba(208,188,255,0.4)] flex items-center justify-center ring-2 ring-[#a078ff]/40">
                       <img
-                        src={currentSong?.thumbnail || 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?w=300&q=80'}
+                        src={currentSong?.thumbnail || 'https://lh3.googleusercontent.com/aida-public/AB6AXuD9KmFbVkgITFWG9KoDROdeYNbwUyneru9jq346EK9sg2Auc2CX450L417La6oiaL4aU7sqx8pwJSaPWzns53mmLiklO81ddkiA42XDyudW41dBpsLHfpXUjxPnkqE7L_WPke7KZNpkuISTKC93F9qF3p1sJ9HSiraRuzZVViN_-4WcDaqhz8hw6gSaggyRU5_wCcbDo2m7nQPCt1b7FmTCg52jBJegdHMdmXmokuA'}
                         alt={currentSong?.title || 'Playing Record'}
                         className="w-full h-full object-cover"
                       />

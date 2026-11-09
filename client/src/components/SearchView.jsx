@@ -55,7 +55,7 @@ const CURATED_SAMPLE_MASTERS = [
     videoId: 'MV_3Dpw-BRY',
     title: 'Nightcall (Lossless 24b/192kHz)',
     channelTitle: 'Kavinsky & Lovefoxxx • OutRun',
-    thumbnail: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=400&auto=format&fit=crop&q=80',
+    thumbnail: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBufkkI1LCoP_D36oepmd_5jWmY0jlej44Zzk6sUoQwpPUVViyruULdEd27AuxigTBw4nZrGl-PnndyhLvc-7WzbuCUs1OyasquetUb147G1HyWyUKyxYh5mMnKrQbo_7w0MqwZHZ5HJniZo1s0jrfr473TM20l-nKoP0R-BHDsX5HQl5svzHHDmbguoFpUusIEVozzkQgTCJUs5yyt3_MUsll4tOhm19CA3E5dMdU',
     duration: 258,
     badge: '24b / 192k FLAC'
   },
@@ -63,7 +63,7 @@ const CURATED_SAMPLE_MASTERS = [
     videoId: '4lzfqn2FpY0',
     title: 'Pacific Coast Highway',
     channelTitle: 'Kavinsky • OutRun Special Edition',
-    thumbnail: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=400&auto=format&fit=crop&q=80',
+    thumbnail: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCvhwi6bqrMfzSkK6VXECOnl6msg_qmUZsDndB4wVjlgBPJyMFt7rMmDWz_45tgoqjQUGsve9sjOgABfhhbEsCIVt2m3yY1-W4iDZQtQFh9Y0qevcDOnpax2ra13mLJqXHXKpN10xCCwOkd5g-Dson92B11dUqFkR-vb5czQaDQPNFM2KEIO4BNRYm6WCHo2lf5V1ayBGUKtlxYR2pzKTn8GTX-NZGswegcRImPiCA',
     duration: 383,
     badge: 'Dolby Atmos'
   },
@@ -71,7 +71,7 @@ const CURATED_SAMPLE_MASTERS = [
     videoId: '6B2v6hF6l24',
     title: 'Zenith',
     channelTitle: 'Kavinsky ft. Prudence & Morgan Phalen • Reborn',
-    thumbnail: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400&auto=format&fit=crop&q=80',
+    thumbnail: 'https://lh3.googleusercontent.com/aida-public/AB6AXuClgpPIDn0xi1EmgenOuwFy1WgvDFxXNNdC7m-sUPYprP6fXxSZa3fEGCJb5d6nrjPJMukzu5GkTiavLSO54jh41QtKe7Mz-izGOK8vk1UvFlXttht0Gb5Q_BKju8qPcmW2G5fj1nLJoTJFixAXixwXFpOwtbFQYQG2VkcpyPPlpNAGQrM4YhSvsy_I8w0--ks2gDBNkai_TR4DBtgWg-0DwB2oUraPAJosnAhN3-E',
     duration: 220,
     badge: '24b / 96k Studio'
   },
@@ -79,7 +79,7 @@ const CURATED_SAMPLE_MASTERS = [
     videoId: 'qFp_3a7l-6g',
     title: 'Roadgame',
     channelTitle: 'Kavinsky • OutRun',
-    thumbnail: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400&auto=format&fit=crop&q=80',
+    thumbnail: 'https://lh3.googleusercontent.com/aida-public/AB6AXuALT0jckjp7FtNTU-5Dse6yjlLqZwTHXSPkr0G7PO6UTrMvTwgK32y7_uV5j2cslSIoXsA2PFVFTpV918Xlgh4Lm0O7rEI-kLTHjcWBVEhhtLWbfjv1M9Fge0JNZkuJtSAfZ4tgVxNCCUAQvFCAnI9hGPj3UbwRjhdAsDhGyg9Ooo5-EsduVZCxNxJFKj-SqfwD92-e3aaiNQ2vxqgtGUIilN8hqmn4zapYg6lm194',
     duration: 229,
     badge: '24b / 192k FLAC'
   }
@@ -99,7 +99,7 @@ export default function SearchView() {
     isLiked,
     toggleLike,
     addToQueue,
-    setIsPartyOpen
+    setIsPartyModalOpen
   } = usePlayer();
 
   const [query, setQuery] = useState('');
@@ -233,7 +233,7 @@ export default function SearchView() {
                   onClick={() => {
                     setActiveCategory(cat.id);
                     if (cat.id === 'live') {
-                      setIsPartyOpen?.(true);
+                      setIsPartyModalOpen(true);
                     }
                   }}
                   className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full font-label text-xs sm:text-sm whitespace-nowrap transition-all ${
@@ -676,7 +676,7 @@ export default function SearchView() {
           </div>
           <button
             type="button"
-            onClick={() => setIsPartyOpen?.(true)}
+            onClick={() => setIsPartyModalOpen(true)}
             className="font-label text-xs sm:text-sm text-primary hover:underline"
           >
             Browse All Rooms (142)
@@ -707,7 +707,7 @@ export default function SearchView() {
 
             <button
               type="button"
-              onClick={() => setIsPartyOpen?.(true)}
+              onClick={() => setIsPartyModalOpen(true)}
               className="w-full py-2.5 rounded-full bg-primary-container text-on-primary-container font-label text-xs font-semibold hover:brightness-110 active:scale-95 transition-all shadow-md flex items-center justify-center gap-1.5"
             >
               <span className="material-symbols-outlined text-sm">sensors</span>
@@ -738,7 +738,7 @@ export default function SearchView() {
 
             <button
               type="button"
-              onClick={() => setIsPartyOpen?.(true)}
+              onClick={() => setIsPartyModalOpen(true)}
               className="w-full py-2.5 rounded-full bg-surface-container-high hover:bg-primary-container hover:text-on-primary-container text-on-surface font-label text-xs font-semibold transition-all shadow-md flex items-center justify-center gap-1.5"
             >
               <span className="material-symbols-outlined text-sm">sensors</span>
@@ -769,12 +769,164 @@ export default function SearchView() {
 
             <button
               type="button"
-              onClick={() => setIsPartyOpen?.(true)}
+              onClick={() => setIsPartyModalOpen(true)}
               className="w-full py-2.5 rounded-full bg-surface-container-high hover:bg-primary-container hover:text-on-primary-container text-on-surface font-label text-xs font-semibold transition-all shadow-md flex items-center justify-center gap-1.5"
             >
               <span className="material-symbols-outlined text-sm">sensors</span>
               <span>Join Live Room</span>
             </button>
+          </div>
+        </div>
+      </section>
+
+      {/* Explore Genres & Sonic Moods (Stitch Original 8-Card Bento Grid) */}
+      <section className="flex flex-col gap-4 pt-2">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="font-headline font-bold text-xl text-on-surface tracking-tight">
+              Explore Genres &amp; Sonic Moods
+            </h3>
+            <p className="font-body text-xs text-on-surface-variant">
+              Curated sound spaces, stem archives, and losslessly mastered collections
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Genre Card 1 */}
+          <div 
+            onClick={() => { setQuery('Synthwave Cyberpunk'); executeSearch('Synthwave Cyberpunk'); }}
+            className="relative h-52 rounded-2xl p-5 overflow-hidden bg-gradient-to-br from-[#a078ff]/30 via-[#1a1b24] to-[#4cd7f6]/15 shadow-xl group hover:scale-[1.02] transition-all cursor-pointer border border-white/[0.04]"
+          >
+            <div className="relative z-10 flex flex-col h-full justify-between">
+              <div>
+                <span className="font-mono text-[10px] text-[#4cd7f6] uppercase tracking-widest font-semibold block mb-1">18,400 Tracks</span>
+                <h4 className="font-headline font-bold text-lg text-white leading-tight">Synthwave &amp; Cyberpunk</h4>
+              </div>
+              <span className="font-mono text-[11px] text-[#cbc3d7]/60">24b / 192kHz Ready</span>
+            </div>
+            <div className="absolute -right-4 -bottom-6 w-28 h-28 rounded-xl overflow-hidden shadow-2xl rotate-[18deg] group-hover:rotate-[12deg] group-hover:scale-110 transition-all duration-300">
+              <img className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAZ2WkmFrmhkpYUigoKKvBVl2YQ36J7NqnV7cn-JxG26-ayej2F40xY3nv4AH9wiBIsGYCkePdp-6HnDHa2x-ZOpm_uRYquk1r0EsQdTJZXDA7TANRnMA36-WnQ0ZFv4GachB-bHsl7A-Y-idJVxvqGtUL0Z01mCa0bZ5wrCoNnt15JGBzDkx7YTSg4XgUQDo0lG2dXyv8q81JCW1yGKbQ_BNMsm_hsAwcGKyiRtRY" alt="" />
+            </div>
+          </div>
+
+          {/* Genre Card 2 */}
+          <div 
+            onClick={() => { setQuery('Deep Ambient Binaural'); executeSearch('Deep Ambient Binaural'); }}
+            className="relative h-52 rounded-2xl p-5 overflow-hidden bg-gradient-to-br from-[#1e1f28] via-[#1a1b24] to-[#03b5d3]/20 shadow-xl group hover:scale-[1.02] transition-all cursor-pointer border border-white/[0.04]"
+          >
+            <div className="relative z-10 flex flex-col h-full justify-between">
+              <div>
+                <span className="font-mono text-[10px] text-[#acedff] uppercase tracking-widest font-semibold block mb-1">9,240 Tracks</span>
+                <h4 className="font-headline font-bold text-lg text-white leading-tight">Deep Ambient &amp; Binaural</h4>
+              </div>
+              <span className="font-mono text-[11px] text-[#cbc3d7]/60">432Hz &amp; 40Hz Waves</span>
+            </div>
+            <div className="absolute -right-4 -bottom-6 w-28 h-28 rounded-xl overflow-hidden shadow-2xl rotate-[18deg] group-hover:rotate-[12deg] group-hover:scale-110 transition-all duration-300">
+              <img className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAV7KDE-OSvNZmAgMq6m8f83a8QSRP2M3bVNPDXZKuudw6GsEc-sZ_HIXd_A4X_dJF42NqBl8P-tcy25_5Vpdvj0ccMUmzqq8kLFAqFQFG55bp8HTZeLFUvhW6HQP9R_PfaZKldRhHEgcz1uPdiH11b_C0joaYHXNJDWgLaz5auIhyrf-JgChNLkxcxeruVMvqr7MyLDYrN3nesZNruejwSYUaXfPidwA2pKJsTIe8" alt="" />
+            </div>
+          </div>
+
+          {/* Genre Card 3 */}
+          <div 
+            onClick={() => { setQuery('Techno Industrial Warehouse'); executeSearch('Techno Industrial Warehouse'); }}
+            className="relative h-52 rounded-2xl p-5 overflow-hidden bg-gradient-to-br from-[#282933] via-[#1a1b24] to-[#ff516a]/20 shadow-xl group hover:scale-[1.02] transition-all cursor-pointer border border-white/[0.04]"
+          >
+            <div className="relative z-10 flex flex-col h-full justify-between">
+              <div>
+                <span className="font-mono text-[10px] text-[#ffb2b7] uppercase tracking-widest font-semibold block mb-1">31,900 Tracks</span>
+                <h4 className="font-headline font-bold text-lg text-white leading-tight">Techno &amp; Industrial</h4>
+              </div>
+              <span className="font-mono text-[11px] text-[#cbc3d7]/60">Berlin Raw Underground</span>
+            </div>
+            <div className="absolute -right-4 -bottom-6 w-28 h-28 rounded-xl overflow-hidden shadow-2xl rotate-[18deg] group-hover:rotate-[12deg] group-hover:scale-110 transition-all duration-300">
+              <img className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDtFM5f9YSL6UrZnT1uywUt1ixLyXZLJRhQhPbQemS7KUjCBW3J3RngQhfTJvqvh4voU7mgYF6LWcWDe3lhGMWhnXXPCNAXhrgesnc-FQJ35tdQXnrhx2F8g7rhnnfhmWQlpB7oqfiuiImbUwhtRSF7SbGFjWgQmfLuI-_bHPh4UTM6IWMN-NlnwbZDHtqvpx-S3pMFYls0jrXNh-bMlSbo3VVcVYzpdvGafbIVy8A" alt="" />
+            </div>
+          </div>
+
+          {/* Genre Card 4 */}
+          <div 
+            onClick={() => { setQuery('Lo-Fi Tape Beats'); executeSearch('Lo-Fi Tape Beats'); }}
+            className="relative h-52 rounded-2xl p-5 overflow-hidden bg-gradient-to-br from-[#1e1f28] via-[#1a1b24] to-[#ffb2b7]/20 shadow-xl group hover:scale-[1.02] transition-all cursor-pointer border border-white/[0.04]"
+          >
+            <div className="relative z-10 flex flex-col h-full justify-between">
+              <div>
+                <span className="font-mono text-[10px] text-[#ffdadb] uppercase tracking-widest font-semibold block mb-1">12,150 Tracks</span>
+                <h4 className="font-headline font-bold text-lg text-white leading-tight">Lo-Fi Tape Beats</h4>
+              </div>
+              <span className="font-mono text-[11px] text-[#cbc3d7]/60">Vinyl Dust &amp; Rhodes</span>
+            </div>
+            <div className="absolute -right-4 -bottom-6 w-28 h-28 rounded-xl overflow-hidden shadow-2xl rotate-[18deg] group-hover:rotate-[12deg] group-hover:scale-110 transition-all duration-300">
+              <img className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBi3qWXwnOcoVnh95XukIljlvIrShiI6_hCv_6FBxd6PwxGxvUk5Vj-A0_6Rh2KeZEf3_nVwFWcYJKgaFBy7Kh4oVuUjicATP37pIiUMWs-ZyDb_xxLv3-OCx2-3-aTiI2hCIyRXMXQfmGu5G1vW10LAiqFsiriG7U5u53Y_Jt0v9A4zMobf8Kf4rwKmXuJ_9BvR3DxNjsnJM2i1oysKvOX8I9tgq7DsTnaPQ-mkzo" alt="" />
+            </div>
+          </div>
+
+          {/* Genre Card 5 */}
+          <div 
+            onClick={() => { setQuery('Audiophile 24-Bit FLAC'); executeSearch('Audiophile 24-Bit FLAC'); }}
+            className="relative h-52 rounded-2xl p-5 overflow-hidden bg-gradient-to-br from-[#282933] via-[#1a1b24] to-[#a078ff]/20 shadow-xl group hover:scale-[1.02] transition-all cursor-pointer border border-white/[0.04]"
+          >
+            <div className="relative z-10 flex flex-col h-full justify-between">
+              <div>
+                <span className="font-mono text-[10px] text-[#d0bcff] uppercase tracking-widest font-semibold block mb-1">8,600 Masters</span>
+                <h4 className="font-headline font-bold text-lg text-white leading-tight">Audiophile 24-Bit Vault</h4>
+              </div>
+              <span className="font-mono text-[11px] text-[#cbc3d7]/60">Studio FLAC 192kHz</span>
+            </div>
+            <div className="absolute -right-4 -bottom-6 w-28 h-28 rounded-xl overflow-hidden shadow-2xl rotate-[18deg] group-hover:rotate-[12deg] group-hover:scale-110 transition-all duration-300">
+              <img className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBwfWIA3I1xByxGIJbUnAl3509A7m5o-6e6UeVqfCl_p_f5vbErxlGzKmHX25X5BaFkIXqrQl5l01n1tKvLZehRtI5aRd0VAUMqiqzQIlis7eZEFJf0XLx5LwO3rYeD0jmc2BYLDoFNwzxdoxACaoLCyqIGRiGztpE4eTM-xRol8lju9-WVbLQGrfDN6p75GFbf9esGW9KryXZDMQQcQp-8iWxMWjbgRJ6OxOjHOfQ" alt="" />
+            </div>
+          </div>
+
+          {/* Genre Card 6 */}
+          <div 
+            onClick={() => { setQuery('Hyperpop Future Bass'); executeSearch('Hyperpop Future Bass'); }}
+            className="relative h-52 rounded-2xl p-5 overflow-hidden bg-gradient-to-br from-[#1e1f28] via-[#1a1b24] to-[#ff516a]/25 shadow-xl group hover:scale-[1.02] transition-all cursor-pointer border border-white/[0.04]"
+          >
+            <div className="relative z-10 flex flex-col h-full justify-between">
+              <div>
+                <span className="font-mono text-[10px] text-[#ff516a] uppercase tracking-widest font-semibold block mb-1">14,200 Tracks</span>
+                <h4 className="font-headline font-bold text-lg text-white leading-tight">Hyperpop &amp; Future Bass</h4>
+              </div>
+              <span className="font-mono text-[11px] text-[#cbc3d7]/60">165+ BPM High Voltage</span>
+            </div>
+            <div className="absolute -right-4 -bottom-6 w-28 h-28 rounded-xl overflow-hidden shadow-2xl rotate-[18deg] group-hover:rotate-[12deg] group-hover:scale-110 transition-all duration-300">
+              <img className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAzAHXQuejxj_eCrFq6abHllE4iWdn1OzqYmOEDS5uiX4e6jkDOXZoBiCqo-rNQtzmuZDXR7QXUiHpP5gG7sga7a8vliUUXViZlnOUde8rMY6yuw58074yPUy-rKI6j05wxODb0tbpW3yWW2Gf1IdNqAYlQQLnAQceW5YSNwJOVl31rYYmy20STOtFTPmXweR2EB9E7vwa7u6-281UpaiESCIK7cp0S42wLB2WU3hI" alt="" />
+            </div>
+          </div>
+
+          {/* Genre Card 7 */}
+          <div 
+            onClick={() => { setQuery('Cinematic Neo Classical'); executeSearch('Cinematic Neo Classical'); }}
+            className="relative h-52 rounded-2xl p-5 overflow-hidden bg-gradient-to-br from-[#1e1f28] via-[#1a1b24] to-[#4cd7f6]/20 shadow-xl group hover:scale-[1.02] transition-all cursor-pointer border border-white/[0.04]"
+          >
+            <div className="relative z-10 flex flex-col h-full justify-between">
+              <div>
+                <span className="font-mono text-[10px] text-[#4cd7f6] uppercase tracking-widest font-semibold block mb-1">7,400 Tracks</span>
+                <h4 className="font-headline font-bold text-lg text-white leading-tight">Cinematic Neo-Classical</h4>
+              </div>
+              <span className="font-mono text-[11px] text-[#cbc3d7]/60">Acoustic Piano &amp; Strings</span>
+            </div>
+            <div className="absolute -right-4 -bottom-6 w-28 h-28 rounded-xl overflow-hidden shadow-2xl rotate-[18deg] group-hover:rotate-[12deg] group-hover:scale-110 transition-all duration-300">
+              <img className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA3RuntRuRZJJfIaE1xFMsxUKJQ-1Ib-rb3jNAKdCw_jawWpVUj_2qlIZZC9TDV2Chsa9vLZecUj1mKX7LHyn7sn8d5-hr-oj4_RgzWl1En5fA7qvrgCMaXxHmXttRoLQH7VWpv41r0rMkrPAALMcjmFp8e0a2K_mwg4nnxV_qeWWY9dNQkt9KOf3X30vKT8TXkVe1Z8-a724ocGqLcFgkqx0ZnqNlhTtVU6ruN_os" alt="" />
+            </div>
+          </div>
+
+          {/* Genre Card 8 */}
+          <div 
+            onClick={() => { setQuery('Global Electronic House'); executeSearch('Global Electronic House'); }}
+            className="relative h-52 rounded-2xl p-5 overflow-hidden bg-gradient-to-br from-[#282933] via-[#1a1b24] to-[#a078ff]/20 shadow-xl group hover:scale-[1.02] transition-all cursor-pointer border border-white/[0.04]"
+          >
+            <div className="relative z-10 flex flex-col h-full justify-between">
+              <div>
+                <span className="font-mono text-[10px] text-[#d0bcff] uppercase tracking-widest font-semibold block mb-1">22,800 Tracks</span>
+                <h4 className="font-headline font-bold text-lg text-white leading-tight">Global Electronic &amp; House</h4>
+              </div>
+              <span className="font-mono text-[11px] text-[#cbc3d7]/60">Ibiza &amp; Tulum Vibes</span>
+            </div>
+            <div className="absolute -right-4 -bottom-6 w-28 h-28 rounded-xl overflow-hidden shadow-2xl rotate-[18deg] group-hover:rotate-[12deg] group-hover:scale-110 transition-all duration-300">
+              <img className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDFzzlVsE3hHy9Zj5WNo6HkbIzK4lj3vjPkFfeFYU4WeTsV0e2yRAyZtr4Ygb5S3eUmc4zs5ulRIHLLBgVwzNtwiGcywS3KG2YrD_uFpUuWVp1Njm1zPWG_wZde1z2YDoXp7WPl_CnQIqqAiD7JgcAZI6GuiSejooz8SLX8JDtQY7n7lixstu7l6Fgy_kZpmImD0IWwY0HHGmauoW6M7-f15l4-FeRzQn4fQ8Fv0C4" alt="" />
+            </div>
           </div>
         </div>
       </section>

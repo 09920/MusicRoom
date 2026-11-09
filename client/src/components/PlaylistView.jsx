@@ -113,7 +113,7 @@ export default function PlaylistView() {
   const playlistTitle = selectedPlaylist.title || selectedPlaylist.name || 'Featured Master Collection';
   const creatorName = selectedPlaylist.channelTitle || 'Aether Studio';
   const totalDurationStr = calculateTotalDuration(allTracks);
-  const bannerImage = selectedPlaylist.thumbnail || (allTracks[0] && allTracks[0].thumbnail) || 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=1200&auto=format&fit=crop&q=80';
+  const bannerImage = selectedPlaylist.thumbnail || (allTracks[0] && allTracks[0].thumbnail) || 'https://lh3.googleusercontent.com/aida-public/AB6AXuBTaW9MX6ZYacbTZ918oDeX9gUwDbODf6icVmxyFbZTfLp-RsBzcegeD7CqfteCzGSJNJJ2hGnJczkUdMyDx_F3eHZC8HcIxwRfG1Ywag64HIcp6cEL_gdsYVXzmGXp9HCF7oUzbqoUAiud_EdOrPmSakDkoeSintEnHHFA7Tt0dVkSpuaTbWdkgnfok-L0rvFbCjHakmiRwi2XOaEpuBy1BJn93m8JRibPpcHIAMw';
 
   // Play All
   const handlePlayAll = () => {
@@ -553,35 +553,35 @@ export default function PlaylistView() {
                 year: '2013 • Album',
                 tracks: '13 Tracks',
                 badge: 'FLAC 192k',
-                cover: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=400&auto=format&fit=crop&q=80'
+                cover: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCf0S2jyCaTKt2QAo-iTCMK8nx5QMM2bZKPMCyjZpR6aIqOIZKyPugSyETuckwKxE8uNF0zlkZ81Pyurza7bU1lLil8vWqxG5BDdK0VYn537FXKMvYU-LCm47GKky1P8lUXuL8XHJ3qAuKggVa1LRrJ7B6hvQVRRNzNEgUCc6N66on6yhZ-mDCFoABAfvUYxkrp0LAsTmZxD5G4f_wFn6yPDnXh-78bbNhxOhxvT_U'
               },
               {
                 title: 'Reborn Master Remaster',
                 year: '2022 • Studio',
                 tracks: '12 Tracks',
                 badge: 'Spatial 3D',
-                cover: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=400&auto=format&fit=crop&q=80'
+                cover: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCorI8JkgNh0JBl_4Rw1NySInPlIjeLOlck6aaXX6AGNlES-nczALeRh7qaPQ4HCDEnzvDi5WiGbVKtMaWM3kDLWXcp11HJklpLcRUtLmU5n6sShzFbq4SPh49-rB_oHjAXYLJUY4XEmVLviOWpLw6hHc0sVNfHCYthXOkAAkSt4qfAjVsd03fF3on5ulN9hAoPG86fXHISdkj1MGCSPU0QqR5XHCUBTM7HS9eAZuo'
               },
               {
                 title: 'Nightcall (Live Stems)',
                 year: '2024 • EP',
                 tracks: '4 Tracks',
                 badge: 'Pure Master',
-                cover: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400&auto=format&fit=crop&q=80'
+                cover: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBPPX2DWNT0hKLUuhWY_CzCAqNsyunlF06ncrxnlZV8LfV05Lg_351DwALUXjpySieyZICMLTEXgxoQYsLncgecial7LrttpaiEjfZE8BemaPSsPqDinhDPCrnyfNWY-FmF_gXTVkTNKAWItVb2Mk_k_0xbA4lmNDjhMvS-_MwyPrlN0JYKjgBzekaYlHWyap-hrmbvB5I8MU_9tmZgEPzk856-p3ycGGiyJxAzYYw'
               },
               {
                 title: 'Pacific Drift Sessions',
                 year: '2025 • Collab',
                 tracks: '8 Tracks',
                 badge: '24b FLAC',
-                cover: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400&auto=format&fit=crop&q=80'
+                cover: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAdIUcINbno9GxSzdmGrxT8uyMQK8bNyqsfgxDvmu5aVMAI4ZMd0pEu8I6QdTMLPqQIQT801jKwUB3uFM196F6v9HOYyRQsdp2FzUuypieLLjC1IwhZNET4RXaH0uSpH4Mmo5Oov4J69qEAH6l598x3K8ek4BuFJ9na7g5ac3JsJzimPNVkE09wMcagWBYN3TkNamwnMy4RpkagB8D6ik7-t2g1vKKMaLaKb8Gnixc'
               },
               {
                 title: 'Subterranean Neon Horizon',
                 year: '2026 • Live',
                 tracks: '15 Tracks',
                 badge: 'Dolby Atmos',
-                cover: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&auto=format&fit=crop&q=80'
+                cover: 'https://lh3.googleusercontent.com/aida-public/AB6AXuC5RBj6XKt8eyfCRz01pHaF_y2F9i5b66Ofh0xx7D-7Tx4dcUq_2kg2rakXke3_TbAHTkyLitQ8zo7nUfZ8tbIGbaThYsSWpmP4hm7-vqBbfc8hdWPFa1gfl4XdIoLWCj45Ep7vu9bOxGuggtP-WXix2IkwCQaHugev8ISVttPF7-ony2IY3UNI5OXxwkHQbKB-jguT1yggBPy9fDsJ4ZgwXNqD84ikddSgSV8SccU'
               }
             ].map((item, idx) => (
               <div

@@ -20,7 +20,11 @@ import {
   Headphones, 
   Maximize2,
   Trash2,
-  Music2
+  Music2,
+  LayoutGrid,
+  Sparkles,
+  Download,
+  FolderPlus
 } from 'lucide-react';
 import { usePlayer } from '../context/PlayerContext';
 import { socket } from '../socket';
@@ -37,61 +41,163 @@ export function DesktopLeftSidebar() {
     activeTab,
     setActiveTab,
     playlists,
+    librarySubTab,
     setLibrarySubTab,
     setPlaylistModalMode,
     playPlaylist,
     openPlaylist,
     activeRoom,
-    roomMembers
+    roomMembers,
+    setIsPartyModalOpen,
+    setIsImportModalOpen,
+    setSelectedMood
   } = usePlayer();
 
   return (
     <aside className="w-60 xl:w-64 shrink-0 border-r border-white/[0.08] p-4 flex flex-col justify-between h-[calc(100vh-96px)] bg-[#0d0e16]/80 backdrop-blur-2xl select-none">
-      <div className="space-y-6">
-        {/* Brand: Aether Sound Studio / MusicRoom */}
+      <div className="space-y-5 overflow-y-auto pr-1 no-scrollbar">
+        {/* Brand: Aether Sound Studio (Stitch Mockup) */}
         <div 
           onClick={() => setActiveTab('discover')}
-          className="flex items-center gap-3 px-2 cursor-pointer group"
+          className="flex items-center gap-3 px-1 py-1 cursor-pointer group"
         >
-          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#a078ff] to-[#4cd7f6] flex items-center justify-center font-headline font-bold text-[#090a0f] text-base shadow-[0_0_12px_rgba(160,120,255,0.4)] group-hover:scale-105 transition-transform">
-            m
-          </div>
+          <img 
+            src="https://lh3.googleusercontent.com/aida-public/AB6AXuDENrmzmKL9KqZ4D7hQkQXZUu9zQC1k3dQg44UK6O7tfFDjbPU-Dj3aLMyhpOWpe9df8vsxGpZZUi7mZDkEHGTlktP4Npdv76h4lkXoAC-p7LqHPdoy2MoAcemcbv0A7vvbvCYrgcys7YWW6lzF0Tcnf_aYKsukYd9iTOtocoSts_udHkz2Zc5-aGdV-GI8c4UZsy_Sngu-PucjzYT2GMRo2zxxiDUxrwdWtmLvFOU" 
+            alt="Aether Sound Logo" 
+            className="h-8 w-auto object-contain group-hover:scale-105 transition-transform" 
+          />
           <div className="flex flex-col">
             <span className="font-headline font-bold text-lg text-white tracking-tight leading-none">
-              MusicRoom
+              Aether
             </span>
-            <span className="font-mono text-[10px] text-[#4cd7f6] tracking-widest uppercase mt-0.5 font-medium">
-              Aether Sound Studio
+            <span className="font-mono text-[9px] text-[#4cd7f6] tracking-widest uppercase mt-0.5 font-bold">
+              Sound Studio
             </span>
           </div>
         </div>
 
-        {/* Primary Navigation Links */}
-        <nav className="space-y-1">
-          {[
-            { id: 'discover', label: 'Discover', icon: Compass },
-            { id: 'search', label: 'Search', icon: Search },
-            { id: 'library', label: 'Library', icon: Library }
-          ].map((item) => {
-            const Icon = item.icon;
-            const active = activeTab === item.id;
-            return (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => setActiveTab(item.id)}
-                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-headline font-semibold transition-all ${
-                  active
-                    ? 'bg-[#a078ff] text-[#340080] shadow-[0_0_16px_rgba(160,120,255,0.35)]'
-                    : 'text-[#cbc3d7] hover:text-white hover:bg-[#282933]'
-                }`}
-              >
-                <Icon className="w-4 h-4" />
-                <span>{item.label}</span>
-              </button>
-            );
-          })}
-        </nav>
+        {/* Section 1: Main Menu */}
+        <div className="space-y-1">
+          <span className="px-2 text-[10px] font-mono uppercase tracking-wider text-[#958ea0] font-semibold">
+            Menu
+          </span>
+          <nav className="space-y-1 pt-1">
+            <button
+              type="button"
+              onClick={() => setActiveTab('discover')}
+              className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-headline font-semibold transition-all ${
+                activeTab === 'discover'
+                  ? 'bg-[#a078ff] text-[#340080] shadow-[0_0_16px_rgba(160,120,255,0.35)] font-bold'
+                  : 'text-[#cbc3d7] hover:text-white hover:bg-[#1e1f28]'
+              }`}
+            >
+              <Compass className="w-4 h-4 text-[#4cd7f6]" />
+              <span>Discover</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setActiveTab('discover');
+                setSelectedMood('Trending');
+              }}
+              className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-headline font-semibold text-[#cbc3d7] hover:text-white hover:bg-[#1e1f28] transition-all"
+            >
+              <Radio className="w-4 h-4" />
+              <span>Radio</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab('search')}
+              className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-headline font-semibold transition-all ${
+                activeTab === 'search'
+                  ? 'bg-[#a078ff] text-[#340080] shadow-[0_0_16px_rgba(160,120,255,0.35)] font-bold'
+                  : 'text-[#cbc3d7] hover:text-white hover:bg-[#1e1f28]'
+              }`}
+            >
+              <LayoutGrid className="w-4 h-4" />
+              <span>Explore Genres</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setIsPartyModalOpen(true)}
+              className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-headline font-semibold text-[#cbc3d7] hover:text-[#4cd7f6] hover:bg-[#1e1f28] transition-all group"
+            >
+              <Users className="w-4 h-4 text-[#4cd7f6] group-hover:scale-110 transition-transform" />
+              <div className="flex items-center justify-between flex-1">
+                <span>Live Sessions</span>
+                <span className="w-2 h-2 rounded-full bg-[#ff516a] animate-pulse" />
+              </div>
+            </button>
+          </nav>
+        </div>
+
+        {/* Section 2: Your Library */}
+        <div className="space-y-1">
+          <span className="px-2 text-[10px] font-mono uppercase tracking-wider text-[#958ea0] font-semibold">
+            Your Library
+          </span>
+          <nav className="space-y-1 pt-1">
+            <button
+              type="button"
+              onClick={() => {
+                setActiveTab('library');
+                setLibrarySubTab('smart-mixes');
+              }}
+              className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-headline font-semibold transition-all ${
+                activeTab === 'library' && librarySubTab === 'smart-mixes'
+                  ? 'bg-[#a078ff] text-[#340080] shadow-[0_0_16px_rgba(160,120,255,0.35)]'
+                  : 'text-[#cbc3d7] hover:text-white hover:bg-[#1e1f28]'
+              }`}
+            >
+              <Sparkles className="w-4 h-4 text-[#d0bcff]" />
+              <span>Made for You</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setActiveTab('library');
+                setLibrarySubTab('liked');
+              }}
+              className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-headline font-semibold transition-all ${
+                activeTab === 'library' && librarySubTab === 'liked'
+                  ? 'bg-[#a078ff] text-[#340080] shadow-[0_0_16px_rgba(160,120,255,0.35)]'
+                  : 'text-[#cbc3d7] hover:text-white hover:bg-[#1e1f28]'
+              }`}
+            >
+              <Heart className="w-4 h-4 text-[#ff516a]" />
+              <span>Liked Songs</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setActiveTab('library');
+                setLibrarySubTab('playlists');
+              }}
+              className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-headline font-semibold transition-all ${
+                activeTab === 'library' && librarySubTab === 'playlists'
+                  ? 'bg-[#a078ff] text-[#340080] shadow-[0_0_16px_rgba(160,120,255,0.35)]'
+                  : 'text-[#cbc3d7] hover:text-white hover:bg-[#1e1f28]'
+              }`}
+            >
+              <ListMusic className="w-4 h-4 text-[#4cd7f6]" />
+              <span>Recent Playlists</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setIsImportModalOpen(true)}
+              className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-headline font-semibold text-[#cbc3d7] hover:text-white hover:bg-[#1e1f28] transition-all"
+            >
+              <Download className="w-4 h-4 text-[#a078ff]" />
+              <span>Import Playlist</span>
+            </button>
+          </nav>
+        </div>
 
         {/* Live Collab telemetry strip if room active */}
         {activeRoom && (
@@ -109,43 +215,46 @@ export function DesktopLeftSidebar() {
           </div>
         )}
 
-        {/* Divider */}
-        <div className="border-t border-white/[0.08] pt-3">
-          <div className="flex items-center justify-between px-2 mb-2">
-            <span className="text-[10px] font-mono uppercase tracking-wider text-[#958ea0] font-semibold">
-              Curated Playlists
-            </span>
-            <button
-              type="button"
-              onClick={() => setPlaylistModalMode('create')}
-              className="text-[#958ea0] hover:text-white p-1 rounded-full hover:bg-white/5 transition-colors"
-              title="New Playlist"
-            >
-              <Plus className="w-3.5 h-3.5" />
-            </button>
+        {/* User Playlists */}
+        {playlists.length > 0 && (
+          <div className="border-t border-white/[0.08] pt-3">
+            <div className="flex items-center justify-between px-2 mb-2">
+              <span className="text-[10px] font-mono uppercase tracking-wider text-[#958ea0] font-semibold">
+                Your Playlists
+              </span>
+            </div>
+            <div className="space-y-0.5 max-h-36 overflow-y-auto pr-1">
+              {playlists.map((pl) => (
+                <button
+                  key={pl.id}
+                  type="button"
+                  onClick={() => openPlaylist(pl)}
+                  className="w-full text-left px-2.5 py-1.5 rounded-lg text-xs text-[#cbc3d7] hover:text-white hover:bg-[#1e1f28] truncate transition-colors flex items-center gap-2"
+                >
+                  <ListMusic className="w-3.5 h-3.5 text-[#a078ff] shrink-0" />
+                  <span className="truncate">{pl.name}</span>
+                </button>
+              ))}
+            </div>
           </div>
-
-          {/* User Playlists list */}
-          <div className="space-y-0.5 max-h-48 overflow-y-auto pr-1">
-            {playlists.map((pl) => (
-              <button
-                key={pl.id}
-                type="button"
-                onClick={() => openPlaylist(pl)}
-                className="w-full text-left px-2.5 py-1.5 rounded-lg text-xs text-[#cbc3d7] hover:text-white hover:bg-[#1e1f28] truncate transition-colors flex items-center gap-2"
-              >
-                <ListMusic className="w-3.5 h-3.5 text-[#a078ff] shrink-0" />
-                <span className="truncate">{pl.name}</span>
-              </button>
-            ))}
-          </div>
-        </div>
+        )}
       </div>
 
-      {/* Sidebar Footer */}
-      <div className="pt-3 border-t border-white/[0.08] flex items-center justify-between px-2">
-        <span className="text-[10px] font-mono text-[#958ea0]">MusicRoom v2.5</span>
-        <span className="w-2 h-2 rounded-full bg-[#4cd7f6] animate-pulse" title="Engine Lossless Active" />
+      {/* New Playlist Action & Footer */}
+      <div className="pt-3 border-t border-white/[0.08] flex flex-col gap-2.5">
+        <button
+          type="button"
+          onClick={() => setPlaylistModalMode('create')}
+          className="flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-full bg-[#1e1f28] hover:bg-[#282933] text-white font-headline text-xs font-semibold transition-all border border-white/5 active:scale-95 shadow-md"
+        >
+          <Plus className="w-4 h-4 text-[#d0bcff]" />
+          <span>New Playlist</span>
+        </button>
+
+        <div className="flex items-center justify-between px-2">
+          <span className="text-[10px] font-mono text-[#958ea0]">Studio Lossless DAC</span>
+          <span className="w-2 h-2 rounded-full bg-[#4cd7f6] animate-pulse" title="192kHz Master Active" />
+        </div>
       </div>
     </aside>
   );

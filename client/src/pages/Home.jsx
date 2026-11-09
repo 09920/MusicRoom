@@ -14,7 +14,6 @@ import {
   ListMusic
 } from 'lucide-react';
 import { socket } from '../socket';
-import FadingVideo from '../components/FadingVideo';
 import BlurText from '../components/BlurText';
 
 const LANGUAGES = [
@@ -199,12 +198,8 @@ export default function Home({ onRoomJoined, initialRoomId, userId }) {
       {/* ======================================================== */}
       <section className="relative min-h-screen w-full flex flex-col justify-between overflow-hidden bg-black z-10 pt-20 sm:pt-24 pb-12">
         
-        {/* Background Looping Video (120% scale, centered top) */}
-        <FadingVideo
-          src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260418_080021_d598092b-c4c2-4e53-8e46-94cf9064cd50.mp4"
-          className="absolute left-1/2 top-0 -translate-x-1/2 object-cover object-top z-0 pointer-events-none"
-          style={{ width: "120%", height: "120%" }}
-        />
+        {/* Background Ambient Glow (Replaced moving video) */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#12131c] via-[#0d0e16] to-black z-0 pointer-events-none" />
 
         {/* Hero Content Layer */}
         <div className="relative z-10 flex-1 flex flex-col items-center justify-center text-center px-4 max-w-4xl mx-auto my-auto w-full">
@@ -538,11 +533,8 @@ export default function Home({ onRoomJoined, initialRoomId, userId }) {
       {/* ======================================================== */}
       <section className="relative min-h-screen w-full flex flex-col bg-black overflow-hidden z-10">
         
-        {/* Full Bleed Background Video */}
-        <FadingVideo
-          src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260418_094631_d30ab262-45ee-4b7d-99f3-5d5848c8ef13.mp4"
-          className="absolute inset-0 w-full h-full object-cover z-0 pointer-events-none"
-        />
+        {/* Ambient Dark Gradient (Replaced moving video) */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#12131c] via-[#0d0e16] to-black z-0 pointer-events-none" />
 
         <div className="relative z-10 px-6 sm:px-12 lg:px-20 pt-28 pb-16 flex flex-col min-h-screen max-w-7xl mx-auto w-full">
           

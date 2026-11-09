@@ -40,7 +40,7 @@ const PINNED_HERO_CARDS = [
     badge: '24-BIT FLAC',
     tag: '#160BPM',
     tracksCount: '48 Tracks • 2h 44m',
-    cover: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=500&auto=format&fit=crop&q=80',
+    cover: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB5Xoj9tUDfWKkZMO8ES9GGqmEF_fioGIL1oh4nTX8ofgD2dSqhkJtJaJpM0g0eugUzEusb2IerMIdi2tBvx1er2xJr-_FFgRVZtLKTnIGKhw79nFOjHlgXH9NluurgWCztaAHxZMN7FTaL4DSQOdDpELvEZh74znBkPY5X_w-7skvKg1JgkMyYbo2nsI2bBYUusCleEZgwbHIiIqjmj26SAzJHawkt98a98cO3YUk',
     accent: 'secondary'
   },
   {
@@ -50,7 +50,7 @@ const PINNED_HERO_CARDS = [
     badge: 'OFFLINE READY',
     tag: '#Binaural',
     tracksCount: '72 Tracks • 6h 18m',
-    cover: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=500&auto=format&fit=crop&q=80',
+    cover: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDlTyq0KDnZX3ZHhqUze_3_V3TvbNlbEVW79OqtcIdsPgY71heZEqUjJa1eoKLmbCEmMzcPbm8ixZCX5XXEDul0q2sZ0S50B7umDw6SpgqYce2j1OI_anMF3KkdTzDkkUevPpNr5mNhZZkx34E1ds7DUxjLHZjg6r6rA12z9yF02bijrL6QUXPzGPVfDtogKiVTCbyM_8Ip1vSHUPXJQM63L4AmDEZZeRUfiOm34-s',
     accent: 'primary'
   },
   {
@@ -60,7 +60,7 @@ const PINNED_HERO_CARDS = [
     badge: 'TAPE SATURATION',
     tag: '#LateNight',
     tracksCount: '95 Tracks • 4h 12m',
-    cover: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=500&auto=format&fit=crop&q=80',
+    cover: 'https://lh3.googleusercontent.com/aida-public/AB6AXuC37FUez7bDQLNAZ6l9MebxwoQYl34c49reEkDnhXigR6WwqMWz-jJ0c-RSLWy-AqYjqL_MxLkVZvtZZmIQHf3T8EXYBo5gtG1-zfyNOrZ6VPKCuwki7yaCD1AdrCTMNwcoR7JzA6wWcjVRhsMfaDuCtdRBoeJ37bxrlHR3Z4_882Zbdj3nSO7NNfezBYlThRRwS6neJiui13YU-wxzuC6ulVQMB-9OvAbELE89lgE',
     accent: 'tertiary'
   },
   {
@@ -70,7 +70,7 @@ const PINNED_HERO_CARDS = [
     badge: 'DOLBY ATMOS',
     tag: '#142BPM',
     tracksCount: '64 Tracks • 5h 08m',
-    cover: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=500&auto=format&fit=crop&q=80',
+    cover: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBmI-sJQyANlwAqdx394JWGHRTxLCqAhWdF7GP9xIdSTdr_udvVJEUtekocfj_xQoUwB0GtHMg7vSxieu2D97j64kk-dJkkfEjfNLA4-Zd10WB7K49sH-4NWrxH5B0GYSmhi9eROKRa8uK45EmWPXu60Rj35dK8BccYZXiytx7Ct6YKXG9jvyvXAdBEPYNpCMY3x_hKsIkhtJa9OYrMO7R3nkdJYD86thDk9UmPrK8',
     collab: true
   }
 ];
@@ -95,7 +95,7 @@ export default function LibraryView() {
     removeSongFromPlaylist,
     isLiked,
     toggleLike,
-    setIsPartyOpen
+    setIsPartyModalOpen
   } = usePlayer();
 
   const [activeCollectionTab, setActiveCollectionTab] = useState('all'); // 'all' | 'playlists' | 'liked' | 'masters' | 'history'
@@ -153,7 +153,7 @@ export default function LibraryView() {
 
             <button
               type="button"
-              onClick={() => setIsPartyOpen?.(true)}
+              onClick={() => setIsPartyModalOpen(true)}
               className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-surface-container-low hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-all font-label text-sm shadow-sm border border-white/[0.04]"
             >
               <span className="material-symbols-outlined text-tertiary text-lg">group_work</span>

@@ -16,7 +16,6 @@ import UpNextDrawer from './components/UpNextDrawer';
 import ImportPlaylistModal from './components/ImportPlaylistModal';
 import Player from './components/Player';
 import Toast from './components/Toast';
-import FadingVideo from './components/FadingVideo';
 import AiThemeModal from './components/AiThemeModal';
 import { Search, Users, Download, Wand2 } from 'lucide-react';
 
@@ -101,24 +100,28 @@ function MainLayout() {
   }, [setIsPartyModalOpen]);
 
   return (
-    <div className="min-h-screen bg-[#07070d] text-white font-body relative overflow-x-hidden select-none flex flex-col">
+    <div className="min-h-screen bg-[#12131c] text-[#e3e1ee] font-body relative overflow-x-hidden select-none flex flex-col selection:bg-[#a078ff] selection:text-[#340080]">
       
-      {/* Subtle Ambient Video / Custom AI Artwork Background */}
-      {customBg ? (
-        <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-          <img
-            src={customBg}
-            alt="Room Theme"
-            className="w-full h-full object-cover opacity-25 scale-105 filter blur-[2px] transition-all duration-1000"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#07070d] via-black/50 to-[#07070d]/80" />
-        </div>
-      ) : (
-        <FadingVideo
-          src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260418_080021_d598092b-c4c2-4e53-8e46-94cf9064cd50.mp4"
-          className="fixed inset-0 w-full h-full object-cover opacity-20 pointer-events-none z-0"
-        />
-      )}
+      {/* Clean Obsidian Soundscape Ambient Background (Non-moving Stitch original) */}
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden bg-[#12131c]">
+        {customBg ? (
+          <>
+            <img
+              src={customBg}
+              alt="Room Theme"
+              className="w-full h-full object-cover opacity-20 filter blur-[2px] transition-opacity duration-1000"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#12131c] via-[#12131c]/70 to-[#12131c]/90" />
+          </>
+        ) : (
+          <>
+            {/* Subtle atmospheric glow aura matching Stitch Screen 1 & 8 */}
+            <div className="absolute -top-32 left-1/4 w-[600px] h-[600px] bg-[#a078ff]/10 rounded-full blur-[140px] pointer-events-none" />
+            <div className="absolute top-1/3 -right-20 w-[500px] h-[500px] bg-[#4cd7f6]/08 rounded-full blur-[130px] pointer-events-none" />
+            <div className="absolute -bottom-40 left-1/3 w-[600px] h-[600px] bg-[#ff516a]/05 rounded-full blur-[150px] pointer-events-none" />
+          </>
+        )}
+      </div>
 
       {/* Persistent Headless YouTube Audio / Video Engine */}
       <div
