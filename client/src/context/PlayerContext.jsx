@@ -21,7 +21,8 @@ const DEFAULT_SONG = {
 
 export function PlayerProvider({ children }) {
   // Navigation State
-  const [activeTab, setActiveTab] = useState('discover'); // 'discover' | 'search' | 'library'
+  const [activeTab, setActiveTab] = useState('discover'); // 'discover' | 'search' | 'library' | 'playlist'
+  const [selectedPlaylist, setSelectedPlaylist] = useState(null);
   const [librarySubTab, setLibrarySubTab] = useState('liked'); // 'liked' | 'playlists' | 'history'
   const [selectedMood, setSelectedMood] = useState('Trending');
   const [isFullScreen, setIsFullScreen] = useState(false);
@@ -139,6 +140,7 @@ export function PlayerProvider({ children }) {
   const [roomMembers, setRoomMembers] = useState([]);
   const [roomMessages, setRoomMessages] = useState([]);
   const [currentSocketId, setCurrentSocketId] = useState(socket.id || null);
+  const [playingFrom, setPlayingFrom] = useState({ name: 'Trending Mix', type: 'playlist' });
 
   const isHost = activeRoom?.hostSocketId === currentSocketId;
   const canControl = !activeRoom || activeRoom.hostMode === 'friendly' || isHost;
@@ -148,11 +150,12 @@ export function PlayerProvider({ children }) {
   // Time Tracker: continuously keeps playback.currentTime and duration aligned
   useEffect(() => {
     const timer = setInterval(() => {
-      if (playerRef.current) {
+      const p = playerRef.current || (typeof window !== 'undefined' ? window.musicroom_player : null);
+      if (p) {
         try {
-          if (typeof playerRef.current.getCurrentTime === 'function') {
-            const cur = playerRef.current.getCurrentTime() || 0;
-            const dur = typeof playerRef.current.getDuration === 'function' ? playerRef.current.getDuration() || 0 : 0;
+          if (typeof p.getCurrentTime === 'function') {
+            const cur = p.getCurrentTime() || 0;
+            const dur = typeof p.getDuration === 'function' ? p.getDuration() || 0 : 0;
             setPlayback((prev) => ({
               ...prev,
               currentTime: cur,
@@ -360,12 +363,13 @@ export function PlayerProvider({ children }) {
       }
     } else {
       setPlayback((prev) => ({ ...prev, isPlaying: nextPlaying }));
-      if (playerRef.current) {
+      const p = playerRef.current || (typeof window !== 'undefined' ? window.musicroom_player : null);
+      if (p) {
         try {
           if (nextPlaying) {
-            playerRef.current.playVideo();
+            p.playVideo();
           } else {
-            playerRef.current.pauseVideo();
+            p.pauseVideo();
           }
         } catch (_) {}
       }
@@ -383,9 +387,10 @@ export function PlayerProvider({ children }) {
       }
     } else {
       setPlayback((prev) => ({ ...prev, currentTime: seconds }));
-      if (playerRef.current && typeof playerRef.current.seekTo === 'function') {
+      const p = playerRef.current || (typeof window !== 'undefined' ? window.musicroom_player : null);
+      if (p && typeof p.seekTo === 'function') {
         try {
-          playerRef.current.seekTo(seconds, true);
+          p.seekTo(seconds, true);
         } catch (_) {}
       }
     }
@@ -586,8 +591,32 @@ export function PlayerProvider({ children }) {
       list = list.sort(() => Math.random() - 0.5);
     }
     const [first, ...rest] = list;
+    setPlayingFrom({
+      name: playlist.name || 'My Playlist',
+      type: 'playlist'
+    });
     setQueue(rest);
     playSong(first, true);
+  };
+
+  const playFromCollection = (songs, startIndex = 0, collectionName = 'Playlist') => {
+    if (!Array.isArray(songs) || songs.length === 0) return;
+    const idx = Math.max(0, Math.min(songs.length - 1, startIndex));
+    const target = songs[idx];
+    const upNext = songs.slice(idx + 1);
+
+    setPlayingFrom({
+      name: collectionName || 'Playlist',
+      type: 'collection'
+    });
+    setQueue(upNext);
+    playSong(target, true);
+  };
+
+  const openPlaylist = (playlist) => {
+    if (!playlist) return;
+    setSelectedPlaylist(playlist);
+    setActiveTab('playlist');
   };
 
   // Search History
@@ -722,6 +751,12 @@ export function PlayerProvider({ children }) {
     removeSongFromPlaylist,
     deletePlaylist,
     playPlaylist,
+    playingFrom,
+    setPlayingFrom,
+    playFromCollection,
+    selectedPlaylist,
+    setSelectedPlaylist,
+    openPlaylist,
     history,
     recentSearches,
     addRecentSearch,

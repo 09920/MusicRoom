@@ -39,7 +39,8 @@ export function DesktopLeftSidebar() {
     playlists,
     setLibrarySubTab,
     setPlaylistModalMode,
-    playPlaylist
+    playPlaylist,
+    openPlaylist
   } = usePlayer();
 
   return (
@@ -107,10 +108,7 @@ export function DesktopLeftSidebar() {
               <button
                 key={pl.id}
                 type="button"
-                onClick={() => {
-                  setActiveTab('library');
-                  setLibrarySubTab('playlists');
-                }}
+                onClick={() => openPlaylist(pl)}
                 className="w-full text-left px-2 py-1.5 rounded-xl text-xs text-white/60 hover:text-purple-300 hover:bg-white/5 truncate block transition-colors"
               >
                 • {pl.name}
@@ -311,7 +309,10 @@ export function DesktopPlayerBar() {
     setVolume,
     isMuted,
     setIsMuted,
-    setIsFullScreen
+    setIsFullScreen,
+    isQueueOpen,
+    setIsQueueOpen,
+    queue
   } = usePlayer();
 
   if (!currentSong) return null;
@@ -325,26 +326,33 @@ export function DesktopPlayerBar() {
       <div className="flex items-center gap-3 w-1/4 min-w-[200px]">
         <div
           onClick={() => setIsFullScreen(true)}
-          className="relative w-12 h-12 rounded-xl overflow-hidden shadow-lg bg-black/60 shrink-0 cursor-pointer group"
+          className={`relative w-12 h-12 rounded-xl overflow-hidden shadow-lg bg-black/60 shrink-0 cursor-pointer group border border-white/10 ${playback.isPlaying ? 'ring-2 ring-violet-500/50 shadow-glow-purple' : ''}`}
         >
           <img
             src={currentSong.thumbnail || `https://i.ytimg.com/vi/${currentSong.videoId}/hqdefault.jpg`}
             alt=""
             className="w-full h-full object-cover group-hover:scale-105 transition-transform"
           />
-          <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+          <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity backdrop-blur-[2px]">
             <Maximize2 className="w-4 h-4 text-white" />
           </div>
+          {playback.isPlaying && (
+            <div className="absolute bottom-1 right-1 flex items-center gap-0.5 bg-black/80 px-1 py-0.5 rounded backdrop-blur-sm">
+              <span className="w-0.5 h-2 bg-violet-400 rounded-full animate-eq-1" />
+              <span className="w-0.5 h-3 bg-violet-400 rounded-full animate-eq-2" />
+              <span className="w-0.5 h-1.5 bg-violet-400 rounded-full animate-eq-3" />
+            </div>
+          )}
         </div>
 
         <div className="min-w-0 flex-1">
           <h4
             onClick={() => setIsFullScreen(true)}
-            className="text-xs font-semibold text-white truncate cursor-pointer hover:text-purple-300 transition-colors"
+            className="text-xs font-semibold text-white truncate cursor-pointer hover:text-violet-300 transition-colors"
           >
             {currentSong.title}
           </h4>
-          <p className="text-[11px] text-white/40 truncate font-light mt-0.5">
+          <p className="text-[11px] text-white/50 truncate font-light mt-0.5">
             {currentSong.channelTitle || 'YouTube'}
           </p>
         </div>
@@ -352,7 +360,7 @@ export function DesktopPlayerBar() {
         <button
           type="button"
           onClick={() => toggleLike(currentSong)}
-          className="text-white/40 hover:text-rose-400 p-1 rounded-full transition-colors active:scale-90 shrink-0"
+          className="text-white/40 hover:text-rose-400 p-1.5 rounded-full transition-colors active:scale-90 shrink-0 hover:bg-white/5"
         >
           <Heart className={`w-4 h-4 ${liked ? 'fill-rose-500 text-rose-500' : ''}`} />
         </button>
@@ -393,18 +401,29 @@ export function DesktopPlayerBar() {
 
         {/* Scrubber */}
         <div className="flex items-center gap-2.5 w-full">
-          <span className="text-[10px] font-mono text-white/40 w-8 text-right">
+          <span className="text-[10px] font-mono text-white/50 w-8 text-right shrink-0">
             {formatTime(playback.currentTime)}
           </span>
           <input
             type="range"
             min="0"
-            max={playback.duration || 100}
+            max={playback.duration > 0 ? playback.duration : 100}
             value={playback.currentTime || 0}
             onChange={(e) => seekTo(Number(e.target.value))}
-            className="flex-1 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer accent-purple-500 hover:h-1.5 transition-all"
+            style={{
+              background: `linear-gradient(to right, #8b5cf6 ${
+                playback.duration > 0
+                  ? Math.min(100, Math.max(0, (playback.currentTime / playback.duration) * 100))
+                  : 0
+              }%, rgba(255, 255, 255, 0.15) ${
+                playback.duration > 0
+                  ? Math.min(100, Math.max(0, (playback.currentTime / playback.duration) * 100))
+                  : 0
+              }%)`
+            }}
+            className="flex-1 h-1.5 rounded-lg appearance-none cursor-pointer accent-white hover:h-2 transition-all shadow-inner"
           />
-          <span className="text-[10px] font-mono text-white/40 w-8">
+          <span className="text-[10px] font-mono text-white/50 w-8 shrink-0">
             {formatTime(playback.duration)}
           </span>
         </div>
@@ -465,6 +484,25 @@ export function DesktopPlayerBar() {
             className="w-16 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer accent-white"
           />
         </div>
+
+        {/* Up Next (YouTube Music style queue toggle) */}
+        <button
+          type="button"
+          onClick={() => setIsQueueOpen((prev) => !prev)}
+          className={`p-1.5 rounded-full transition-all active:scale-90 relative ${
+            isQueueOpen
+              ? 'bg-violet-600 text-white shadow-glow-purple'
+              : 'text-white/60 hover:text-white hover:bg-white/10'
+          }`}
+          title="Up Next (YouTube Music style)"
+        >
+          <ListMusic className="w-4 h-4" />
+          {queue.length > 0 && (
+            <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-violet-500 text-[9px] font-mono font-bold text-white flex items-center justify-center">
+              {queue.length > 9 ? '9+' : queue.length}
+            </span>
+          )}
+        </button>
 
         {/* Expand to Full Screen */}
         <button

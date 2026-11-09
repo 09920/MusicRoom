@@ -1,5 +1,5 @@
 import React from 'react';
-import { Play, Pause, SkipForward, Heart } from 'lucide-react';
+import { Play, Pause, SkipForward, Heart, Music2 } from 'lucide-react';
 import { usePlayer } from '../context/PlayerContext';
 
 export default function MiniPlayer() {
@@ -25,26 +25,38 @@ export default function MiniPlayer() {
     <div className="px-3 pb-2 select-none">
       <div
         onClick={() => setIsFullScreen(true)}
-        className="w-full bg-[#13151f]/95 border border-white/[0.08] rounded-2xl p-2.5 shadow-2xl backdrop-blur-2xl cursor-pointer transition-all active:scale-[0.99] group flex flex-col justify-between"
+        className="w-full liquid-glass-strong rounded-2xl p-2.5 shadow-2xl cursor-pointer transition-all active:scale-[0.99] group flex flex-col justify-between border border-white/10 hover:border-violet-500/30"
       >
         {/* Main Content Row: [Cover] Title · Artist  [❤] [⏯] [⏭] */}
         <div className="flex items-center justify-between gap-3">
           
           {/* Left: Artwork + Title & Artist */}
-          <div className="flex items-center gap-2.5 min-w-0 flex-1 pr-1">
-            <div className="relative w-11 h-11 rounded-xl overflow-hidden shrink-0 bg-black/60 shadow border border-white/5">
+          <div className="flex items-center gap-3 min-w-0 flex-1 pr-1">
+            <div className={`relative w-11 h-11 rounded-xl overflow-hidden shrink-0 bg-black/60 shadow-md border border-white/10 ${playback.isPlaying ? 'ring-2 ring-violet-500/40 shadow-glow-purple' : ''}`}>
               <img
                 src={currentSong.thumbnail || `https://i.ytimg.com/vi/${currentSong.videoId}/hqdefault.jpg`}
                 alt={currentSong.title}
                 className="w-full h-full object-cover"
               />
+              {playback.isPlaying && (
+                <div className="absolute inset-0 bg-violet-950/20 mix-blend-overlay" />
+              )}
             </div>
 
             <div className="min-w-0 flex-1">
-              <h4 className="text-xs sm:text-sm font-bold text-white truncate leading-tight group-hover:text-[#9d8df1] transition-colors font-heading">
-                {currentSong.title}
-              </h4>
-              <p className="text-[11px] text-[#8e92a4] truncate font-medium mt-0.5">
+              <div className="flex items-center gap-1.5">
+                <h4 className="text-xs sm:text-sm font-bold text-white truncate leading-tight group-hover:text-violet-300 transition-colors font-heading">
+                  {currentSong.title}
+                </h4>
+                {playback.isPlaying && (
+                  <span className="flex items-center gap-0.5 shrink-0 px-1 py-0.5 rounded bg-violet-500/20 border border-violet-500/30">
+                    <span className="w-0.5 h-2 bg-violet-400 rounded-full animate-eq-1" />
+                    <span className="w-0.5 h-3 bg-violet-400 rounded-full animate-eq-2" />
+                    <span className="w-0.5 h-1.5 bg-violet-400 rounded-full animate-eq-3" />
+                  </span>
+                )}
+              </div>
+              <p className="text-[11px] text-white/50 truncate font-medium mt-0.5">
                 {currentSong.channelTitle || 'YouTube Music'}
               </p>
             </div>
@@ -52,14 +64,14 @@ export default function MiniPlayer() {
 
           {/* Right Actions: [❤] [⏯] [⏭] */}
           <div 
-            className="flex items-center gap-1.5 shrink-0" 
+            className="flex items-center gap-1 shrink-0" 
             onClick={(e) => e.stopPropagation()}
           >
             {/* Heart / Like Button */}
             <button
               type="button"
               onClick={() => toggleLike(currentSong)}
-              className="w-8 h-8 rounded-full flex items-center justify-center transition-all active:scale-90"
+              className="w-9 h-9 rounded-full flex items-center justify-center transition-all active:scale-90 hover:bg-white/10"
               title={liked ? "Unlike" : "Like"}
               aria-label="Like song"
             >
@@ -76,14 +88,14 @@ export default function MiniPlayer() {
             <button
               type="button"
               onClick={togglePlayPause}
-              className="w-8 h-8 rounded-full flex items-center justify-center text-white hover:text-white/80 active:scale-90 transition-all"
+              className="w-9 h-9 rounded-full flex items-center justify-center bg-white text-black hover:bg-white/90 active:scale-90 transition-all shadow-md"
               title={playback.isPlaying ? "Pause" : "Play"}
               aria-label={playback.isPlaying ? "Pause" : "Play"}
             >
               {playback.isPlaying ? (
-                <Pause className="w-5 h-5 fill-white text-white" />
+                <Pause className="w-4 h-4 fill-black text-black" />
               ) : (
-                <Play className="w-5 h-5 fill-white text-white translate-x-0.5" />
+                <Play className="w-4 h-4 fill-black text-black translate-x-0.5" />
               )}
             </button>
 
@@ -91,7 +103,7 @@ export default function MiniPlayer() {
             <button
               type="button"
               onClick={nextSong}
-              className="w-8 h-8 rounded-full flex items-center justify-center text-white hover:text-white/80 active:scale-90 transition-all"
+              className="w-9 h-9 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 active:scale-90 transition-all"
               title="Next song"
               aria-label="Next song"
             >
@@ -101,10 +113,10 @@ export default function MiniPlayer() {
 
         </div>
 
-        {/* Bottom Progress Line (Positioned along bottom of card as in mockup) */}
-        <div className="w-full h-[3px] bg-white/10 rounded-full overflow-hidden mt-2.5">
+        {/* Bottom Progress Line */}
+        <div className="w-full h-[3px] bg-white/10 rounded-full overflow-hidden mt-2.5 relative">
           <div
-            className="h-full bg-[#9d8df1] rounded-full transition-all duration-300 ease-linear"
+            className="h-full bg-gradient-to-r from-violet-500 via-fuchsia-500 to-emerald-400 rounded-full transition-all duration-300 ease-linear shadow-glow-purple"
             style={{ width: `${progressPercent}%` }}
           />
         </div>

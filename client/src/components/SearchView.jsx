@@ -13,6 +13,7 @@ function formatDuration(sec) {
 export default function SearchView() {
   const {
     playSong,
+    playFromCollection,
     currentSong,
     playback,
     recentSearches,
@@ -76,7 +77,7 @@ export default function SearchView() {
 
   return (
     <div className="space-y-5 pb-24 sm:pb-28">
-      
+
       {/* Search Input Bar [🔍 Search songs, artists… ✕] */}
       <div className="relative flex items-center pt-2">
         <Search className="w-4 h-4 text-white/40 absolute left-4 pointer-events-none" />
@@ -109,7 +110,7 @@ export default function SearchView() {
       {/* When Search Box is Empty: Recent Searches & Trending Suggestions */}
       {!query.trim() && (
         <div className="space-y-6 pt-1">
-          
+
           {/* Recent Searches Chips */}
           {recentSearches && recentSearches.length > 0 && (
             <div className="space-y-3">
@@ -198,32 +199,34 @@ export default function SearchView() {
               return (
                 <div
                   key={`search-${song.videoId}`}
-                  className="flex items-center justify-between p-2.5 rounded-2xl bg-[#12141d] border border-white/[0.06] hover:bg-[#181a24] transition-all group"
+                  className="glass-card flex items-center justify-between p-2.5 rounded-2xl group transition-all"
                 >
                   {/* Thumbnail & Title/Artist */}
                   <div
-                    onClick={() => playSong(song, true)}
+                    onClick={() => playFromCollection(results, results.indexOf(song), `Search: "${query}"`)}
                     className="flex items-center gap-3 min-w-0 flex-1 cursor-pointer pr-2"
                   >
-                    <div className="relative w-12 h-12 rounded-xl overflow-hidden shrink-0 bg-black/60 shadow">
+                    <div className="relative w-12 h-12 rounded-xl overflow-hidden shrink-0 bg-black/60 shadow-md border border-white/10">
                       <img
                         src={song.thumbnail || `https://i.ytimg.com/vi/${song.videoId}/hqdefault.jpg`}
                         alt={song.title}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                         loading="lazy"
                       />
                       {isPlayingThis && (
-                        <div className="absolute inset-0 bg-[#9d8df1]/60 backdrop-blur-sm flex items-center justify-center">
-                          <span className="w-2.5 h-2.5 rounded-full bg-[#0d0e14] animate-ping" />
+                        <div className="absolute inset-0 bg-violet-950/75 backdrop-blur-sm flex items-center justify-center gap-0.5">
+                          <span className="w-0.5 h-3 bg-violet-300 rounded-full animate-eq-1" />
+                          <span className="w-0.5 h-4 bg-violet-300 rounded-full animate-eq-2" />
+                          <span className="w-0.5 h-2 bg-violet-300 rounded-full animate-eq-3" />
                         </div>
                       )}
                     </div>
 
                     <div className="min-w-0 flex-1">
-                      <h4 className="text-xs sm:text-sm font-bold text-white truncate leading-tight group-hover:text-[#9d8df1] transition-colors font-heading">
+                      <h4 className="text-xs sm:text-sm font-bold text-white truncate leading-tight group-hover:text-violet-300 transition-colors font-heading">
                         {song.title}
                       </h4>
-                      <p className="text-[11px] text-[#8e92a4] truncate font-medium mt-0.5">
+                      <p className="text-[11px] text-white/50 truncate font-medium mt-0.5">
                         {song.channelTitle || 'YouTube Music'}
                       </p>
                     </div>
@@ -238,15 +241,14 @@ export default function SearchView() {
                       title={liked ? "Unlike" : "Like"}
                     >
                       <Heart
-                        className={`w-4 h-4 ${
-                          liked ? 'fill-rose-500 text-rose-500' : ''
-                        }`}
+                        className={`w-4 h-4 ${liked ? 'fill-rose-500 text-rose-500' : ''
+                          }`}
                       />
                     </button>
 
                     <button
                       type="button"
-                      onClick={() => playSong(song, true)}
+                      onClick={() => playFromCollection(results, results.indexOf(song), `Search: "${query}"`)}
                       className="w-8 h-8 rounded-full bg-white text-black hover:bg-white/90 flex items-center justify-center shadow transition-all active:scale-90"
                       title="Play Now"
                     >

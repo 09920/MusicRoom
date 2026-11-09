@@ -65,6 +65,30 @@ export default function Player({
     return () => clearInterval(endCheckInterval);
   }, [isHost, onSongEnd]);
 
+  // Active Time & Duration Tracker to ensure UI progress bar starts and ticks smoothly
+  useEffect(() => {
+    const timeTracker = setInterval(() => {
+      const p = playerRef.current || playerRefOut?.current || (typeof window !== 'undefined' ? window.musicroom_player : null);
+      if (p && typeof p.getCurrentTime === 'function') {
+        try {
+          const cur = p.getCurrentTime() || 0;
+          const dur = typeof p.getDuration === 'function' ? p.getDuration() || 0 : 0;
+          const state = typeof p.getPlayerState === 'function' ? p.getPlayerState() : -1;
+          
+          if (onPlaybackChange) {
+            onPlaybackChange({
+              currentTime: cur,
+              ...(dur > 0 ? { duration: dur } : {}),
+              isPlaying: state === 1
+            });
+          }
+        } catch (_) {}
+      }
+    }, 250);
+
+    return () => clearInterval(timeTracker);
+  }, [onPlaybackChange, playerRefOut]);
+
   // Set 144p quality when in audio-only mode or on mobile to save ~85% mobile data & prevent buffering
   useEffect(() => {
     if (playerRef.current && typeof playerRef.current.setPlaybackQuality === 'function') {
@@ -90,6 +114,9 @@ export default function Player({
       if (!targetElement) return false;
 
       if (playerRef.current && typeof playerRef.current.loadVideoById === 'function') {
+        if (playerRefOut) playerRefOut.current = playerRef.current;
+        if (typeof window !== 'undefined') window.musicroom_player = playerRef.current;
+
         playerRef.current.loadVideoById({
           videoId: currentSong.videoId,
           startSeconds: playback?.currentTime || 0
@@ -128,6 +155,7 @@ export default function Player({
           onReady: (event) => {
             setIsReady(true);
             if (playerRefOut) playerRefOut.current = event.target;
+            if (typeof window !== 'undefined') window.musicroom_player = event.target;
 
             event.target.setVolume(volume);
             if (isMuted) event.target.mute();
@@ -150,18 +178,31 @@ export default function Player({
             }
           },
           onStateChange: (event) => {
+            const cur = typeof event.target.getCurrentTime === 'function' ? event.target.getCurrentTime() || 0 : 0;
+            const dur = typeof event.target.getDuration === 'function' ? event.target.getDuration() || 0 : 0;
+
             if (event.data === 1) {
               setIsEnding(false);
-              if (onPlaybackChange) onPlaybackChange({ isPlaying: true });
+              if (onPlaybackChange) {
+                onPlaybackChange({
+                  isPlaying: true,
+                  currentTime: cur,
+                  ...(dur > 0 ? { duration: dur } : {})
+                });
+              }
             } else if (event.data === 2) {
-              if (onPlaybackChange) onPlaybackChange({ isPlaying: false });
+              if (onPlaybackChange) {
+                onPlaybackChange({
+                  isPlaying: false,
+                  currentTime: cur,
+                  ...(dur > 0 ? { duration: dur } : {})
+                });
+              }
             } else if (event.data === 0) {
               setIsEnding(true);
               // ONLY Host can trigger automatic track advance when video truly finishes!
               if (isHost && onSongEnd) {
                 try {
-                  const cur = event.target.getCurrentTime() || 0;
-                  const dur = event.target.getDuration() || 0;
                   // Guard: only advance if video played to near-end (dur > 10 and within 3s of end)
                   if (dur > 10 && cur >= dur - 3.5) {
                     onSongEnd();

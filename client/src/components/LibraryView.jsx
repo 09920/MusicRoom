@@ -23,6 +23,8 @@ export default function LibraryView() {
     history,
     playSong,
     playPlaylist,
+    playFromCollection,
+    openPlaylist,
     currentSong,
     playback,
     openSongMenu,
@@ -155,10 +157,10 @@ export default function LibraryView() {
               {likedSongs.map((song, idx) => (
                 <div
                   key={`liked-${song.videoId}-${idx}`}
-                  className="flex items-center justify-between p-2.5 rounded-2xl bg-[#12141d] border border-white/[0.06] hover:bg-[#181a24] transition-all group"
+                  className="glass-card flex items-center justify-between p-2.5 rounded-2xl group transition-all"
                 >
                   <div
-                    onClick={() => playSong(song, true)}
+                    onClick={() => playFromCollection(likedSongs, idx, 'Liked Songs')}
                     className="flex items-center gap-3 min-w-0 flex-1 cursor-pointer pr-2"
                   >
                     <span className="text-xs font-mono text-white/30 w-4 text-right shrink-0">
@@ -182,7 +184,7 @@ export default function LibraryView() {
                   <div className="flex items-center gap-1.5 shrink-0">
                     <button
                       type="button"
-                      onClick={() => playSong(song, true)}
+                      onClick={() => playFromCollection(likedSongs, idx, 'Liked Songs')}
                       className="w-8 h-8 rounded-full bg-white text-black hover:bg-white/90 flex items-center justify-center shadow transition-all active:scale-90"
                       title="Play"
                     >
@@ -275,7 +277,7 @@ export default function LibraryView() {
                       className="flex items-center justify-between p-2.5 rounded-2xl liquid-glass hover:bg-white/10 transition-all group border border-white/5"
                     >
                       <div
-                        onClick={() => playSong(song, true)}
+                        onClick={() => playFromCollection(activePlaylist.songs, idx, activePlaylist.name)}
                         className="flex items-center gap-3 min-w-0 flex-1 cursor-pointer pr-2"
                       >
                         <span className="text-xs font-mono text-white/30 w-4 text-right shrink-0">
@@ -299,7 +301,7 @@ export default function LibraryView() {
                       <div className="flex items-center gap-1.5 shrink-0">
                         <button
                           type="button"
-                          onClick={() => playSong(song, true)}
+                          onClick={() => playFromCollection(activePlaylist.songs, idx, activePlaylist.name)}
                           className="w-8 h-8 rounded-full bg-white text-black hover:bg-white/90 flex items-center justify-center shadow transition-all active:scale-90"
                         >
                           <Play className="w-3.5 h-3.5 fill-black translate-x-0.5" />
@@ -324,8 +326,8 @@ export default function LibraryView() {
               {playlists.map((pl) => (
                 <div
                   key={pl.id}
-                  onClick={() => setActivePlaylistId(pl.id)}
-                  className="rounded-2xl bg-[#12141d] border border-white/[0.06] p-3.5 hover:bg-[#181a24] transition-all shadow-xl cursor-pointer group flex flex-col justify-between h-36"
+                  onClick={() => openPlaylist(pl)}
+                  className="glass-card rounded-2xl p-3.5 cursor-pointer group flex flex-col justify-between h-36"
                 >
                   <div className="w-10 h-10 rounded-xl bg-purple-600/30 border border-purple-500/40 flex items-center justify-center text-purple-300 mb-2">
                     <ListMusic className="w-5 h-5" />
@@ -367,7 +369,7 @@ export default function LibraryView() {
                   className="flex items-center justify-between p-2.5 rounded-2xl liquid-glass hover:bg-white/10 transition-all group border border-white/5"
                 >
                   <div
-                    onClick={() => playSong(song, true)}
+                    onClick={() => playFromCollection(history, idx, 'Listening History')}
                     className="flex items-center gap-3 min-w-0 flex-1 cursor-pointer pr-2"
                   >
                     <span className="text-xs font-mono text-white/30 w-4 text-right shrink-0">
@@ -391,7 +393,7 @@ export default function LibraryView() {
                   <div className="flex items-center gap-1.5 shrink-0">
                     <button
                       type="button"
-                      onClick={() => playSong(song, true)}
+                      onClick={() => playFromCollection(history, idx, 'Listening History')}
                       className="w-8 h-8 rounded-full bg-white text-black hover:bg-white/90 flex items-center justify-center shadow transition-all active:scale-90"
                     >
                       <Play className="w-3.5 h-3.5 fill-black translate-x-0.5" />

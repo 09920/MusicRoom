@@ -229,8 +229,15 @@ async function getTrendingSongs(mood = 'trending', apiKey) {
   // Trigger search
   try {
     const liveResults = await searchSongs(query, apiKey);
-    if (liveResults && liveResults.length >= 4) {
-      return liveResults;
+    if (liveResults && liveResults.length > 0) {
+      // Merge curated official singles with live results, avoiding duplicates
+      const merged = [...curated];
+      for (const item of liveResults) {
+        if (!merged.some(m => m.videoId === item.videoId)) {
+          merged.push(item);
+        }
+      }
+      return merged.slice(0, 16);
     }
   } catch (_) {}
 
