@@ -5,4 +5,5 @@ dist/
 *.log
 server/data/*.json
 !server/data/.gitkeep
+.jarvis_backup/
 

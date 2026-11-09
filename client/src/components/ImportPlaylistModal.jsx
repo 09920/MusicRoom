@@ -52,7 +52,7 @@ export default function ImportPlaylistModal({ isOpen, onClose, onImportSuccess }
       clearTimeout(timeoutTimer);
       setLoading(false);
       if (res?.success) {
-        onImportSuccess?.(res.count, res.message);
+        onImportSuccess?.(res.count, res.message, res.songs);
         onClose();
         setUrl('');
       } else {

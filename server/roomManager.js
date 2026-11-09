@@ -624,6 +624,32 @@ class RoomManager {
   }
 
   /**
+   * Reorder a queue track up or down with permission checks and disk persistence.
+   */
+  moveQueueItem(roomId, socketId, queueId, direction) {
+    const room = this.getRoom(roomId);
+    if (!room) return { error: 'Room not found' };
+
+    if (!this.canControlMusic(room, socketId)) {
+      return { error: 'Only the host can modify the queue in Single Host mode' };
+    }
+
+    const index = room.queue.findIndex(item => item.queueId === queueId);
+    if (index === -1) return { error: 'Song not found in queue' };
+
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= room.queue.length) {
+      return { error: 'Cannot move queue item further in that direction' };
+    }
+
+    const [item] = room.queue.splice(index, 1);
+    room.queue.splice(targetIndex, 0, item);
+    saveRoomsToDisk();
+
+    return { room, queue: room.queue };
+  }
+
+  /**
    * Clear the entire queue
    */
   clearQueue(roomId, socketId) {

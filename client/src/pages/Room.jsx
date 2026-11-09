@@ -20,6 +20,7 @@ export default function Room({ initialRoom, currentSocketId, userId, onLeaveRoom
   const [messages, setMessages] = useState(initialRoom?.messages || []);
   const [sidebarTab, setSidebarTab] = useState('chat');
   const [mobileTab, setMobileTab] = useState('queue');
+  const [unreadChatCount, setUnreadChatCount] = useState(0);
   const [toasts, setToasts] = useState([]);
   const isHost = room?.hostSocketId === currentSocketId;
   const canControl = room?.hostMode === 'friendly' || isHost;
@@ -31,9 +32,20 @@ export default function Room({ initialRoom, currentSocketId, userId, onLeaveRoom
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const playerRef = useRef(null);
 
+  const sidebarTabRef = useRef(sidebarTab);
+  const mobileTabRef = useRef(mobileTab);
+
+  useEffect(() => {
+    sidebarTabRef.current = sidebarTab;
+  }, [sidebarTab]);
+
+  useEffect(() => {
+    mobileTabRef.current = mobileTab;
+  }, [mobileTab]);
+
   const addToast = (message, type = 'info') => {
     const id = Date.now();
-    setToasts([{ id, message, type }]);
+    setToasts((prev) => [...prev, { id, message, type }]);
     setTimeout(() => {
       setToasts((prev) => prev.filter((t) => t.id !== id));
     }, 2500);
@@ -164,6 +176,10 @@ export default function Room({ initialRoom, currentSocketId, userId, onLeaveRoom
     const handleChatMessage = (data) => {
       if (data?.message) {
         setMessages((prev) => [...prev, data.message]);
+        const isChatActive = sidebarTabRef.current === 'chat' || mobileTabRef.current === 'chat';
+        if (!isChatActive) {
+          setUnreadChatCount((prev) => prev + 1);
+        }
       }
     };
 
@@ -292,6 +308,11 @@ export default function Room({ initialRoom, currentSocketId, userId, onLeaveRoom
     socket.emit('queue:remove_item', { roomId: room.id, queueId });
   };
 
+  const handleMoveQueueItem = (queueId, direction) => {
+    if (!canControl) return;
+    socket.emit('queue:move_item', { roomId: room.id, queueId, direction });
+  };
+
   const handleCopyInvite = () => {
     const inviteUrl = `${window.location.origin}/?room=${room.id}`;
     navigator.clipboard.writeText(inviteUrl);
@@ -335,11 +356,14 @@ export default function Room({ initialRoom, currentSocketId, userId, onLeaveRoom
         isOpen={isHistoryOpen}
         onClose={() => setIsHistoryOpen(false)}
         history={room?.playedHistory || []}
-        onPlaySong={(song) => handlePlayQueueItem(song)}
+        onPlaySong={(song) => {
+          if (!canControl) return;
+          socket.emit('player:change_song', { roomId: room.id, song });
+        }}
         canControl={canControl}
       />
 
-      <Toast toasts={toasts} />
+      <Toast toasts={toasts} onDismiss={(id) => setToasts((prev) => prev.filter((t) => t.id !== id))} />
 
       <Navbar
         room={room}
@@ -445,7 +469,10 @@ export default function Room({ initialRoom, currentSocketId, userId, onLeaveRoom
               </button>
 
               <button
-                onClick={() => setMobileTab('chat')}
+                onClick={() => {
+                  setMobileTab('chat');
+                  setUnreadChatCount(0);
+                }}
                 className={`py-2 px-1.5 rounded-xl text-xs font-medium flex items-center justify-center gap-1.5 transition-all active:scale-95 ${
                   mobileTab === 'chat'
                     ? 'bg-white text-black shadow-md font-semibold'
@@ -454,6 +481,11 @@ export default function Room({ initialRoom, currentSocketId, userId, onLeaveRoom
               >
                 <MessageSquare className="w-3.5 h-3.5 shrink-0" />
                 <span className="truncate">Chat ({messages.length})</span>
+                {unreadChatCount > 0 && mobileTab !== 'chat' && (
+                  <span className="ml-1 bg-rose-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0">
+                    {unreadChatCount}
+                  </span>
+                )}
               </button>
 
               <button
@@ -479,6 +511,7 @@ export default function Room({ initialRoom, currentSocketId, userId, onLeaveRoom
                   language={room.mood || 'Hindi'}
                   onPlayItem={handlePlayQueueItem}
                   onRemoveItem={handleRemoveQueueItem}
+                  onMoveItem={handleMoveQueueItem}
                   onOpenImport={() => setIsImportModalOpen(true)}
                 />
               )}
@@ -560,6 +593,7 @@ export default function Room({ initialRoom, currentSocketId, userId, onLeaveRoom
                 language={room.mood || 'Hindi'}
                 onPlayItem={handlePlayQueueItem}
                 onRemoveItem={handleRemoveQueueItem}
+                onMoveItem={handleMoveQueueItem}
                 onOpenImport={() => setIsImportModalOpen(true)}
               />
             </div>
@@ -572,7 +606,10 @@ export default function Room({ initialRoom, currentSocketId, userId, onLeaveRoom
             {/* Sidebar Tabs */}
             <div className="grid grid-cols-2 p-1 liquid-glass rounded-full">
               <button
-                onClick={() => setSidebarTab('chat')}
+                onClick={() => {
+                  setSidebarTab('chat');
+                  setUnreadChatCount(0);
+                }}
                 className={`py-2 px-3 rounded-full text-xs font-medium flex items-center justify-center gap-2 transition-all ${sidebarTab === 'chat'
                     ? 'bg-white text-black shadow-md'
                     : 'text-white/60 hover:text-white'
@@ -580,6 +617,11 @@ export default function Room({ initialRoom, currentSocketId, userId, onLeaveRoom
               >
                 <MessageSquare className="w-3.5 h-3.5" />
                 <span>Chat ({messages.length})</span>
+                {unreadChatCount > 0 && sidebarTab !== 'chat' && (
+                  <span className="ml-1 bg-rose-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                    {unreadChatCount}
+                  </span>
+                )}
               </button>
 
               <button

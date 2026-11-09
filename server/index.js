@@ -68,6 +68,18 @@ app.get('/api/ping', (req, res) => {
   });
 });
 
+// Trending music endpoint for Discover feed
+app.get('/api/trending', async (req, res) => {
+  try {
+    const mood = req.query.mood || 'trending';
+    const songs = await searchService.getTrendingSongs(mood, process.env.YOUTUBE_API_KEY);
+    res.json({ success: true, songs });
+  } catch (err) {
+    console.error('API trending error:', err);
+    res.status(500).json({ success: false, error: 'Failed to fetch trending songs' });
+  }
+});
+
 // Serve frontend build if available (for production / Render)
 const clientDistPath = path.join(__dirname, '../client/dist');
 app.use(express.static(clientDistPath));
@@ -371,32 +383,35 @@ io.on('connection', (socket) => {
         return;
       }
 
-      // Add to room queue
-      const addResult = roomManager.addSongsToQueue(currentRoomId, socket.id, songs);
-      if (addResult.error) {
-        if (typeof callback === 'function') callback({ success: false, error: addResult.error });
-        activeImports.delete(socket.id);
-        return;
-      }
-
-      // If room is fresh/idle, start the first song from the imported playlist
-      const currentRoom = roomManager.getRoom(currentRoomId);
-      if (currentRoom && (!currentRoom.currentSong || !currentRoom.playback.isPlaying) && addResult.queue.length > 0) {
-        const nextSongResult = roomManager.playNextInQueue(currentRoomId);
-        if (nextSongResult && nextSongResult.room) {
-          io.in(currentRoomId).emit('player:song_changed', {
-            currentSong: nextSongResult.room.currentSong,
-            actorName: addResult.addedBy,
-            playedHistory: nextSongResult.room.playedHistory || [],
-            playback: nextSongResult.room.playback
-          });
+      // If connected to a room, add to room queue
+      let addResult = { queue: [] };
+      if (currentRoomId) {
+        addResult = roomManager.addSongsToQueue(currentRoomId, socket.id, songs);
+        if (addResult.error) {
+          if (typeof callback === 'function') callback({ success: false, error: addResult.error });
+          activeImports.delete(socket.id);
+          return;
         }
-      }
 
-      // Broadcast updated queue to everyone in the room
-      io.in(currentRoomId).emit('room:queue_updated', {
-        queue: addResult.room.queue
-      });
+        // If room is fresh/idle, start the first song from the imported playlist
+        const currentRoom = roomManager.getRoom(currentRoomId);
+        if (currentRoom && (!currentRoom.currentSong || !currentRoom.playback.isPlaying) && addResult.queue.length > 0) {
+          const nextSongResult = roomManager.playNextInQueue(currentRoomId);
+          if (nextSongResult && nextSongResult.room) {
+            io.in(currentRoomId).emit('player:song_changed', {
+              currentSong: nextSongResult.room.currentSong,
+              actorName: addResult.addedBy,
+              playedHistory: nextSongResult.room.playedHistory || [],
+              playback: nextSongResult.room.playback
+            });
+          }
+        }
+
+        // Broadcast updated queue to everyone in the room
+        io.in(currentRoomId).emit('room:queue_updated', {
+          queue: addResult.room.queue
+        });
+      }
 
       // Stream remaining tracks (up to 100 songs) in small polite batches silently
       if (spotifyTracks && spotifyTracks.length > 6) {
@@ -442,6 +457,7 @@ io.on('connection', (socket) => {
         callback({ 
           success: true, 
           count: songs.length,
+          songs: songs,
           message: isStreaming 
             ? `Added first ${songs.length} songs! Resolving remaining tracks into queue...`
             : `Added ${songs.length} songs to queue`
@@ -474,6 +490,23 @@ io.on('connection', (socket) => {
       playedHistory: result.room.playedHistory || [],
       playback: result.room.playback
     });
+
+    io.in(rid).emit('room:queue_updated', {
+      queue: result.queue
+    });
+  });
+
+  // 4c-2. Move queue item up or down
+  socket.on('queue:move_item', (payload) => {
+    const rid = resolveRoomId(payload);
+    if (!rid) return;
+    const { queueId, direction } = payload || {};
+    const result = roomManager.moveQueueItem(rid, socket.id, queueId, direction);
+
+    if (result.error) {
+      socket.emit('room:toast', { type: 'error', message: result.error });
+      return;
+    }
 
     io.in(rid).emit('room:queue_updated', {
       queue: result.queue
@@ -617,6 +650,22 @@ io.on('connection', (socket) => {
       console.error('Socket search error:', err);
       if (typeof callback === 'function') {
         callback({ success: false, error: 'Search failed' });
+      }
+    }
+  });
+
+  // 4f2. Socket-based Trending Songs Fetch
+  socket.on('song:trending', async (payload, callback) => {
+    try {
+      const mood = payload?.mood || 'trending';
+      const songs = await searchService.getTrendingSongs(mood, process.env.YOUTUBE_API_KEY);
+      if (typeof callback === 'function') {
+        callback({ success: true, songs });
+      }
+    } catch (err) {
+      console.error('Socket trending error:', err);
+      if (typeof callback === 'function') {
+        callback({ success: false, error: 'Failed to fetch trending songs' });
       }
     }
   });

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Play, Trash2, Plus, Radio, Music } from 'lucide-react';
+import { Play, Trash2, Plus, Radio, Music, ChevronUp, ChevronDown } from 'lucide-react';
 
 export default function QueueList({
   queue = [],
@@ -8,6 +8,7 @@ export default function QueueList({
   language = 'Hindi',
   onPlayItem,
   onRemoveItem,
+  onMoveItem,
   onOpenImport
 }) {
   return (
@@ -70,9 +71,22 @@ export default function QueueList({
               className="flex items-center justify-between p-2.5 sm:p-3 rounded-2xl bg-white/[0.05] hover:bg-white/[0.09] border border-white/[0.08] hover:border-white/20 transition-all group shrink-0 min-h-[64px]"
             >
               <div className="flex items-center gap-3 min-w-0 pr-2 flex-1">
-                <span className="text-white/40 font-mono text-xs w-4 text-center shrink-0">
-                  {index + 1}
-                </span>
+                <div className="flex flex-col gap-0.5 shrink-0">
+                  <button
+                    onClick={() => onMoveItem(item.queueId, 'up')}
+                    disabled={index === 0 || !canControl}
+                    className="text-white/30 hover:text-white disabled:opacity-20 transition-colors"
+                  >
+                    <ChevronUp className="w-3 h-3" />
+                  </button>
+                  <button
+                    onClick={() => onMoveItem(item.queueId, 'down')}
+                    disabled={index === queue.length - 1 || !canControl}
+                    className="text-white/30 hover:text-white disabled:opacity-20 transition-colors"
+                  >
+                    <ChevronDown className="w-3 h-3" />
+                  </button>
+                </div>
 
                 <div className="relative w-12 h-12 rounded-xl overflow-hidden shrink-0 bg-black shadow-md border border-white/10">
                   <img

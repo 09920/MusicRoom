@@ -1,0 +1,667 @@
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import { socket } from '../socket';
+
+const PlayerContext = createContext(null);
+
+export function usePlayer() {
+  const context = useContext(PlayerContext);
+  if (!context) {
+    throw new Error('usePlayer must be used within a PlayerProvider');
+  }
+  return context;
+}
+
+const DEFAULT_SONG = {
+  videoId: 'hBCrkxP6L4A',
+  title: 'Millionaire',
+  channelTitle: 'Yo Yo Honey Singh',
+  thumbnail: 'https://i.ytimg.com/vi/hBCrkxP6L4A/hqdefault.jpg',
+  duration: 202
+};
+
+export function PlayerProvider({ children }) {
+  // Navigation State
+  const [activeTab, setActiveTab] = useState('discover'); // 'discover' | 'search' | 'library'
+  const [librarySubTab, setLibrarySubTab] = useState('liked'); // 'liked' | 'playlists' | 'history'
+  const [selectedMood, setSelectedMood] = useState('Trending');
+  const [isFullScreen, setIsFullScreen] = useState(false);
+  const [isQueueOpen, setIsQueueOpen] = useState(false);
+  const [isPartyModalOpen, setIsPartyModalOpen] = useState(false);
+  const [isChatDrawerOpen, setIsChatDrawerOpen] = useState(false);
+  const [menuSong, setMenuSong] = useState(null); // Song for [⋯] action menu
+  const [playlistModalMode, setPlaylistModalMode] = useState(null); // 'create' | 'add_to_playlist'
+  const [songToAddToPlaylist, setSongToAddToPlaylist] = useState(null);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+
+  // Playback State
+  const [currentSong, setCurrentSong] = useState(() => {
+    try {
+      const saved = localStorage.getItem('musicroom_current_song');
+      return saved ? JSON.parse(saved) : DEFAULT_SONG;
+    } catch {
+      return DEFAULT_SONG;
+    }
+  });
+
+  const [playback, setPlayback] = useState({
+    isPlaying: false,
+    currentTime: 0,
+    duration: 0
+  });
+
+  const [volume, setVolume] = useState(() => {
+    try {
+      const v = localStorage.getItem('musicroom_volume');
+      return v !== null ? Number(v) : 80;
+    } catch {
+      return 80;
+    }
+  });
+
+  const [isMuted, setIsMuted] = useState(false);
+
+  const [isAudioOnly, setIsAudioOnly] = useState(() => {
+    try {
+      return localStorage.getItem('musicroom_audio_only') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const [radioMode, setRadioMode] = useState(true);
+  const [isShuffled, setIsShuffled] = useState(false);
+  const [repeatMode, setRepeatMode] = useState('off'); // 'off' | 'all' | 'one'
+
+  // Queue & Collections
+  const [queue, setQueue] = useState(() => {
+    try {
+      const saved = localStorage.getItem('musicroom_queue');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const [likedSongs, setLikedSongs] = useState(() => {
+    try {
+      const saved = localStorage.getItem('musicroom_liked_songs');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const [playlists, setPlaylists] = useState(() => {
+    try {
+      const saved = localStorage.getItem('musicroom_playlists');
+      return saved ? JSON.parse(saved) : [
+        {
+          id: 'pl_favorites',
+          name: 'My Vibe Playlist',
+          createdAt: Date.now(),
+          songs: []
+        }
+      ];
+    } catch {
+      return [];
+    }
+  });
+
+  const [history, setHistory] = useState(() => {
+    try {
+      const saved = localStorage.getItem('musicroom_history');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const [recentSearches, setRecentSearches] = useState(() => {
+    try {
+      const saved = localStorage.getItem('musicroom_recent_searches');
+      return saved ? JSON.parse(saved) : ['Arijit Singh', 'Karan Aujla', 'Lo-Fi Chill', 'Diljit Dosanjh', 'The Weeknd'];
+    } catch {
+      return [];
+    }
+  });
+
+  // Collaborative Party Room State
+  const [activeRoom, setActiveRoom] = useState(null);
+  const [roomMembers, setRoomMembers] = useState([]);
+  const [roomMessages, setRoomMessages] = useState([]);
+  const [currentSocketId, setCurrentSocketId] = useState(socket.id || null);
+
+  const isHost = activeRoom?.hostSocketId === currentSocketId;
+  const canControl = !activeRoom || activeRoom.hostMode === 'friendly' || isHost;
+
+  const playerRef = useRef(null);
+
+  // Time Tracker: continuously keeps playback.currentTime and duration aligned
+  useEffect(() => {
+    const timer = setInterval(() => {
+      if (playerRef.current) {
+        try {
+          if (typeof playerRef.current.getCurrentTime === 'function') {
+            const cur = playerRef.current.getCurrentTime() || 0;
+            const dur = typeof playerRef.current.getDuration === 'function' ? playerRef.current.getDuration() || 0 : 0;
+            setPlayback((prev) => ({
+              ...prev,
+              currentTime: cur,
+              duration: dur > 0 ? dur : prev.duration
+            }));
+          }
+        } catch (_) {}
+      }
+    }, 250);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Sync state to localStorage
+  useEffect(() => {
+    try {
+      if (currentSong) localStorage.setItem('musicroom_current_song', JSON.stringify(currentSong));
+    } catch (_) {}
+  }, [currentSong]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('musicroom_volume', String(volume));
+    } catch (_) {}
+  }, [volume]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('musicroom_audio_only', String(isAudioOnly));
+    } catch (_) {}
+  }, [isAudioOnly]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('musicroom_queue', JSON.stringify(queue));
+    } catch (_) {}
+  }, [queue]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('musicroom_liked_songs', JSON.stringify(likedSongs));
+    } catch (_) {}
+  }, [likedSongs]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('musicroom_playlists', JSON.stringify(playlists));
+    } catch (_) {}
+  }, [playlists]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('musicroom_history', JSON.stringify(history.slice(0, 50)));
+    } catch (_) {}
+  }, [history]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('musicroom_recent_searches', JSON.stringify(recentSearches.slice(0, 15)));
+    } catch (_) {}
+  }, [recentSearches]);
+
+  // Socket Connection and Room Event Handlers
+  useEffect(() => {
+    const handleConnect = () => setCurrentSocketId(socket.id);
+    socket.on('connect', handleConnect);
+    if (socket.connected) setCurrentSocketId(socket.id);
+
+    const handleRoomMembers = (data) => {
+      if (data?.members) setRoomMembers(data.members);
+    };
+
+    const handleChatMessage = (data) => {
+      if (data?.message) setRoomMessages((prev) => [...prev, data.message]);
+    };
+
+    const handleQueueUpdated = (data) => {
+      if (data?.queue) setQueue(data.queue);
+    };
+
+    const handleSongChanged = (data) => {
+      if (data?.currentSong) {
+        setCurrentSong(data.currentSong);
+        setPlayback((prev) => ({
+          ...prev,
+          isPlaying: true,
+          currentTime: 0
+        }));
+      }
+      if (data?.playedHistory) {
+        setHistory(data.playedHistory);
+      }
+    };
+
+    const handlePlayerSynced = (data) => {
+      if (data) {
+        setPlayback((prev) => ({
+          ...prev,
+          isPlaying: data.isPlaying,
+          currentTime: data.currentTime ?? prev.currentTime
+        }));
+      }
+    };
+
+    socket.on('room:members_updated', handleRoomMembers);
+    socket.on('chat:message', handleChatMessage);
+    socket.on('room:queue_updated', handleQueueUpdated);
+    socket.on('player:song_changed', handleSongChanged);
+    socket.on('player:synced', handlePlayerSynced);
+
+    return () => {
+      socket.off('connect', handleConnect);
+      socket.off('room:members_updated', handleRoomMembers);
+      socket.off('chat:message', handleChatMessage);
+      socket.off('room:queue_updated', handleQueueUpdated);
+      socket.off('player:song_changed', handleSongChanged);
+      socket.off('player:synced', handlePlayerSynced);
+    };
+  }, []);
+
+  // Playback Operations
+  const playSong = (song, immediatePlay = true) => {
+    if (!song || !song.videoId) return;
+
+    // Push previous song to history if different
+    if (currentSong && currentSong.videoId !== song.videoId) {
+      setHistory((prev) => [currentSong, ...prev.filter((s) => s.videoId !== currentSong.videoId)].slice(0, 50));
+    }
+
+    if (activeRoom) {
+      if (canControl) {
+        socket.emit('player:change_song', {
+          roomId: activeRoom.id,
+          song,
+          playNow: immediatePlay
+        });
+      }
+    } else {
+      setCurrentSong(song);
+      setPlayback((prev) => ({
+        ...prev,
+        isPlaying: immediatePlay,
+        currentTime: 0
+      }));
+
+      if (playerRef.current) {
+        try {
+          if (typeof playerRef.current.loadVideoById === 'function') {
+            playerRef.current.loadVideoById({ videoId: song.videoId, startSeconds: 0 });
+            if (immediatePlay) playerRef.current.playVideo();
+          }
+        } catch (_) {}
+      }
+    }
+  };
+
+  const togglePlayPause = () => {
+    const nextPlaying = !playback.isPlaying;
+
+    if (activeRoom) {
+      if (canControl) {
+        socket.emit('player:control', {
+          roomId: activeRoom.id,
+          action: nextPlaying ? 'play' : 'pause',
+          currentTime: playback.currentTime
+        });
+      }
+    } else {
+      setPlayback((prev) => ({ ...prev, isPlaying: nextPlaying }));
+      if (playerRef.current) {
+        try {
+          if (nextPlaying) {
+            playerRef.current.playVideo();
+          } else {
+            playerRef.current.pauseVideo();
+          }
+        } catch (_) {}
+      }
+    }
+  };
+
+  const seekTo = (seconds) => {
+    if (activeRoom) {
+      if (canControl) {
+        socket.emit('player:control', {
+          roomId: activeRoom.id,
+          action: 'seek',
+          currentTime: seconds
+        });
+      }
+    } else {
+      setPlayback((prev) => ({ ...prev, currentTime: seconds }));
+      if (playerRef.current && typeof playerRef.current.seekTo === 'function') {
+        try {
+          playerRef.current.seekTo(seconds, true);
+        } catch (_) {}
+      }
+    }
+  };
+
+  const addToQueue = (song) => {
+    if (!song || !song.videoId) return;
+    if (activeRoom) {
+      socket.emit('song:pick', {
+        roomId: activeRoom.id,
+        song,
+        playNow: false
+      });
+    } else {
+      setQueue((prev) => [...prev, song]);
+    }
+  };
+
+  const playNext = (song) => {
+    if (!song || !song.videoId) return;
+    if (activeRoom) {
+      socket.emit('song:pick', {
+        roomId: activeRoom.id,
+        song,
+        playNow: false,
+        playNext: true
+      });
+    } else {
+      setQueue((prev) => [song, ...prev]);
+    }
+  };
+
+  const removeFromQueue = (index) => {
+    if (activeRoom) {
+      socket.emit('queue:remove_item', {
+        roomId: activeRoom.id,
+        index
+      });
+    } else {
+      setQueue((prev) => prev.filter((_, idx) => idx !== index));
+    }
+  };
+
+  const reorderQueue = (fromIndex, toIndex) => {
+    if (activeRoom) {
+      socket.emit('queue:move_item', {
+        roomId: activeRoom.id,
+        fromIndex,
+        toIndex
+      });
+    } else {
+      setQueue((prev) => {
+        const copy = [...prev];
+        const [moved] = copy.splice(fromIndex, 1);
+        copy.splice(toIndex, 0, moved);
+        return copy;
+      });
+    }
+  };
+
+  const clearQueue = () => {
+    setQueue([]);
+  };
+
+  const nextSong = () => {
+    if (repeatMode === 'one') {
+      seekTo(0);
+      return;
+    }
+
+    if (queue.length > 0) {
+      const nextTrack = queue[0];
+      setQueue((prev) => prev.slice(1));
+      playSong(nextTrack, true);
+      return;
+    }
+
+    if (activeRoom) {
+      socket.emit('queue:skip_next', { roomId: activeRoom.id });
+    } else if (radioMode && currentSong) {
+      // Auto-DJ: fetch next related song from server
+      socket.emit('song:trending', { mood: selectedMood }, (res) => {
+        if (res?.success && res.songs && res.songs.length > 0) {
+          const unplayed = res.songs.filter(
+            (s) => s.videoId !== currentSong.videoId && !history.some((h) => h.videoId === s.videoId)
+          );
+          const next = unplayed.length > 0 ? unplayed[0] : res.songs[Math.floor(Math.random() * res.songs.length)];
+          playSong(next, true);
+        }
+      });
+    } else {
+      setPlayback((prev) => ({ ...prev, isPlaying: false }));
+    }
+  };
+
+  const prevSong = () => {
+    if (playback.currentTime > 3) {
+      seekTo(0);
+      return;
+    }
+    if (history.length > 0) {
+      const prevTrack = history[0];
+      setHistory((prev) => prev.slice(1));
+      playSong(prevTrack, true);
+    } else {
+      seekTo(0);
+    }
+  };
+
+  // Liked Songs Management
+  const isLiked = (videoId) => {
+    if (!videoId) return false;
+    return likedSongs.some((s) => s.videoId === videoId);
+  };
+
+  const toggleLike = (song) => {
+    if (!song || !song.videoId) return;
+    setLikedSongs((prev) => {
+      const exists = prev.some((s) => s.videoId === song.videoId);
+      if (exists) {
+        return prev.filter((s) => s.videoId !== song.videoId);
+      } else {
+        return [song, ...prev];
+      }
+    });
+  };
+
+  // Playlists Management
+  const createPlaylist = (name) => {
+    if (!name || !name.trim()) return null;
+    const newPl = {
+      id: 'pl_' + Date.now().toString(36) + Math.random().toString(36).substring(2, 6),
+      name: name.trim(),
+      createdAt: Date.now(),
+      songs: []
+    };
+    setPlaylists((prev) => [newPl, ...prev]);
+    return newPl;
+  };
+
+  const addSongToPlaylist = (playlistId, song) => {
+    if (!playlistId || !song || !song.videoId) return;
+    setPlaylists((prev) =>
+      prev.map((pl) => {
+        if (pl.id === playlistId) {
+          if (pl.songs.some((s) => s.videoId === song.videoId)) return pl;
+          return { ...pl, songs: [...pl.songs, song] };
+        }
+        return pl;
+      })
+    );
+  };
+
+  const removeSongFromPlaylist = (playlistId, videoId) => {
+    setPlaylists((prev) =>
+      prev.map((pl) => {
+        if (pl.id === playlistId) {
+          return { ...pl, songs: pl.songs.filter((s) => s.videoId !== videoId) };
+        }
+        return pl;
+      })
+    );
+  };
+
+  const deletePlaylist = (playlistId) => {
+    setPlaylists((prev) => prev.filter((pl) => pl.id !== playlistId));
+  };
+
+  const playPlaylist = (playlist, shuffle = false) => {
+    if (!playlist || !playlist.songs || playlist.songs.length === 0) return;
+    let list = [...playlist.songs];
+    if (shuffle) {
+      list = list.sort(() => Math.random() - 0.5);
+    }
+    const [first, ...rest] = list;
+    setQueue(rest);
+    playSong(first, true);
+  };
+
+  // Search History
+  const addRecentSearch = (term) => {
+    if (!term || !term.trim()) return;
+    const clean = term.trim();
+    setRecentSearches((prev) => [clean, ...prev.filter((t) => t.toLowerCase() !== clean.toLowerCase())].slice(0, 15));
+  };
+
+  const clearRecentSearches = () => {
+    setRecentSearches([]);
+  };
+
+  // Toggle helpers
+  const toggleAudioOnly = () => setIsAudioOnly((prev) => !prev);
+  const toggleRadio = () => setRadioMode((prev) => !prev);
+  const toggleShuffle = () => setIsShuffled((prev) => !prev);
+  const cycleRepeat = () => {
+    setRepeatMode((prev) => {
+      if (prev === 'off') return 'all';
+      if (prev === 'all') return 'one';
+      return 'off';
+    });
+  };
+
+  const openSongMenu = (song) => setMenuSong(song);
+  const closeSongMenu = () => setMenuSong(null);
+
+  const openAddToPlaylistModal = (song) => {
+    setSongToAddToPlaylist(song);
+    setPlaylistModalMode('add_to_playlist');
+  };
+
+  // Party Room Join / Leave
+  const joinPartyRoom = (roomData, socketId) => {
+    setActiveRoom(roomData);
+    if (socketId) setCurrentSocketId(socketId);
+    if (roomData.currentSong) {
+      setCurrentSong(roomData.currentSong);
+      setPlayback({
+        isPlaying: roomData.playback?.isPlaying || false,
+        currentTime: roomData.playback?.currentTime || 0,
+        duration: 0
+      });
+    }
+    if (roomData.queue) setQueue(roomData.queue);
+    if (roomData.members) setRoomMembers(roomData.members);
+    if (roomData.messages) setRoomMessages(roomData.messages);
+    setIsPartyModalOpen(false);
+  };
+
+  const leavePartyRoom = () => {
+    socket.emit('room:leave');
+    setActiveRoom(null);
+    setRoomMembers([]);
+    setRoomMessages([]);
+    setIsPartyModalOpen(false);
+    setIsChatDrawerOpen(false);
+  };
+
+  const value = {
+    // Nav
+    activeTab,
+    setActiveTab,
+    librarySubTab,
+    setLibrarySubTab,
+    selectedMood,
+    setSelectedMood,
+    isFullScreen,
+    setIsFullScreen,
+    isQueueOpen,
+    setIsQueueOpen,
+    isPartyModalOpen,
+    setIsPartyModalOpen,
+    isChatDrawerOpen,
+    setIsChatDrawerOpen,
+    menuSong,
+    openSongMenu,
+    closeSongMenu,
+    playlistModalMode,
+    setPlaylistModalMode,
+    songToAddToPlaylist,
+    openAddToPlaylistModal,
+    isImportModalOpen,
+    setIsImportModalOpen,
+
+    // Playback
+    currentSong,
+    playback,
+    setPlayback,
+    volume,
+    setVolume,
+    isMuted,
+    setIsMuted,
+    isAudioOnly,
+    toggleAudioOnly,
+    radioMode,
+    toggleRadio,
+    isShuffled,
+    toggleShuffle,
+    repeatMode,
+    cycleRepeat,
+    playerRef,
+
+    // Controls
+    playSong,
+    togglePlayPause,
+    seekTo,
+    nextSong,
+    prevSong,
+
+    // Queue
+    queue,
+    addToQueue,
+    playNext,
+    removeFromQueue,
+    reorderQueue,
+    clearQueue,
+
+    // Liked & Playlists & History
+    likedSongs,
+    isLiked,
+    toggleLike,
+    playlists,
+    createPlaylist,
+    addSongToPlaylist,
+    removeSongFromPlaylist,
+    deletePlaylist,
+    playPlaylist,
+    history,
+    recentSearches,
+    addRecentSearch,
+    clearRecentSearches,
+
+    // Party Room
+    activeRoom,
+    roomMembers,
+    roomMessages,
+    isHost,
+    canControl,
+    joinPartyRoom,
+    leavePartyRoom
+  };
+
+  return (
+    <PlayerContext.Provider value={value}>
+      {children}
+    </PlayerContext.Provider>
+  );
+}

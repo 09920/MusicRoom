@@ -39,8 +39,8 @@ export default function ChatBox({ roomId, messages = [], currentSocketId }) {
           <MessageSquare className="w-4 h-4 text-white/70" />
           <h3 className="font-heading italic text-lg text-white">Live Chat</h3>
         </div>
-        <span className="text-[11px] text-white/40 font-body">
-          {messages.length} messages
+        <span className="text-[11px] bg-white/10 border border-white/10 text-white/90 font-medium px-2.5 py-0.5 rounded-full font-body">
+          {messages.length} {messages.length === 1 ? 'message' : 'messages'}
         </span>
       </div>
 
@@ -92,20 +92,23 @@ export default function ChatBox({ roomId, messages = [], currentSocketId }) {
       </div>
 
       {/* Quick Emojis */}
-      <div className="flex items-center gap-1.5 pt-2 pb-1.5 px-0.5 border-t border-white/10 shrink-0 overflow-x-auto">
-        <span className="text-[10px] text-white/40 mr-1 flex items-center shrink-0">
-          <Smile className="w-3.5 h-3.5" />
+      <div className="flex items-center justify-between gap-1 sm:gap-1.5 pt-2 pb-1.5 border-t border-white/10 shrink-0 overflow-x-auto scrollbar-none">
+        <span className="text-[10px] text-white/40 flex items-center shrink-0 pr-1">
+          <Smile className="w-3.5 h-3.5 text-white/40" />
         </span>
-        {QUICK_EMOJIS.map((emoji, idx) => (
-          <button
-            key={idx}
-            type="button"
-            onClick={() => handleQuickEmoji(emoji)}
-            className="w-8 h-8 rounded-full liquid-glass hover:bg-white/10 text-sm flex items-center justify-center transition-all active:scale-90 shrink-0"
-          >
-            {emoji}
-          </button>
-        ))}
+        <div className="flex items-center gap-1 sm:gap-1.5 flex-1 justify-between min-w-0">
+          {QUICK_EMOJIS.map((emoji, idx) => (
+            <button
+              key={idx}
+              type="button"
+              onClick={() => handleQuickEmoji(emoji)}
+              className="h-8 min-w-[32px] flex-1 max-w-[42px] rounded-full liquid-glass hover:bg-white/15 text-sm sm:text-base flex items-center justify-center transition-all active:scale-90 shrink-0 border border-white/5"
+              title={`React with ${emoji}`}
+            >
+              {emoji}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Input Field */}
