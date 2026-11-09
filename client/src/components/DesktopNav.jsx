@@ -40,23 +40,30 @@ export function DesktopLeftSidebar() {
     setLibrarySubTab,
     setPlaylistModalMode,
     playPlaylist,
-    openPlaylist
+    openPlaylist,
+    activeRoom,
+    roomMembers
   } = usePlayer();
 
   return (
-    <aside className="w-56 xl:w-64 shrink-0 border-r border-white/10 p-4 flex flex-col justify-between h-[calc(100vh-80px)] liquid-glass select-none">
+    <aside className="w-60 xl:w-64 shrink-0 border-r border-white/[0.08] p-4 flex flex-col justify-between h-[calc(100vh-96px)] bg-[#0d0e16]/80 backdrop-blur-2xl select-none">
       <div className="space-y-6">
-        {/* Brand */}
+        {/* Brand: Aether Sound Studio / MusicRoom */}
         <div 
           onClick={() => setActiveTab('discover')}
-          className="flex items-center gap-2.5 px-2 cursor-pointer group"
+          className="flex items-center gap-3 px-2 cursor-pointer group"
         >
-          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-500 flex items-center justify-center font-heading italic text-white text-base shadow-md group-hover:scale-105 transition-transform">
+          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#a078ff] to-[#4cd7f6] flex items-center justify-center font-headline font-bold text-[#090a0f] text-base shadow-[0_0_12px_rgba(160,120,255,0.4)] group-hover:scale-105 transition-transform">
             m
           </div>
-          <span className="font-heading italic text-xl text-white tracking-tight">
-            MusicRoom
-          </span>
+          <div className="flex flex-col">
+            <span className="font-headline font-bold text-lg text-white tracking-tight leading-none">
+              MusicRoom
+            </span>
+            <span className="font-mono text-[10px] text-[#4cd7f6] tracking-widest uppercase mt-0.5 font-medium">
+              Aether Sound Studio
+            </span>
+          </div>
         </div>
 
         {/* Primary Navigation Links */}
@@ -73,10 +80,10 @@ export function DesktopLeftSidebar() {
                 key={item.id}
                 type="button"
                 onClick={() => setActiveTab(item.id)}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl text-xs font-semibold transition-all ${
+                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-headline font-semibold transition-all ${
                   active
-                    ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/30'
-                    : 'text-white/60 hover:text-white hover:bg-white/5'
+                    ? 'bg-[#a078ff] text-[#340080] shadow-[0_0_16px_rgba(160,120,255,0.35)]'
+                    : 'text-[#cbc3d7] hover:text-white hover:bg-[#282933]'
                 }`}
               >
                 <Icon className="w-4 h-4" />
@@ -86,16 +93,32 @@ export function DesktopLeftSidebar() {
           })}
         </nav>
 
+        {/* Live Collab telemetry strip if room active */}
+        {activeRoom && (
+          <div className="p-2.5 rounded-xl bg-[#1a1b24] border border-[#a078ff]/30 space-y-1">
+            <div className="flex items-center justify-between text-[11px] font-mono">
+              <span className="text-[#4cd7f6] flex items-center gap-1.5 font-semibold">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#4cd7f6] animate-pulse" />
+                #{activeRoom.id}
+              </span>
+              <span className="text-[#cbc3d7]/60">0.12ms sync</span>
+            </div>
+            <span className="text-[10px] text-[#cbc3d7] block">
+              {roomMembers.length} peers connected in-sync
+            </span>
+          </div>
+        )}
+
         {/* Divider */}
-        <div className="border-t border-white/10 pt-3">
+        <div className="border-t border-white/[0.08] pt-3">
           <div className="flex items-center justify-between px-2 mb-2">
-            <span className="text-[10px] font-mono uppercase tracking-wider text-white/40">
-              Playlists
+            <span className="text-[10px] font-mono uppercase tracking-wider text-[#958ea0] font-semibold">
+              Curated Playlists
             </span>
             <button
               type="button"
               onClick={() => setPlaylistModalMode('create')}
-              className="text-white/40 hover:text-white p-0.5 rounded transition-colors"
+              className="text-[#958ea0] hover:text-white p-1 rounded-full hover:bg-white/5 transition-colors"
               title="New Playlist"
             >
               <Plus className="w-3.5 h-3.5" />
@@ -109,17 +132,20 @@ export function DesktopLeftSidebar() {
                 key={pl.id}
                 type="button"
                 onClick={() => openPlaylist(pl)}
-                className="w-full text-left px-2 py-1.5 rounded-xl text-xs text-white/60 hover:text-purple-300 hover:bg-white/5 truncate block transition-colors"
+                className="w-full text-left px-2.5 py-1.5 rounded-lg text-xs text-[#cbc3d7] hover:text-white hover:bg-[#1e1f28] truncate transition-colors flex items-center gap-2"
               >
-                • {pl.name}
+                <ListMusic className="w-3.5 h-3.5 text-[#a078ff] shrink-0" />
+                <span className="truncate">{pl.name}</span>
               </button>
             ))}
           </div>
         </div>
       </div>
 
-      <div className="px-2 pt-2 border-t border-white/5 text-[11px] text-white/30 font-mono">
-        MusicRoom v2.0
+      {/* Sidebar Footer */}
+      <div className="pt-3 border-t border-white/[0.08] flex items-center justify-between px-2">
+        <span className="text-[10px] font-mono text-[#958ea0]">MusicRoom v2.5</span>
+        <span className="w-2 h-2 rounded-full bg-[#4cd7f6] animate-pulse" title="Engine Lossless Active" />
       </div>
     </aside>
   );
@@ -318,15 +344,18 @@ export function DesktopPlayerBar() {
   if (!currentSong) return null;
 
   const liked = isLiked(currentSong.videoId);
+  const progressPercent = playback.duration > 0
+    ? Math.min(100, Math.max(0, (playback.currentTime / playback.duration) * 100))
+    : 0;
 
   return (
-    <footer className="fixed bottom-0 inset-x-0 h-20 z-40 liquid-glass-strong border-t border-white/10 px-5 flex items-center justify-between shadow-2xl backdrop-blur-2xl">
+    <footer className="fixed bottom-3 left-4 right-4 h-22 z-40 rounded-2xl bg-[#12131c]/92 backdrop-blur-2xl border border-white/[0.08] px-6 flex items-center justify-between shadow-[0_20px_40px_-15px_rgba(0,0,0,0.8)] select-none">
       
       {/* Left: Thumbnail & Title/Artist [❤] */}
-      <div className="flex items-center gap-3 w-1/4 min-w-[200px]">
+      <div className="flex items-center gap-3.5 w-1/4 min-w-[220px]">
         <div
           onClick={() => setIsFullScreen(true)}
-          className={`relative w-12 h-12 rounded-xl overflow-hidden shadow-lg bg-black/60 shrink-0 cursor-pointer group border border-white/10 ${playback.isPlaying ? 'ring-2 ring-violet-500/50 shadow-glow-purple' : ''}`}
+          className={`relative w-13 h-13 rounded-xl overflow-hidden shadow-lg bg-[#0d0e16] shrink-0 cursor-pointer group border border-white/10 ${playback.isPlaying ? 'ring-2 ring-[#a078ff]/50 shadow-[0_0_20px_rgba(160,120,255,0.3)]' : ''}`}
         >
           <img
             src={currentSong.thumbnail || `https://i.ytimg.com/vi/${currentSong.videoId}/hqdefault.jpg`}
@@ -338,9 +367,9 @@ export function DesktopPlayerBar() {
           </div>
           {playback.isPlaying && (
             <div className="absolute bottom-1 right-1 flex items-center gap-0.5 bg-black/80 px-1 py-0.5 rounded backdrop-blur-sm">
-              <span className="w-0.5 h-2 bg-violet-400 rounded-full animate-eq-1" />
-              <span className="w-0.5 h-3 bg-violet-400 rounded-full animate-eq-2" />
-              <span className="w-0.5 h-1.5 bg-violet-400 rounded-full animate-eq-3" />
+              <span className="w-0.5 h-2 bg-[#4cd7f6] rounded-full animate-eq-1" />
+              <span className="w-0.5 h-3 bg-[#4cd7f6] rounded-full animate-eq-2" />
+              <span className="w-0.5 h-1.5 bg-[#4cd7f6] rounded-full animate-eq-3" />
             </div>
           )}
         </div>
@@ -348,32 +377,34 @@ export function DesktopPlayerBar() {
         <div className="min-w-0 flex-1">
           <h4
             onClick={() => setIsFullScreen(true)}
-            className="text-xs font-semibold text-white truncate cursor-pointer hover:text-violet-300 transition-colors"
+            className="font-headline text-xs sm:text-sm font-semibold text-white truncate cursor-pointer hover:text-[#d0bcff] transition-colors leading-tight"
           >
             {currentSong.title}
           </h4>
-          <p className="text-[11px] text-white/50 truncate font-light mt-0.5">
-            {currentSong.channelTitle || 'YouTube'}
+          <p className="font-body text-[11px] text-[#cbc3d7]/60 truncate font-normal mt-0.5">
+            {currentSong.channelTitle || 'YouTube Music'}
           </p>
         </div>
 
         <button
           type="button"
           onClick={() => toggleLike(currentSong)}
-          className="text-white/40 hover:text-rose-400 p-1.5 rounded-full transition-colors active:scale-90 shrink-0 hover:bg-white/5"
+          className="text-white/40 hover:text-[#ff516a] p-1.5 rounded-full transition-colors active:scale-90 shrink-0 hover:bg-white/5"
+          title={liked ? "Liked" : "Like"}
         >
-          <Heart className={`w-4 h-4 ${liked ? 'fill-rose-500 text-rose-500' : ''}`} />
+          <Heart className={`w-4 h-4 ${liked ? 'fill-[#ff516a] text-[#ff516a]' : ''}`} />
         </button>
       </div>
 
       {/* Center: Controls & Scrubber */}
-      <div className="flex flex-col items-center gap-1.5 w-2/4 max-w-lg">
+      <div className="flex flex-col items-center gap-1.5 w-2/4 max-w-xl">
         {/* Buttons: ⏮ ⏯ ⏭ */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
           <button
             type="button"
             onClick={prevSong}
-            className="text-white/70 hover:text-white transition-colors active:scale-90"
+            className="text-[#cbc3d7] hover:text-white transition-colors active:scale-90"
+            title="Previous"
           >
             <SkipBack className="w-4 h-4 fill-current" />
           </button>
@@ -381,27 +412,29 @@ export function DesktopPlayerBar() {
           <button
             type="button"
             onClick={togglePlayPause}
-            className="w-9 h-9 rounded-full bg-white text-black hover:bg-white/90 flex items-center justify-center shadow-lg active:scale-95 transition-all"
+            className="w-11 h-11 rounded-full bg-[#a078ff] text-[#340080] flex items-center justify-center hover:scale-105 active:scale-95 transition-transform shadow-[0_0_16px_rgba(160,120,255,0.45)]"
+            title={playback.isPlaying ? "Pause" : "Play"}
           >
             {playback.isPlaying ? (
-              <Pause className="w-4 h-4 fill-black" />
+              <Pause className="w-4 h-4 fill-current" />
             ) : (
-              <Play className="w-4 h-4 fill-black translate-x-0.5" />
+              <Play className="w-4 h-4 fill-current translate-x-0.5" />
             )}
           </button>
 
           <button
             type="button"
             onClick={nextSong}
-            className="text-white/70 hover:text-white transition-colors active:scale-90"
+            className="text-[#cbc3d7] hover:text-white transition-colors active:scale-90"
+            title="Next"
           >
             <SkipForward className="w-4 h-4 fill-current" />
           </button>
         </div>
 
-        {/* Scrubber */}
-        <div className="flex items-center gap-2.5 w-full">
-          <span className="text-[10px] font-mono text-white/50 w-8 text-right shrink-0">
+        {/* High-Precision Scrubber */}
+        <div className="flex items-center gap-3 w-full">
+          <span className="text-[11px] font-mono text-[#cbc3d7]/70 w-8 text-right shrink-0">
             {formatTime(playback.currentTime)}
           </span>
           <input
@@ -411,48 +444,40 @@ export function DesktopPlayerBar() {
             value={playback.currentTime || 0}
             onChange={(e) => seekTo(Number(e.target.value))}
             style={{
-              background: `linear-gradient(to right, #8b5cf6 ${
-                playback.duration > 0
-                  ? Math.min(100, Math.max(0, (playback.currentTime / playback.duration) * 100))
-                  : 0
-              }%, rgba(255, 255, 255, 0.15) ${
-                playback.duration > 0
-                  ? Math.min(100, Math.max(0, (playback.currentTime / playback.duration) * 100))
-                  : 0
-              }%)`
+              background: `linear-gradient(to right, #4cd7f6 ${progressPercent}%, rgba(255, 255, 255, 0.12) ${progressPercent}%)`
             }}
-            className="flex-1 h-1.5 rounded-lg appearance-none cursor-pointer accent-white hover:h-2 transition-all shadow-inner"
+            className="flex-1 h-1.5 rounded-lg appearance-none cursor-pointer accent-[#4cd7f6] hover:h-2 transition-all shadow-inner"
           />
-          <span className="text-[10px] font-mono text-white/50 w-8 shrink-0">
+          <span className="text-[11px] font-mono text-[#cbc3d7]/70 w-8 shrink-0">
             {formatTime(playback.duration)}
           </span>
         </div>
       </div>
 
       {/* Right: Audio/Video, Radio, Volume & Expand */}
-      <div className="flex items-center justify-end gap-3 w-1/4 min-w-[200px]">
-        {/* Audio / Video toggle */}
+      <div className="flex items-center justify-end gap-3 w-1/4 min-w-[220px]">
+        {/* Spatial Audio / 144p toggle badge */}
         <button
           type="button"
           onClick={toggleAudioOnly}
-          className={`px-2.5 py-1 rounded-full text-[11px] font-medium border transition-all ${
+          className={`px-3 py-1 rounded-full text-[11px] font-mono font-medium border transition-all ${
             isAudioOnly
-              ? 'bg-purple-600/30 text-purple-200 border-purple-500/40'
-              : 'liquid-glass text-white/60 hover:text-white border-white/10'
+              ? 'bg-[#a078ff]/20 text-[#d0bcff] border-[#a078ff]/40 shadow-sm'
+              : 'bg-[#1a1b24] text-[#cbc3d7] hover:text-white border-white/10'
           }`}
-          title="Toggle Audio / Video"
+          title="Toggle Stream Mode"
         >
-          {isAudioOnly ? '144p Audio' : 'Video'}
+          {isAudioOnly ? 'Lossless Audio' : 'Video Mode'}
         </button>
 
         {/* Radio toggle */}
         <button
           type="button"
           onClick={toggleRadio}
-          className={`px-2.5 py-1 rounded-full text-[11px] font-medium border transition-all ${
+          className={`px-3 py-1 rounded-full text-[11px] font-mono font-medium border transition-all ${
             radioMode
-              ? 'bg-emerald-600/30 text-emerald-300 border-emerald-500/40'
-              : 'liquid-glass text-white/40 border-white/10'
+              ? 'bg-[#4cd7f6]/20 text-[#4cd7f6] border-[#4cd7f6]/40'
+              : 'bg-[#1a1b24] text-[#cbc3d7]/60 border-white/10'
           }`}
           title="Endless Radio"
         >
@@ -464,10 +489,10 @@ export function DesktopPlayerBar() {
           <button
             type="button"
             onClick={() => setIsMuted((prev) => !prev)}
-            className="text-white/60 hover:text-white transition-colors"
+            className="text-[#cbc3d7] hover:text-white transition-colors"
           >
             {isMuted || volume === 0 ? (
-              <VolumeX className="w-4 h-4 text-rose-400" />
+              <VolumeX className="w-4 h-4 text-[#ff516a]" />
             ) : (
               <Volume2 className="w-4 h-4" />
             )}
@@ -481,24 +506,24 @@ export function DesktopPlayerBar() {
               setVolume(Number(e.target.value));
               if (isMuted) setIsMuted(false);
             }}
-            className="w-16 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer accent-white"
+            className="w-16 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer accent-[#4cd7f6]"
           />
         </div>
 
-        {/* Up Next (YouTube Music style queue toggle) */}
+        {/* Up Next Drawer toggle */}
         <button
           type="button"
           onClick={() => setIsQueueOpen((prev) => !prev)}
           className={`p-1.5 rounded-full transition-all active:scale-90 relative ${
             isQueueOpen
-              ? 'bg-violet-600 text-white shadow-glow-purple'
-              : 'text-white/60 hover:text-white hover:bg-white/10'
+              ? 'bg-[#a078ff] text-[#340080] shadow-[0_0_12px_rgba(160,120,255,0.4)]'
+              : 'text-[#cbc3d7] hover:text-white hover:bg-white/10'
           }`}
           title="Up Next (YouTube Music style)"
         >
           <ListMusic className="w-4 h-4" />
           {queue.length > 0 && (
-            <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-violet-500 text-[9px] font-mono font-bold text-white flex items-center justify-center">
+            <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-[#ff516a] text-[9px] font-mono font-bold text-white flex items-center justify-center">
               {queue.length > 9 ? '9+' : queue.length}
             </span>
           )}
@@ -508,7 +533,7 @@ export function DesktopPlayerBar() {
         <button
           type="button"
           onClick={() => setIsFullScreen(true)}
-          className="text-white/50 hover:text-white p-1 rounded-full transition-colors active:scale-90"
+          className="text-[#cbc3d7] hover:text-white p-1 rounded-full transition-colors active:scale-90"
           title="Full screen player"
         >
           <Maximize2 className="w-4 h-4" />

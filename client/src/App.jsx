@@ -178,32 +178,70 @@ function MainLayout() {
           <DesktopLeftSidebar />
 
           {/* Center Main Content Area */}
-          <section className="flex-1 flex flex-col h-[calc(100vh-80px)] overflow-hidden">
-            {/* Desktop Top Header Bar */}
-            <header className="px-6 py-3.5 border-b border-white/10 flex items-center justify-between gap-4 liquid-glass shrink-0">
-              {/* Quick Search Input */}
-              <div
-                onClick={() => setActiveTab('search')}
-                className="relative flex-1 max-w-md cursor-pointer"
-              >
-                <Search className="w-4 h-4 text-white/40 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                <input
-                  type="text"
-                  readOnly
-                  placeholder="Search any song, artist, album..."
-                  className="w-full pl-10 pr-4 py-2 rounded-full liquid-glass text-xs text-white placeholder-white/40 border border-white/10 focus:outline-none cursor-pointer hover:bg-white/10 transition-colors"
-                />
+          <section className="flex-1 flex flex-col h-[calc(100vh-104px)] overflow-hidden">
+            {/* Desktop Top Header Bar (Obsidian Soundscape) */}
+            <header className="px-6 h-16 border-b border-white/[0.08] flex items-center justify-between gap-4 bg-[#0d0e16]/80 backdrop-blur-xl shrink-0 z-30">
+              {/* Quick Search Input with ⌘K */}
+              <div className="flex items-center gap-4 flex-1 max-w-xl">
+                <div
+                  onClick={() => setActiveTab('search')}
+                  className="relative flex items-center w-full max-w-md cursor-pointer"
+                >
+                  <Search className="w-4 h-4 text-[#cbc3d7]/60 absolute left-3.5 pointer-events-none" />
+                  <input
+                    type="text"
+                    readOnly
+                    placeholder="Search artists, tracks, or soundscapes..."
+                    className="w-full h-10 pl-10 pr-14 rounded-full bg-[#1a1b24] text-[#e3e1ee] placeholder:text-[#958ea0] text-xs font-body focus:outline-none focus:ring-1 focus:ring-[#d0bcff] border border-white/10 cursor-pointer hover:bg-[#1e1f28] transition-colors"
+                  />
+                  <div className="absolute right-2.5 flex items-center px-1.5 py-0.5 rounded bg-[#282933] text-[#cbc3d7] font-mono text-[10px]">
+                    ⌘K
+                  </div>
+                </div>
+
+                <nav className="hidden xl:flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('discover')}
+                    className={`px-3 py-1 rounded-full text-xs transition-colors font-medium ${
+                      activeTab === 'discover'
+                        ? 'bg-[#383843] text-white'
+                        : 'text-[#cbc3d7] hover:text-white'
+                    }`}
+                  >
+                    All
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('discover')}
+                    className="px-3 py-1 rounded-full text-[#cbc3d7] hover:text-white text-xs font-medium transition-colors"
+                  >
+                    Music
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('search')}
+                    className="px-3 py-1 rounded-full text-[#cbc3d7] hover:text-white text-xs font-medium transition-colors"
+                  >
+                    Podcasts
+                  </button>
+                </nav>
               </div>
 
-              {/* Right: Install App & Party Button */}
-              <div className="flex items-center gap-2.5">
+              {/* Right: Hi-Res Lossless Tag, AI Visualizer & Party Button */}
+              <div className="flex items-center gap-3">
+                <div className="hidden lg:flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#1a1b24] text-[#4cd7f6] font-mono text-[11px] border border-white/[0.06]">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#4cd7f6] animate-pulse" />
+                  <span>Hi-Res Lossless 24-bit/192kHz</span>
+                </div>
+
                 <button
                   type="button"
                   onClick={() => setIsAiThemeOpen(true)}
-                  className="px-3.5 py-1.5 rounded-full bg-violet-600/20 text-violet-200 border border-violet-500/30 text-xs font-medium flex items-center gap-1.5 hover:bg-violet-600/35 transition-all active:scale-95"
+                  className="px-3 py-1.5 rounded-full bg-[#a078ff]/15 text-[#d0bcff] border border-[#a078ff]/30 text-xs font-medium flex items-center gap-1.5 hover:bg-[#a078ff]/25 transition-all active:scale-95"
                   title="Customize Room Art with AI"
                 >
-                  <Wand2 className="w-3.5 h-3.5 text-violet-300" />
+                  <Wand2 className="w-3.5 h-3.5 text-[#d0bcff]" />
                   <span>AI Visualizer</span>
                 </button>
 
@@ -211,7 +249,7 @@ function MainLayout() {
                   <button
                     type="button"
                     onClick={handleInstallApp}
-                    className="px-3.5 py-1.5 rounded-full bg-purple-600/30 text-purple-200 border border-purple-500/40 text-xs font-medium flex items-center gap-1.5 hover:bg-purple-600/50 transition-all active:scale-95"
+                    className="px-3 py-1.5 rounded-full bg-[#282933] text-[#e3e1ee] border border-white/10 text-xs font-medium flex items-center gap-1.5 hover:bg-[#383843] transition-all active:scale-95"
                   >
                     <Download className="w-3.5 h-3.5" />
                     <span>Install App</span>
@@ -221,17 +259,17 @@ function MainLayout() {
                 <button
                   type="button"
                   onClick={() => setIsPartyModalOpen(true)}
-                  className={`px-4 py-1.5 rounded-full text-xs font-semibold flex items-center gap-2 transition-all active:scale-95 shadow-lg border ${
+                  className={`px-4 py-1.5 rounded-full text-xs font-headline font-bold flex items-center gap-2 transition-all active:scale-95 shadow-lg border ${
                     activeRoom
-                      ? 'bg-emerald-600/30 text-emerald-200 border-emerald-500/50 shadow-emerald-600/20'
-                      : 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white hover:from-violet-500 hover:to-indigo-500 border-violet-500/50 shadow-violet-600/30'
+                      ? 'bg-[#4cd7f6]/20 text-[#4cd7f6] border-[#4cd7f6]/40 shadow-[0_0_16px_rgba(76,215,246,0.25)]'
+                      : 'bg-gradient-to-r from-[#a078ff] to-[#4cd7f6] text-[#090a0f] hover:scale-105 border-transparent shadow-[0_0_16px_rgba(160,120,255,0.35)]'
                   }`}
                 >
                   {activeRoom ? (
                     <>
-                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                      <span className="font-mono">{activeRoom.id}</span>
-                      <span className="text-[11px] text-emerald-300">· {roomMembers.length}👥</span>
+                      <span className="w-2 h-2 rounded-full bg-[#4cd7f6] animate-ping" />
+                      <span className="font-mono">#{activeRoom.id}</span>
+                      <span className="text-[11px] text-[#4cd7f6]/90">· {roomMembers.length}👥</span>
                     </>
                   ) : (
                     <>

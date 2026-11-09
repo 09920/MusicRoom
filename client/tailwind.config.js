@@ -8,11 +8,56 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        heading: ["'Inter'", 'system-ui', '-apple-system', 'sans-serif'],
+        headline: ["'Outfit'", "'Inter'", 'system-ui', 'sans-serif'],
+        display: ["'Outfit'", "'Inter'", 'system-ui', 'sans-serif'],
+        heading: ["'Outfit'", "'Inter'", 'system-ui', '-apple-system', 'sans-serif'],
         body: ["'Inter'", "'Barlow'", 'system-ui', 'sans-serif'],
         serif: ["'Instrument Serif'", 'serif'],
+        code: ["'JetBrains Mono'", 'monospace'],
+        mono: ["'JetBrains Mono'", 'monospace'],
       },
       colors: {
+        // Stitch "Obsidian Soundscape" Core Palette
+        primary: {
+          DEFAULT: '#d0bcff',
+          container: '#a078ff',
+          fixed: '#e9ddff',
+          'fixed-dim': '#d0bcff',
+        },
+        secondary: {
+          DEFAULT: '#4cd7f6',
+          container: '#03b5d3',
+          fixed: '#acedff',
+          'fixed-dim': '#4cd7f6',
+        },
+        tertiary: {
+          DEFAULT: '#ffb2b7',
+          container: '#ff516a',
+          fixed: '#ffdadb',
+          'fixed-dim': '#ffb2b7',
+        },
+        'on-primary': '#3c0091',
+        'on-primary-container': '#340080',
+        'on-secondary': '#003640',
+        'on-secondary-container': '#00424e',
+        'on-tertiary': '#67001b',
+        'on-tertiary-container': '#5b0017',
+        'on-surface': '#e3e1ee',
+        'on-surface-variant': '#cbc3d7',
+        'on-background': '#e3e1ee',
+        outline: {
+          DEFAULT: '#958ea0',
+          variant: '#494454',
+        },
+        'surface-container': {
+          lowest: '#0d0e16',
+          low: '#1a1b24',
+          DEFAULT: '#1e1f28',
+          high: '#282933',
+          highest: '#33343e',
+        },
+        'surface-bright': '#383843',
+        'surface-dim': '#12131c',
         accent: {
           lavender: '#9d8df1',
           lavenderLight: '#b5a9f5',
