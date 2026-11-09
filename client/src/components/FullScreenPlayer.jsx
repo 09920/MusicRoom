@@ -23,7 +23,12 @@ import {
   Image as ImageIcon,
   BookmarkPlus,
   Check,
-  Sparkles
+  Sparkles,
+  Sliders,
+  Share2,
+  Maximize2,
+  Minimize2,
+  Download
 } from 'lucide-react';
 import { usePlayer } from '../context/PlayerContext';
 import { socket } from '../socket';
@@ -35,14 +40,12 @@ function formatTime(seconds) {
   return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
 }
 
-function formatDuration(val) {
-  if (typeof val === 'string' && val.includes(':')) return val;
-  const sec = Number(val);
-  if (isNaN(sec) || !sec) return '3:20';
-  const mins = Math.floor(sec / 60);
-  const secs = Math.floor(sec % 60);
-  return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
-}
+const EQ_PRESETS = [
+  { name: 'Club Warmth', bands: [4.5, 2.0, 0.0, 3.2, 1.8] },
+  { name: 'Vocal Clarity', bands: [-1.0, 1.0, 3.5, 4.0, 2.0] },
+  { name: 'Studio Flat', bands: [0.0, 0.0, 0.0, 0.0, 0.0] },
+  { name: 'Immersive Atmos', bands: [3.0, 1.5, 2.0, 3.8, 4.2] },
+];
 
 export default function FullScreenPlayer() {
   const {
@@ -81,12 +84,15 @@ export default function FullScreenPlayer() {
     playFromCollection
   } = usePlayer();
 
-  // Desktop active tab: 'upnext' | 'lyrics' | 'related'
-  const [rightTab, setRightTab] = useState('upnext');
-  // Visual style for left stage: 'art' (YT Music album art) | 'vinyl' (vintage spinning vinyl)
+  // Desktop active tab: 'lyrics' | 'queue' | 'specs'
+  const [activeTab, setActiveTab] = useState('lyrics');
+  // Visual style for album stage: 'art' (square sleeve) | 'vinyl' (holographic spinning vinyl)
   const [stageStyle, setStageStyle] = useState('art');
-  // Mobile active tab: 'upnext' | 'player' | 'lyrics'
-  const [mobileTab, setMobileTab] = useState('player');
+  // Lyrics text scale
+  const [lyricsScale, setLyricsScale] = useState(1);
+  // Equalizer preset
+  const [selectedEqPreset, setSelectedEqPreset] = useState('Club Warmth');
+  const [showEqModal, setShowEqModal] = useState(false);
   // Related recommendations
   const [relatedTracks, setRelatedTracks] = useState([]);
   const [loadingRelated, setLoadingRelated] = useState(false);
@@ -95,18 +101,18 @@ export default function FullScreenPlayer() {
   const lyricsContainerRef = useRef(null);
   const activeLineRef = useRef(null);
 
-  // Fetch related songs when tab changes to 'related'
+  // Fetch related tracks when tab is 'specs'
   useEffect(() => {
-    if (rightTab === 'related' && currentSong?.videoId) {
+    if (activeTab === 'specs' && currentSong?.videoId) {
       setLoadingRelated(true);
       socket.emit('radio:get_tracks', { song: currentSong }, (res) => {
         setLoadingRelated(false);
         if (res?.success && Array.isArray(res.tracks)) {
-          setRelatedTracks(res.tracks.filter((t) => t.videoId !== currentSong.videoId).slice(0, 15));
+          setRelatedTracks(res.tracks.filter((t) => t.videoId !== currentSong.videoId).slice(0, 12));
         }
       });
     }
-  }, [rightTab, currentSong?.videoId]);
+  }, [activeTab, currentSong?.videoId]);
 
   // Compute active lyric based on playback.currentTime
   const activeLyricIndex = useMemo(() => {
@@ -123,15 +129,15 @@ export default function FullScreenPlayer() {
     return active;
   }, [lyricsState?.lines, playback.currentTime]);
 
-  // Smooth scroll active lyric into center view
+  // Auto-scroll active lyric into view
   useEffect(() => {
-    if ((rightTab === 'lyrics' || mobileTab === 'lyrics') && activeLineRef.current) {
+    if (activeTab === 'lyrics' && activeLineRef.current) {
       activeLineRef.current.scrollIntoView({
         behavior: 'smooth',
         block: 'center'
       });
     }
-  }, [activeLyricIndex, rightTab, mobileTab]);
+  }, [activeLyricIndex, activeTab]);
 
   if (!isFullScreen || !currentSong) return null;
 
@@ -144,7 +150,7 @@ export default function FullScreenPlayer() {
 
   const handleSaveQueueAsPlaylist = () => {
     if (!createPlaylist || !addSongToPlaylist) return;
-    const playlistName = playingFrom?.name || `Queue Mix (${new Date().toLocaleDateString()})`;
+    const playlistName = playingFrom?.name || `Queue Vault (${new Date().toLocaleDateString()})`;
     const newPl = createPlaylist(playlistName);
     if (newPl) {
       if (currentSong) addSongToPlaylist(newPl.id, currentSong);
@@ -158,748 +164,697 @@ export default function FullScreenPlayer() {
     ? Math.min(100, Math.max(0, (playback.currentTime / playback.duration) * 100))
     : 0;
 
+  const remainingTime = playback.duration > playback.currentTime
+    ? playback.duration - playback.currentTime
+    : 0;
+
+  const currentEqPresetObj = EQ_PRESETS.find(p => p.name === selectedEqPreset) || EQ_PRESETS[0];
+
   return (
-    <div className="fixed inset-0 z-50 bg-[#06070c]/95 backdrop-blur-3xl flex flex-col justify-between overflow-hidden text-white font-body animate-in slide-in-from-bottom duration-300 select-none">
+    <div className="fixed inset-0 z-50 bg-[#0d0e16]/98 backdrop-blur-3xl flex flex-col justify-between overflow-hidden text-on-surface font-body animate-in slide-in-from-bottom duration-300 select-none">
       
-      {/* Ambient Blurred Artwork Glow Backdrop */}
-      {currentSong.thumbnail && (
-        <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-25 z-0">
-          <img
-            src={currentSong.thumbnail}
-            alt=""
-            className="w-full h-full object-cover blur-3xl scale-125 transform transition-all duration-1000"
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#06070c]/90 via-[#06070c]/70 to-[#06070c]/98" />
-        </div>
-      )}
+      {/* Ambient Atmospheric Glow Backdrop */}
+      <div className="absolute -top-12 left-1/4 w-96 h-96 bg-primary-container/20 rounded-full blur-[140px] pointer-events-none -z-10" />
+      <div className="absolute top-1/3 right-10 w-[420px] h-[420px] bg-secondary/15 rounded-full blur-[160px] pointer-events-none -z-10" />
+      <div className="absolute bottom-10 left-10 w-80 h-80 bg-tertiary-container/10 rounded-full blur-[120px] pointer-events-none -z-10" />
 
       {/* ───────────────────────────────────────────────────────── */}
-      {/* TOP HEADER BAR                                             */}
+      {/* TOP CONTEXT & MODE BAR                                    */}
       {/* ───────────────────────────────────────────────────────── */}
-      <header className="relative z-10 flex items-center justify-between px-5 py-3 border-b border-white/[0.06] shrink-0">
-        <button
-          type="button"
-          onClick={() => setIsFullScreen(false)}
-          className="w-9 h-9 rounded-full liquid-glass flex items-center justify-center text-white/80 hover:text-white transition-all active:scale-90"
-          title="Collapse player"
-          aria-label="Collapse player"
-        >
-          <ChevronDown className="w-5 h-5" />
-        </button>
-
-        {/* Mobile View Switcher (UP NEXT | PLAYER | LYRICS) */}
-        <div className="flex lg:hidden items-center gap-1 bg-[#141624] p-1 rounded-full border border-white/10 shadow-inner">
+      <header className="relative z-20 flex flex-wrap items-center justify-between gap-4 px-6 py-3.5 border-b border-white/[0.06] shrink-0 bg-surface-container-lowest/80 backdrop-blur-xl">
+        {/* View Switcher Tabs */}
+        <div className="flex items-center p-1 rounded-full bg-surface-container-lowest/90 backdrop-blur-md shadow-inner border border-white/[0.05]">
           <button
             type="button"
-            onClick={() => setMobileTab('upnext')}
-            className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1 transition-all ${
-              mobileTab === 'upnext'
-                ? 'bg-white text-black shadow'
-                : 'text-white/60 hover:text-white'
+            onClick={() => setActiveTab('lyrics')}
+            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full font-label text-xs sm:text-sm transition-all ${
+              activeTab === 'lyrics'
+                ? 'bg-primary-container text-on-primary-container font-semibold shadow-[0_0_16px_rgba(160,120,255,0.4)]'
+                : 'text-on-surface-variant hover:text-on-surface'
             }`}
           >
-            <ListMusic className="w-3.5 h-3.5" />
-            <span>Up Next</span>
-            {queue.length > 0 && (
-              <span className="text-[10px] bg-black/20 text-current px-1.5 py-0.2 rounded-full">
-                {queue.length}
-              </span>
-            )}
+            <span className="material-symbols-outlined text-sm">graphic_eq</span>
+            <span>Now Playing & Lyrics</span>
           </button>
 
           <button
             type="button"
-            onClick={() => setMobileTab('player')}
-            className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1 transition-all ${
-              mobileTab === 'player'
-                ? 'bg-white text-black shadow'
-                : 'text-white/60 hover:text-white'
+            onClick={() => setActiveTab('queue')}
+            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full font-label text-xs sm:text-sm transition-all ${
+              activeTab === 'queue'
+                ? 'bg-primary-container text-on-primary-container font-semibold shadow-[0_0_16px_rgba(160,120,255,0.4)]'
+                : 'text-on-surface-variant hover:text-on-surface'
             }`}
           >
-            <Disc3 className="w-3.5 h-3.5" />
-            <span>Player</span>
+            <span className="material-symbols-outlined text-sm">queue_music</span>
+            <span>Up Next ({queue.length})</span>
           </button>
 
           <button
             type="button"
-            onClick={() => setMobileTab('lyrics')}
-            className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1 transition-all ${
-              mobileTab === 'lyrics'
-                ? 'bg-[#9d8df1] text-[#0d0e14] shadow'
-                : 'text-white/60 hover:text-white'
+            onClick={() => setActiveTab('specs')}
+            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full font-label text-xs sm:text-sm transition-all ${
+              activeTab === 'specs'
+                ? 'bg-primary-container text-on-primary-container font-semibold shadow-[0_0_16px_rgba(160,120,255,0.4)]'
+                : 'text-on-surface-variant hover:text-on-surface'
             }`}
           >
-            <Mic2 className="w-3.5 h-3.5" />
-            <span>Lyrics</span>
+            <span className="material-symbols-outlined text-sm">info</span>
+            <span>Master Specs</span>
           </button>
         </div>
 
-        {/* Desktop Brand / Header label */}
-        <div className="hidden lg:flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="text-xs font-mono tracking-wider uppercase text-white/50">
-            Playing: {playingFrom?.name || 'MusicRoom Session'}
+        {/* Center Hi-Res Specs Pill */}
+        <div className="hidden md:flex items-center gap-3 px-4 py-1.5 rounded-full bg-surface-container-low/90 backdrop-blur-xl shadow-sm border border-white/[0.04]">
+          <div className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-secondary animate-pulse shadow-[0_0_8px_rgba(76,215,246,0.8)]" />
+            <span className="font-code text-xs uppercase tracking-wider text-secondary font-medium">
+              Master Spatial FLAC
+            </span>
+          </div>
+          <span className="text-outline font-code text-xs">•</span>
+          <span className="font-code text-xs text-on-surface-variant">24-Bit / 192kHz</span>
+          <span className="text-outline font-code text-xs">•</span>
+          <span className="flex items-center gap-1 font-code text-xs text-primary">
+            <span className="material-symbols-outlined text-xs">surround_sound</span> Dolby Atmos
           </span>
+          <button
+            type="button"
+            onClick={() => setShowEqModal(!showEqModal)}
+            className={`ml-1 flex items-center justify-center w-6 h-6 rounded-full transition-all ${
+              showEqModal ? 'bg-primary text-on-primary' : 'bg-surface-container-high text-secondary hover:bg-surface-bright'
+            }`}
+            title="Toggle DSP Equalizer"
+          >
+            <span className="material-symbols-outlined text-xs">tune</span>
+          </button>
         </div>
 
-        {/* Right Header: Stage Style Toggle (Art vs Vinyl) */}
+        {/* Right Immersive Controls */}
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={() => setStageStyle((s) => (s === 'art' ? 'vinyl' : 'art'))}
-            className="px-3 py-1.5 rounded-full liquid-glass text-xs text-white/80 hover:text-white border border-white/10 flex items-center gap-1.5 active:scale-95 transition-all"
-            title="Switch between Album Art and Vinyl Record"
+            onClick={() => openAddToPlaylistModal(currentSong)}
+            className="flex items-center justify-center w-9 h-9 rounded-full bg-surface-container-low text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-all shadow-sm border border-white/[0.04]"
+            title="Add to Playlist"
           >
-            {stageStyle === 'art' ? (
-              <>
-                <Disc3 className="w-3.5 h-3.5 text-purple-400" />
-                <span className="hidden sm:inline">Vinyl View</span>
-              </>
-            ) : (
-              <>
-                <ImageIcon className="w-3.5 h-3.5 text-emerald-400" />
-                <span className="hidden sm:inline">Cover Art</span>
-              </>
-            )}
+            <span className="material-symbols-outlined text-base">playlist_add</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setStageStyle(s => s === 'art' ? 'vinyl' : 'art')}
+            className="flex items-center justify-center w-9 h-9 rounded-full bg-surface-container-low text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-all shadow-sm border border-white/[0.04]"
+            title="Toggle Vinyl Record vs Album Sleeve"
+          >
+            <span className="material-symbols-outlined text-base">{stageStyle === 'art' ? 'album' : 'image'}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setIsFullScreen(false)}
+            className="flex items-center justify-center w-9 h-9 rounded-full bg-surface-container-low text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-all shadow-sm border border-white/[0.04]"
+            title="Minimize"
+          >
+            <span className="material-symbols-outlined text-base">expand_more</span>
           </button>
         </div>
       </header>
 
       {/* ───────────────────────────────────────────────────────── */}
-      {/* MAIN STAGE (DESKTOP 2-COLUMN YOUTUBE MUSIC LAYOUT)         */}
+      {/* 12-COLUMN RESPONSIVE AUDIO CANVAS                         */}
       {/* ───────────────────────────────────────────────────────── */}
-      <div className="relative z-10 flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden max-w-7xl mx-auto w-full px-4 sm:px-8 py-3 gap-6 sm:gap-10 items-stretch">
+      <div className="relative z-10 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 w-full items-start px-6 lg:px-10 py-5 overflow-y-auto no-scrollbar">
         
-        {/* ── LEFT COLUMN: ARTWORK / VINYL STAGE ── */}
-        <div className={`flex-1 flex flex-col items-center justify-center min-h-0 ${
-          mobileTab !== 'player' ? 'hidden lg:flex' : 'flex'
-        }`}>
-          
-          {stageStyle === 'art' ? (
-            /* YouTube Music Style Square Album Art */
-            <div className="relative w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96 max-w-[75vw] max-h-[75vw] aspect-square rounded-3xl overflow-hidden shadow-2xl border border-white/10 group bg-black/60 flex items-center justify-center">
-              <img
-                src={currentSong.thumbnail || `https://i.ytimg.com/vi/${currentSong.videoId}/hqdefault.jpg`}
-                alt={currentSong.title}
-                className="w-full h-full object-cover transform transition-transform duration-700 group-hover:scale-105"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
-
-              {/* Live Equalizer Overlay when playing */}
-              {playback.isPlaying && (
-                <div className="absolute bottom-4 right-4 px-3 py-1 rounded-full liquid-glass-strong border border-violet-500/30 flex items-center gap-1 shadow-glow-purple">
-                  <span className="w-1 bg-violet-400 h-3 rounded-full animate-eq-1" />
-                  <span className="w-1 bg-fuchsia-400 h-4 rounded-full animate-eq-2" />
-                  <span className="w-1 bg-emerald-400 h-2.5 rounded-full animate-eq-3" />
-                  <span className="w-1 bg-cyan-400 h-3.5 rounded-full animate-eq-4" />
-                </div>
-              )}
+        {/* ── LEFT & CENTER-LEFT: THE ALBUM & VISUALIZER HUB (5 Columns) ── */}
+        <section className="lg:col-span-5 flex flex-col gap-5 bg-surface-container-lowest/60 backdrop-blur-2xl rounded-2xl p-6 sm:p-7 shadow-xl relative overflow-hidden border border-white/[0.04]">
+          {/* Top Track Accent Tag */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="px-2.5 py-0.5 rounded-full bg-primary/10 text-primary font-code text-xs uppercase tracking-wider">
+                Aether Ultra Audio
+              </span>
+              <span className="px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-code text-xs">
+                DR14 Dynamic
+              </span>
             </div>
-          ) : (
-            /* Spinning Vinyl Record with Tone Arm */
-            <div className="relative w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96 max-w-[75vw] max-h-[75vw] aspect-square rounded-full shadow-2xl p-2 liquid-glass flex items-center justify-center">
-              {/* Tone Arm Stylus on Top Right */}
-              <div className={`absolute -top-3 -right-2 sm:-top-4 sm:-right-3 w-20 h-32 pointer-events-none transition-transform duration-700 origin-top-right z-20 ${
-                playback.isPlaying ? 'rotate-[-5deg]' : 'rotate-[-32deg]'
+            <div className="flex items-center gap-1.5 text-secondary">
+              <span className="material-symbols-outlined text-sm">wifi_tethering</span>
+              <span className="font-code text-xs">Acoustic Space: 3D Wide</span>
+            </div>
+          </div>
+
+          {/* Vinyl & Album Art Showcase Stage */}
+          <div className="relative w-full aspect-square max-w-[380px] mx-auto flex items-center justify-center group my-2">
+            {/* Colored Light Bleed Ring */}
+            <div className="absolute inset-0 bg-gradient-to-tr from-primary-container/40 via-secondary/30 to-tertiary-container/30 rounded-2xl blur-3xl transform group-hover:scale-105 transition-all duration-700 pointer-events-none" />
+
+            {/* Peeking Vinyl Holographic Disc (or full Vinyl Mode) */}
+            <div className={`absolute right-0 top-3 bottom-3 w-4/5 rounded-full bg-surface-container-lowest shadow-2xl flex items-center justify-center transform ${
+              stageStyle === 'vinyl' ? 'translate-x-0 w-full z-20' : 'translate-x-7 group-hover:translate-x-12'
+            } transition-transform duration-500 overflow-hidden pointer-events-none`}>
+              <div className={`w-full h-full rounded-full bg-gradient-to-tr from-surface-container-lowest via-surface-container-highest to-surface-container-lowest opacity-90 p-4 flex items-center justify-center ${
+                playback.isPlaying ? 'animate-[spin_18s_linear_infinite]' : ''
               }`}>
-                <div className="absolute top-0 right-0 w-7 h-7 rounded-full bg-neutral-800 border-2 border-white/20 shadow-lg flex items-center justify-center">
-                  <div className="w-2.5 h-2.5 rounded-full bg-white/70 shadow" />
-                </div>
-                <div className="absolute top-4 right-3 w-1.5 h-24 bg-gradient-to-b from-neutral-200 via-neutral-400 to-neutral-600 rounded-full shadow-md" />
-                <div className="absolute bottom-2 right-1.5 w-3.5 h-5 bg-gradient-to-br from-violet-400 to-violet-600 rounded-sm shadow-lg rotate-12 border border-white/30" />
-              </div>
-
-              {/* Spinning Vinyl Texture & Center Artwork */}
-              <div
-                className={`relative w-full h-full rounded-full vinyl-grooves p-6 sm:p-8 flex items-center justify-center shadow-2xl ${
-                  playback.isPlaying ? 'animate-[spin_18s_linear_infinite]' : ''
-                }`}
-              >
-                <div className="absolute inset-0 rounded-full vinyl-sheen pointer-events-none opacity-80" />
-                <div className="relative w-24 h-24 sm:w-32 sm:h-32 rounded-full overflow-hidden border-4 border-black/80 shadow-2xl z-10 flex items-center justify-center ring-2 ring-white/10">
-                  <img
-                    src={currentSong.thumbnail || `https://i.ytimg.com/vi/${currentSong.videoId}/hqdefault.jpg`}
-                    alt={currentSong.title}
-                    className="w-full h-full object-cover scale-105"
-                  />
-                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <div className="w-6 h-6 rounded-full bg-black/95 border-2 border-neutral-700 flex items-center justify-center shadow-inner">
-                      <div className="w-2 h-2 rounded-full bg-white/90 shadow" />
-                    </div>
+                <div className="w-full h-full rounded-full bg-surface-container-lowest/80 p-8 flex items-center justify-center shadow-inner">
+                  <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary via-secondary to-tertiary p-1 flex items-center justify-center shadow-[0_0_20px_rgba(208,188,255,0.6)]">
+                    <div className="w-6 h-6 rounded-full bg-surface-container-lowest shadow-inner" />
                   </div>
                 </div>
               </div>
             </div>
-          )}
 
-          {/* Song Info & Quick Actions below Artwork */}
-          <div className="mt-4 sm:mt-6 w-full max-w-sm flex items-center justify-between gap-3 px-2">
-            <div className="min-w-0 flex-1">
-              <h3 className="font-heading font-bold text-lg sm:text-2xl text-white truncate leading-tight">
-                {currentSong.title}
-              </h3>
-              <p className="text-xs sm:text-sm text-white/50 truncate font-medium mt-0.5">
-                {currentSong.channelTitle || 'YouTube Music'}
-              </p>
-            </div>
-
-            <div className="flex items-center gap-1.5 shrink-0">
-              <button
-                type="button"
-                onClick={() => toggleLike(currentSong)}
-                className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center transition-all active:scale-90 hover:bg-white/10"
-                title={liked ? "Unlike" : "Like"}
-              >
-                <Heart
-                  className={`w-5 h-5 transition-all ${
-                    liked
-                      ? 'fill-rose-500 text-rose-500 scale-110'
-                      : 'text-white/60 hover:text-white'
-                  }`}
+            {/* Main Album Sleeve */}
+            {stageStyle === 'art' && (
+              <div className="relative w-4/5 aspect-square rounded-xl overflow-hidden shadow-2xl bg-surface-container-high z-10 transform group-hover:-translate-x-3 transition-transform duration-500 border border-white/[0.08]">
+                <img
+                  className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
+                  src={currentSong.thumbnail || `https://i.ytimg.com/vi/${currentSong.videoId}/hqdefault.jpg`}
+                  alt={currentSong.title}
                 />
-              </button>
+                <div className="absolute inset-0 bg-gradient-to-t from-surface-container-lowest/80 via-transparent to-transparent" />
 
-              <button
-                type="button"
-                onClick={() => openAddToPlaylistModal(currentSong)}
-                className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-white transition-all active:scale-90 hover:bg-white/10"
-                title="Add to playlist"
-              >
-                <Plus className="w-5 h-5" />
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* ── RIGHT COLUMN: YOUTUBE MUSIC TABS (UP NEXT | LYRICS | RELATED) ── */}
-        <div className={`flex-1 flex flex-col min-h-0 bg-[#0c0e18]/80 border border-white/10 rounded-3xl overflow-hidden shadow-2xl backdrop-blur-xl ${
-          mobileTab === 'player' ? 'hidden lg:flex' : 'flex'
-        }`}>
-          
-          {/* Top Tabs (UP NEXT | LYRICS | RELATED) */}
-          <div className="px-5 pt-3 border-b border-white/10 shrink-0 bg-white/[0.02]">
-            <div className="flex items-center gap-6">
-              <button
-                type="button"
-                onClick={() => {
-                  setRightTab('upnext');
-                  setMobileTab('upnext');
-                }}
-                className={`text-xs sm:text-sm font-bold tracking-wider uppercase transition-all pb-2.5 relative flex items-center gap-1.5 ${
-                  (rightTab === 'upnext' && mobileTab !== 'lyrics') ? 'text-white' : 'text-white/40 hover:text-white/70'
-                }`}
-              >
-                <span>UP NEXT</span>
-                {queue.length > 0 && (
-                  <span className="text-[10px] bg-white/10 text-white/80 px-1.5 py-0.2 rounded-full font-mono">
-                    {queue.length}
-                  </span>
-                )}
-                {(rightTab === 'upnext' && mobileTab !== 'lyrics') && (
-                  <div className="absolute bottom-0 inset-x-0 h-0.5 bg-white rounded-full" />
-                )}
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setRightTab('lyrics');
-                  setMobileTab('lyrics');
-                }}
-                className={`text-xs sm:text-sm font-bold tracking-wider uppercase transition-all pb-2.5 relative flex items-center gap-1.5 ${
-                  (rightTab === 'lyrics' || mobileTab === 'lyrics') ? 'text-white' : 'text-white/40 hover:text-white/70'
-                }`}
-              >
-                <span>LYRICS</span>
-                {lyricsState.synced && (
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                )}
-                {(rightTab === 'lyrics' || mobileTab === 'lyrics') && (
-                  <div className="absolute bottom-0 inset-x-0 h-0.5 bg-white rounded-full" />
-                )}
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setRightTab('related');
-                  setMobileTab('upnext');
-                }}
-                className={`text-xs sm:text-sm font-bold tracking-wider uppercase transition-all pb-2.5 relative ${
-                  rightTab === 'related' && mobileTab !== 'lyrics' ? 'text-white' : 'text-white/40 hover:text-white/70'
-                }`}
-              >
-                <span>RELATED</span>
-                {rightTab === 'related' && mobileTab !== 'lyrics' && (
-                  <div className="absolute bottom-0 inset-x-0 h-0.5 bg-white rounded-full" />
-                )}
-              </button>
-            </div>
-          </div>
-
-          {/* TAB 1: UP NEXT LIST (Exact YouTube Music Look) */}
-          {(mobileTab === 'lyrics' || (rightTab === 'lyrics' && mobileTab !== 'upnext')) ? (
-            /* Synchronized Karaoke Lyrics */
-            <div className="flex-1 overflow-y-auto no-scrollbar px-6 py-10 space-y-4 text-center select-text scroll-smooth">
-              {lyricsState.loading ? (
-                <div className="flex flex-col items-center justify-center h-full space-y-3 py-16 text-white/50">
-                  <div className="w-8 h-8 rounded-full border-2 border-[#9d8df1] border-t-transparent animate-spin" />
-                  <p className="text-sm font-medium animate-pulse">Fetching synchronized lyrics...</p>
-                </div>
-              ) : lyricsState.lines && lyricsState.lines.length > 0 ? (
-                lyricsState.lines.map((line, idx) => {
-                  const isActive = idx === activeLyricIndex;
-                  return (
-                    <p
-                      key={`lyric-${idx}`}
-                      ref={isActive ? activeLineRef : null}
-                      onClick={() => line.time !== undefined && seekTo(line.time)}
-                      className={`transition-all duration-300 cursor-pointer rounded-2xl px-4 py-2 ${
-                        isActive
-                          ? 'text-[#9d8df1] font-bold text-lg sm:text-xl scale-105 drop-shadow-[0_0_20px_rgba(157,141,241,0.5)] bg-white/[0.04]'
-                          : 'text-white/30 hover:text-white/75 text-sm sm:text-base font-medium hover:scale-102'
-                      }`}
-                    >
-                      {line.text}
-                    </p>
-                  );
-                })
-              ) : (
-                <div className="flex flex-col items-center justify-center h-full space-y-3 py-16 text-white/40">
-                  <Music2 className="w-10 h-10 stroke-1 text-white/20" />
-                  <p className="text-sm font-medium">Lyrics unavailable for this track</p>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setRightTab('upnext');
-                      setMobileTab('upnext');
-                    }}
-                    className="px-4 py-1.5 rounded-full liquid-glass text-xs text-white/80 hover:text-white border border-white/10"
-                  >
-                    View Up Next Queue
-                  </button>
-                </div>
-              )}
-            </div>
-          ) : rightTab === 'related' ? (
-            /* Related Songs recommendations */
-            <div className="flex-1 overflow-y-auto p-4 space-y-2 no-scrollbar">
-              <div className="px-1 py-1 flex items-center justify-between">
-                <span className="text-[10px] font-mono uppercase tracking-wider text-white/40">
-                  Similar to {currentSong.title}
-                </span>
-                <span className="text-[10px] font-mono text-emerald-400">Radio DJ</span>
-              </div>
-
-              {loadingRelated ? (
-                <div className="py-16 flex flex-col items-center justify-center space-y-3 text-white/40">
-                  <div className="w-7 h-7 rounded-full border-2 border-emerald-400 border-t-transparent animate-spin" />
-                  <p className="text-xs">Finding similar music...</p>
-                </div>
-              ) : relatedTracks.map((song, idx) => (
-                <div
-                  key={`rel-${song.videoId}-${idx}`}
-                  className="flex items-center justify-between p-2.5 rounded-2xl liquid-glass hover:bg-white/10 transition-all group border border-white/5"
+                {/* Floating Play Overlay Pill */}
+                <button
+                  type="button"
+                  onClick={togglePlayPause}
+                  className="absolute bottom-4 right-4 flex items-center justify-center w-12 h-12 rounded-full bg-primary-container text-on-primary-container shadow-[0_0_20px_rgba(160,120,255,0.6)] hover:scale-110 active:scale-95 transition-all"
                 >
-                  <div
-                    onClick={() => playSong(song, true)}
-                    className="flex items-center gap-3 min-w-0 flex-1 cursor-pointer pr-2"
-                  >
-                    <img
-                      src={song.thumbnail || `https://i.ytimg.com/vi/${song.videoId}/hqdefault.jpg`}
-                      alt={song.title}
-                      className="w-10 h-10 rounded-xl object-cover shrink-0"
-                    />
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs font-semibold text-white truncate group-hover:text-violet-300">
-                        {song.title}
-                      </p>
-                      <p className="text-[10px] text-white/50 truncate mt-0.5">
-                        {song.channelTitle || 'YouTube'}
-                      </p>
-                    </div>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => playSong(song, true)}
-                    className="w-8 h-8 rounded-full bg-white text-black hover:bg-white/90 flex items-center justify-center shadow active:scale-90 transition-all shrink-0"
-                  >
-                    <Play className="w-3.5 h-3.5 fill-black translate-x-0.5" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          ) : (
-            /* UP NEXT: YouTube Music Style Queue (Matching Screenshot) */
-            <div className="flex-1 flex flex-col min-h-0">
-              
-              {/* Playing From Header + Save Button */}
-              <div className="px-5 py-3 border-b border-white/[0.06] flex items-center justify-between shrink-0 bg-white/[0.02]">
-                <div className="min-w-0 pr-3">
-                  <span className="text-[10px] uppercase font-mono tracking-wider text-white/40 block">
-                    Playing from
+                  <span className="material-symbols-outlined text-2xl">
+                    {playback.isPlaying ? 'pause' : 'play_arrow'}
                   </span>
-                  <h4 className="text-sm font-bold text-white font-heading truncate">
-                    {playingFrom?.name || 'Current Session'}
-                  </h4>
-                </div>
+                </button>
 
-                <div className="flex items-center gap-2 shrink-0">
-                  <button
-                    type="button"
-                    onClick={handleSaveQueueAsPlaylist}
-                    className={`px-3 py-1.5 rounded-full text-xs font-medium border flex items-center gap-1.5 active:scale-95 transition-all ${
-                      isSavedPlaylist
-                        ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
-                        : 'bg-white/5 hover:bg-white/10 text-white/80 border-white/10'
-                    }`}
-                    title="Save this queue as a playlist in your library"
-                  >
-                    {isSavedPlaylist ? (
-                      <>
-                        <Check className="w-3.5 h-3.5 text-emerald-400" />
-                        <span>Saved</span>
-                      </>
-                    ) : (
-                      <>
-                        <BookmarkPlus className="w-3.5 h-3.5 text-violet-300" />
-                        <span>Save</span>
-                      </>
-                    )}
-                  </button>
-
-                  {queue.length > 0 && (
-                    <button
-                      type="button"
-                      onClick={clearQueue}
-                      className="px-2.5 py-1.5 rounded-full text-xs font-mono text-white/40 hover:text-rose-400 hover:bg-rose-500/10 border border-white/5 transition-colors"
-                      title="Clear Upcoming Queue"
-                    >
-                      Clear
-                    </button>
-                  )}
+                {/* Holographic Decal Badge */}
+                <div className="absolute top-4 left-4 px-2 py-1 rounded bg-surface-container-lowest/70 backdrop-blur-md text-on-surface font-code text-xs flex items-center gap-1 shadow-sm">
+                  <span className="material-symbols-outlined text-xs text-primary">album</span>
+                  <span>DELUXE STEREO</span>
                 </div>
               </div>
-
-              {/* Scrollable Song List: Currently Playing (Highlighted) + Up Next */}
-              <div className="flex-1 overflow-y-auto p-3 space-y-1.5 no-scrollbar">
-                
-                {/* Currently Playing Card */}
-                <div className="p-2.5 rounded-2xl bg-white/[0.08] border border-white/15 flex items-center justify-between gap-3 shadow-md">
-                  <div className="flex items-center gap-3 min-w-0 flex-1">
-                    <div className="w-5 text-center shrink-0">
-                      {playback.isPlaying ? (
-                        <span className="flex items-center justify-center gap-0.5">
-                          <span className="w-0.5 h-3 bg-violet-400 rounded-full animate-eq-1" />
-                          <span className="w-0.5 h-4 bg-violet-400 rounded-full animate-eq-2" />
-                          <span className="w-0.5 h-2 bg-violet-400 rounded-full animate-eq-3" />
-                        </span>
-                      ) : (
-                        <Play className="w-3.5 h-3.5 fill-white text-white mx-auto" />
-                      )}
-                    </div>
-
-                    <div className="relative w-11 h-11 rounded-xl overflow-hidden shrink-0 bg-black shadow border border-white/10">
-                      <img
-                        src={currentSong.thumbnail || `https://i.ytimg.com/vi/${currentSong.videoId}/hqdefault.jpg`}
-                        alt={currentSong.title}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-
-                    <div className="min-w-0 flex-1">
-                      <h5 className="text-xs sm:text-sm font-bold text-white truncate leading-tight">
-                        {currentSong.title}
-                      </h5>
-                      <p className="text-[11px] text-white/50 truncate mt-0.5">
-                        {currentSong.channelTitle || 'Artist'}
-                      </p>
-                    </div>
-                  </div>
-
-                  <span className="text-[11px] font-mono text-white/40 shrink-0">
-                    {formatDuration(playback.duration)}
-                  </span>
-                </div>
-
-                {/* Up Next Divider */}
-                <div className="px-2 pt-2.5 pb-1 flex items-center justify-between">
-                  <span className="text-[10px] font-mono uppercase tracking-wider text-white/40">
-                    Up Next ({queue.length})
-                  </span>
-                  {radioMode && (
-                    <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
-                      Radio Autoplay ON
-                    </span>
-                  )}
-                </div>
-
-                {/* Upcoming Queue Tracks */}
-                {queue.length === 0 ? (
-                  <div className="py-12 flex flex-col items-center justify-center text-center text-white/40 space-y-2">
-                    <Music2 className="w-8 h-8 text-white/20" />
-                    <p className="text-xs font-medium text-white/60">Queue is empty</p>
-                    <p className="text-[11px] text-white/30 max-w-xs">
-                      {radioMode
-                        ? 'Endless Radio will automatically pick the next viral track when this song finishes'
-                        : 'Select any playlist from Discover or Search to queue up more songs'}
-                    </p>
-                    {!radioMode && (
-                      <button
-                        type="button"
-                        onClick={toggleRadio}
-                        className="mt-2 px-3.5 py-1.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-xs font-medium hover:bg-emerald-500/25 transition-all"
-                      >
-                        Turn on Radio DJ
-                      </button>
-                    )}
-                  </div>
-                ) : (
-                  queue.map((song, idx) => (
-                    <div
-                      key={`queue-${song.videoId}-${idx}`}
-                      className="flex items-center justify-between p-2 rounded-xl liquid-glass hover:bg-white/[0.08] transition-all group"
-                    >
-                      <div
-                        onClick={() => {
-                          playSong(song, true);
-                          removeFromQueue(idx);
-                        }}
-                        className="flex items-center gap-3 min-w-0 flex-1 cursor-pointer pr-2"
-                      >
-                        <div className="relative w-10 h-10 rounded-lg overflow-hidden shrink-0 bg-black/60 shadow">
-                          <img
-                            src={song.thumbnail || `https://i.ytimg.com/vi/${song.videoId}/hqdefault.jpg`}
-                            alt={song.title}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                          />
-                        </div>
-
-                        <div className="min-w-0 flex-1">
-                          <p className="text-xs font-medium text-white truncate group-hover:text-violet-300">
-                            {song.title}
-                          </p>
-                          <p className="text-[10px] text-white/50 truncate mt-0.5">
-                            {song.channelTitle || 'YouTube'}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-2 shrink-0">
-                        <span className="text-[11px] font-mono text-white/35">
-                          {formatDuration(song.duration)}
-                        </span>
-
-                        <button
-                          type="button"
-                          onClick={() => {
-                            playSong(song, true);
-                            removeFromQueue(idx);
-                          }}
-                          className="w-7 h-7 rounded-full bg-white text-black opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all active:scale-90"
-                          title="Play Now"
-                        >
-                          <Play className="w-3 h-3 fill-black translate-x-0.5" />
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => removeFromQueue(idx)}
-                          className="w-7 h-7 rounded-full bg-white/5 hover:bg-rose-500/20 text-white/30 hover:text-rose-400 flex items-center justify-center transition-all active:scale-90"
-                          title="Remove from queue"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </button>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-          )}
-
-        </div>
-
-      </div>
-
-      {/* ───────────────────────────────────────────────────────── */}
-      {/* BOTTOM CONTROLS & SCRUBBER (YOUTUBE MUSIC STYLE DOCK)      */}
-      {/* ───────────────────────────────────────────────────────── */}
-      <footer className="relative z-10 px-5 sm:px-8 py-3.5 border-t border-white/[0.08] bg-[#07080e]/95 backdrop-blur-2xl shrink-0">
-        <div className="max-w-7xl mx-auto flex flex-col gap-2">
-          
-          {/* Scrubber Bar with live glowing progress */}
-          <div className="flex items-center gap-3 w-full">
-            <span className="text-[11px] font-mono text-white/50 w-10 text-right shrink-0">
-              {formatTime(playback.currentTime)}
-            </span>
-
-            <input
-              type="range"
-              min="0"
-              max={playback.duration > 0 ? playback.duration : 100}
-              value={playback.currentTime || 0}
-              onChange={handleSeekChange}
-              style={{
-                background: `linear-gradient(to right, #8b5cf6 ${progressPercent}%, rgba(255, 255, 255, 0.15) ${progressPercent}%)`
-              }}
-              className="flex-1 h-1.5 rounded-lg appearance-none cursor-pointer accent-white hover:h-2 transition-all shadow-inner"
-            />
-
-            <span className="text-[11px] font-mono text-white/50 w-10 shrink-0">
-              {formatTime(playback.duration)}
-            </span>
+            )}
           </div>
 
-          {/* Controls Row: Left Song Info | Center Playback | Right Volume & Mode */}
-          <div className="flex items-center justify-between gap-4">
-            
-            {/* Left: Thumbnail & Title */}
-            <div className="flex items-center gap-3 w-1/4 min-w-0 hidden sm:flex">
-              <img
-                src={currentSong.thumbnail || `https://i.ytimg.com/vi/${currentSong.videoId}/hqdefault.jpg`}
-                alt={currentSong.title}
-                className="w-10 h-10 rounded-xl object-cover shrink-0 border border-white/10"
-              />
-              <div className="min-w-0 flex-1">
-                <p className="text-xs font-semibold text-white truncate">{currentSong.title}</p>
-                <p className="text-[11px] text-white/50 truncate">{currentSong.channelTitle || 'YouTube'}</p>
+          {/* Track Information & Artist Metadata */}
+          <div className="flex flex-col gap-1 mt-1">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex flex-col min-w-0">
+                <h1 className="font-headline font-bold text-2xl sm:text-3xl text-on-surface tracking-tight leading-tight truncate">
+                  {currentSong.title}
+                </h1>
+                <div className="flex items-center gap-2 mt-1 flex-wrap">
+                  <span className="font-headline font-medium text-base text-primary inline-flex items-center gap-1">
+                    {currentSong.channelTitle || 'Artist'}
+                    <span className="material-symbols-outlined text-sm text-secondary" title="Verified Artist">
+                      verified
+                    </span>
+                  </span>
+                </div>
+                <p className="font-body text-xs text-on-surface-variant mt-1">
+                  Aether Sound Studio Vault • 2026 Master • Spatial Engine
+                </p>
+              </div>
+
+              {/* Favorite & Quick Save Actions */}
+              <div className="flex items-center gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => toggleLike(currentSong)}
+                  className={`w-10 h-10 rounded-full flex items-center justify-center bg-surface-container hover:bg-surface-container-high transition-all ${
+                    liked ? 'text-tertiary-container shadow-[0_0_12px_rgba(255,81,106,0.3)]' : 'text-on-surface-variant hover:text-on-surface'
+                  }`}
+                  title={liked ? "Unlike" : "Like"}
+                >
+                  <span className={`material-symbols-outlined ${liked ? 'fill-1' : ''}`}>
+                    {liked ? 'favorite' : 'favorite_border'}
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={toggleAudioOnly}
+                  className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
+                    isAudioOnly ? 'bg-secondary text-surface-container-lowest' : 'bg-surface-container hover:bg-surface-container-high text-on-surface-variant'
+                  }`}
+                  title={isAudioOnly ? "Audio Only Mode Active" : "Standard Mode"}
+                >
+                  <Headphones className="w-4 h-4" />
+                </button>
               </div>
             </div>
 
-            {/* Center: Previous / Play-Pause / Next / Shuffle / Repeat */}
-            <div className="flex items-center justify-center gap-3 sm:gap-4 flex-1">
+            {/* Audio Enhancer Quick Pills */}
+            <div className="flex items-center gap-2 flex-wrap pt-2">
               <button
                 type="button"
-                onClick={toggleShuffle}
-                className={`w-9 h-9 rounded-full flex items-center justify-center transition-all active:scale-90 ${
-                  isShuffled ? 'text-purple-400' : 'text-white/40 hover:text-white'
-                }`}
-                title={isShuffled ? "Shuffle On" : "Shuffle Off"}
+                onClick={() => setShowEqModal(true)}
+                className="flex items-center gap-1 px-3 py-1 rounded-full bg-surface-container-high hover:bg-surface-bright text-on-surface font-label text-xs transition-colors"
               >
-                <Shuffle className="w-4 h-4" />
+                <span className="material-symbols-outlined text-xs text-secondary">tune</span>
+                <span>DSP: {selectedEqPreset}</span>
               </button>
 
-              <button
-                type="button"
-                onClick={prevSong}
-                className="w-10 h-10 rounded-full flex items-center justify-center text-white/80 hover:text-white transition-all active:scale-90"
-                title="Previous Track"
-              >
-                <SkipBack className="w-5 h-5 fill-white/80" />
-              </button>
-
-              <button
-                type="button"
-                onClick={togglePlayPause}
-                className="w-12 h-12 rounded-full bg-white text-black hover:bg-white/95 flex items-center justify-center shadow-2xl active:scale-95 transition-all"
-                title={playback.isPlaying ? "Pause" : "Play"}
-              >
-                {playback.isPlaying ? (
-                  <Pause className="w-5 h-5 fill-black" />
-                ) : (
-                  <Play className="w-5 h-5 fill-black translate-x-0.5" />
-                )}
-              </button>
-
-              <button
-                type="button"
-                onClick={nextSong}
-                className="w-10 h-10 rounded-full flex items-center justify-center text-white/80 hover:text-white transition-all active:scale-90"
-                title="Next Track"
-              >
-                <SkipForward className="w-5 h-5 fill-white/80" />
-              </button>
-
-              <button
-                type="button"
-                onClick={cycleRepeat}
-                className={`w-9 h-9 rounded-full flex items-center justify-center transition-all active:scale-90 ${
-                  repeatMode !== 'off' ? 'text-purple-400' : 'text-white/40 hover:text-white'
-                }`}
-                title={`Repeat: ${repeatMode}`}
-              >
-                {repeatMode === 'one' ? (
-                  <Repeat1 className="w-4 h-4" />
-                ) : (
-                  <Repeat className="w-4 h-4" />
-                )}
-              </button>
-            </div>
-
-            {/* Right: Audio/Video, Radio DJ & Volume */}
-            <div className="flex items-center justify-end gap-2.5 w-1/4 shrink-0">
-              {/* Audio / Video toggle */}
-              <button
-                type="button"
-                onClick={toggleAudioOnly}
-                className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-all hidden md:flex items-center gap-1 ${
-                  isAudioOnly
-                    ? 'bg-purple-600/30 text-purple-200 border-purple-500/40'
-                    : 'liquid-glass text-white/70 border-white/10'
-                }`}
-                title="Toggle Audio / Video"
-              >
-                {isAudioOnly ? (
-                  <>
-                    <Headphones className="w-3.5 h-3.5 text-purple-300" />
-                    <span>144p</span>
-                  </>
-                ) : (
-                  <>
-                    <Video className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>Video</span>
-                  </>
-                )}
-              </button>
-
-              {/* Radio Autoplay Toggle */}
               <button
                 type="button"
                 onClick={toggleRadio}
-                className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-all hidden md:flex items-center gap-1 ${
-                  radioMode
-                    ? 'bg-emerald-600/30 text-emerald-300 border-emerald-500/40'
-                    : 'liquid-glass text-white/40 border-white/10'
+                className={`flex items-center gap-1 px-3 py-1 rounded-full font-label text-xs transition-colors ${
+                  radioMode ? 'bg-primary-container text-on-primary-container' : 'bg-surface-container-high text-on-surface hover:bg-surface-bright'
                 }`}
-                title="Endless Radio Autoplay"
               >
                 <Radio className="w-3.5 h-3.5" />
                 <span>Radio {radioMode ? 'ON' : 'OFF'}</span>
               </button>
 
-              {/* Volume Slider */}
-              <div className="flex items-center gap-1.5">
-                <button
-                  type="button"
-                  onClick={() => setIsMuted((prev) => !prev)}
-                  className="text-white/60 hover:text-white active:scale-90 transition-all"
-                >
-                  {isMuted || volume === 0 ? (
-                    <VolumeX className="w-4 h-4 text-rose-400" />
-                  ) : (
-                    <Volume2 className="w-4 h-4" />
-                  )}
-                </button>
-                <input
-                  type="range"
-                  min="0"
-                  max="100"
-                  value={isMuted ? 0 : volume}
-                  onChange={(e) => {
-                    setVolume(Number(e.target.value));
-                    if (isMuted) setIsMuted(false);
-                  }}
-                  className="w-14 sm:w-20 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer accent-white"
-                />
+              <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-secondary-container/20 text-secondary font-label text-xs">
+                <span className="material-symbols-outlined text-xs">spatial_audio_off</span>
+                <span>Head Tracking: Active</span>
               </div>
             </div>
-
           </div>
 
-        </div>
-      </footer>
+          {/* Spectrum Audio Visualizer Graph */}
+          <div className="flex flex-col gap-1.5 pt-1">
+            <div className="flex items-center justify-between text-on-surface-variant font-code text-xs">
+              <span className="flex items-center gap-1.5 text-secondary">
+                <span className="w-1.5 h-1.5 rounded-full bg-secondary animate-ping" />
+                Live Real-time FFT Visualizer
+              </span>
+              <span className="text-outline">60 FPS Core Audio Engine</span>
+            </div>
+
+            {/* Detailed Animated Waveform Graphic */}
+            <div className="relative w-full h-16 bg-surface-container-lowest/80 rounded-xl p-2 flex items-end justify-between gap-1 overflow-hidden shadow-inner border border-white/[0.04]">
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary-container/10 to-transparent pointer-events-none" />
+              
+              <svg className="w-full h-full" fill="none" preserveAspectRatio="none" viewBox="0 0 400 48">
+                <defs>
+                  <linearGradient id="spectrumGradient" x1="0%" x2="100%" y1="0%" y2="0%">
+                    <stop offset="0%" stopColor="#4cd7f6" />
+                    <stop offset="40%" stopColor="#a078ff" />
+                    <stop offset="70%" stopColor="#d0bcff" />
+                    <stop offset="100%" stopColor="#ff516a" />
+                  </linearGradient>
+                </defs>
+                <path
+                  className={`opacity-90 ${playback.isPlaying ? 'animate-pulse' : ''}`}
+                  d="M4,48 L4,28 M12,48 L12,20 M20,48 L20,38 M28,48 L28,14 M36,48 L36,8 M44,48 L44,22 M52,48 L52,32 M60,48 L60,10 M68,48 L68,6 M76,48 L76,18 M84,48 L84,30 M92,48 L92,12 M100,48 L100,4 M108,48 L108,16 M116,48 L116,24 M124,48 L124,10 M132,48 L132,18 M140,48 L140,32 M148,48 L148,14 M156,48 L156,6 M164,48 L164,22 M172,48 L172,34 M180,48 L180,8 M188,48 L188,2 M196,48 L196,18 M204,48 L204,30 M212,48 L212,12 M220,48 L220,6 M228,48 L228,26 M236,48 L236,36 M244,48 L244,14 M252,48 L252,10 M260,48 L260,20 M268,48 L268,34 M276,48 L276,8 M284,48 L284,4 M292,48 L292,16 M300,48 L300,28 M308,48 L308,12 M316,48 L316,24 M324,48 L324,36 M332,48 L332,18 M340,48 L340,10 M348,48 L348,22 M356,48 L356,32 M364,48 L364,14 M372,48 L372,28 M380,48 L380,18 M388,48 L388,38 M396,48 L396,26"
+                  stroke="url(#spectrumGradient)"
+                  strokeLinecap="round"
+                  strokeWidth="4"
+                />
+              </svg>
+            </div>
+
+            <div className="flex items-center justify-between text-[10px] text-outline font-code">
+              <span>20 Hz (Sub-Bass)</span>
+              <span>500 Hz (Warmth)</span>
+              <span>4 kHz (Presence)</span>
+              <span>20 kHz (Air)</span>
+            </div>
+          </div>
+
+          {/* Scrubber & Primary Stage Transport */}
+          <div className="flex flex-col gap-2 pt-1">
+            <div className="relative group cursor-pointer py-1">
+              <input
+                type="range"
+                min="0"
+                max={playback.duration || 100}
+                value={playback.currentTime || 0}
+                onChange={handleSeekChange}
+                className="w-full h-1.5 bg-surface-container-highest rounded-full appearance-none cursor-pointer accent-[#4cd7f6]"
+              />
+            </div>
+
+            <div className="flex items-center justify-between font-code text-xs text-on-surface-variant">
+              <div className="flex items-center gap-1.5">
+                <span className="text-secondary font-medium">{formatTime(playback.currentTime)}</span>
+                <span className="text-outline">/</span>
+                <span>{formatTime(playback.duration)}</span>
+              </div>
+              <span className="text-outline text-xs">-{formatTime(remainingTime)} Remaining</span>
+            </div>
+
+            {/* Stage Transport Controls */}
+            <div className="flex items-center justify-between pt-2">
+              <button
+                type="button"
+                onClick={toggleShuffle}
+                className={`p-2 transition-colors ${isShuffled ? 'text-primary' : 'text-on-surface-variant hover:text-on-surface'}`}
+                title="Shuffle"
+              >
+                <Shuffle className="w-5 h-5" />
+              </button>
+
+              <div className="flex items-center gap-6">
+                <button
+                  type="button"
+                  onClick={prevSong}
+                  className="p-2 text-on-surface-variant hover:text-on-surface hover:scale-110 active:scale-90 transition-all"
+                  title="Previous Track"
+                >
+                  <SkipBack className="w-6 h-6 fill-current" />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={togglePlayPause}
+                  className="flex items-center justify-center w-14 h-14 rounded-full bg-primary-container text-on-primary-container hover:scale-105 active:scale-95 shadow-[0_0_24px_rgba(160,120,255,0.5)] transition-all"
+                  title={playback.isPlaying ? "Pause" : "Play"}
+                >
+                  {playback.isPlaying ? (
+                    <Pause className="w-7 h-7 fill-current" />
+                  ) : (
+                    <Play className="w-7 h-7 fill-current translate-x-0.5" />
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={nextSong}
+                  className="p-2 text-on-surface-variant hover:text-on-surface hover:scale-110 active:scale-90 transition-all"
+                  title="Next Track"
+                >
+                  <SkipForward className="w-6 h-6 fill-current" />
+                </button>
+              </div>
+
+              <button
+                type="button"
+                onClick={cycleRepeat}
+                className={`p-2 transition-colors ${repeatMode !== 'off' ? 'text-primary' : 'text-on-surface-variant hover:text-on-surface'}`}
+                title="Repeat"
+              >
+                {repeatMode === 'one' ? <Repeat1 className="w-5 h-5" /> : <Repeat className="w-5 h-5" />}
+              </button>
+            </div>
+          </div>
+        </section>
+
+        {/* ── CENTER-RIGHT: SYNCHRONIZED KINETIC KARAOKE LYRICS (4 Columns) ── */}
+        <section className={`lg:col-span-4 flex flex-col h-[740px] bg-surface-container-lowest/60 backdrop-blur-2xl rounded-2xl p-6 shadow-xl relative overflow-hidden border border-white/[0.04] ${
+          activeTab !== 'lyrics' ? 'hidden lg:flex' : 'flex'
+        }`}>
+          {/* Lyrics Header Toolbar */}
+          <div className="flex items-center justify-between pb-3 border-b border-white/[0.04]">
+            <div className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-primary text-xl">mic</span>
+              <span className="font-headline font-bold text-lg text-on-surface">Kinetic Lyrics</span>
+              {lyricsState.synced && (
+                <span className="px-2 py-0.5 rounded text-[10px] bg-primary/20 text-primary font-code font-bold">
+                  SYNCED
+                </span>
+              )}
+            </div>
+
+            <div className="flex items-center gap-1.5">
+              <div className="flex items-center bg-surface-container rounded-full p-0.5 border border-white/[0.04]">
+                <button
+                  type="button"
+                  onClick={() => setLyricsScale(s => Math.max(0.8, s - 0.1))}
+                  className="w-6 h-6 rounded-full hover:bg-surface-container-high text-xs text-on-surface flex items-center justify-center font-bold"
+                >
+                  A-
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLyricsScale(s => Math.min(1.4, s + 0.1))}
+                  className="w-6 h-6 rounded-full hover:bg-surface-container-high text-xs text-on-surface flex items-center justify-center font-bold"
+                >
+                  A+
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Sync Status & Auto-Scroll Info */}
+          <div className="flex items-center justify-between py-2 text-xs text-outline font-label">
+            <span className="text-secondary font-medium">Original Stream Synchronized</span>
+            <div className="flex items-center gap-1 text-primary">
+              <span className="material-symbols-outlined text-xs">sync</span>
+              <span className="font-code text-xs">Auto-Scroll: ON</span>
+            </div>
+          </div>
+
+          {/* The Kinetic Scrolling Lyrics Column */}
+          <div
+            ref={lyricsContainerRef}
+            className="flex-1 overflow-y-auto no-scrollbar pr-2 flex flex-col gap-6 py-8 relative selection:bg-primary selection:text-on-primary scroll-smooth"
+            style={{ fontSize: `${lyricsScale}rem` }}
+          >
+            {/* Top Fade */}
+            <div className="sticky top-0 left-0 right-0 h-10 bg-gradient-to-b from-surface-container-lowest via-surface-container-lowest/70 to-transparent pointer-events-none -mt-8 mb-2 z-10" />
+
+            {lyricsState.loading ? (
+              <div className="flex flex-col items-center justify-center h-full py-20 text-outline gap-3">
+                <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+                <p className="text-xs font-code animate-pulse">Syncing acoustic timecodes...</p>
+              </div>
+            ) : lyricsState.lines && lyricsState.lines.length > 0 ? (
+              lyricsState.lines.map((line, idx) => {
+                const isActive = idx === activeLyricIndex;
+                const isPast = idx < activeLyricIndex;
+
+                return (
+                  <div
+                    key={`line-${idx}`}
+                    ref={isActive ? activeLineRef : null}
+                    onClick={() => seekTo(line.time)}
+                    className={`flex flex-col gap-1 transition-all duration-300 cursor-pointer ${
+                      isActive
+                        ? 'p-4 rounded-xl bg-surface-container-high/60 backdrop-blur-xl shadow-[0_0_24px_rgba(160,120,255,0.25)] scale-[1.02] border border-primary/20'
+                        : isPast
+                        ? 'opacity-40 hover:opacity-75'
+                        : 'opacity-65 hover:opacity-100'
+                    }`}
+                  >
+                    {isActive && (
+                      <div className="flex items-center justify-between pb-1">
+                        <span className="font-code text-xs text-secondary font-semibold flex items-center gap-1.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-secondary animate-ping" />
+                          [{formatTime(line.time)}] • ACTIVE CHORUS
+                        </span>
+                        <span className="material-symbols-outlined text-sm text-primary">equalizer</span>
+                      </div>
+                    )}
+
+                    {!isActive && (
+                      <span className="font-code text-[11px] text-outline">
+                        [{formatTime(line.time)}]
+                      </span>
+                    )}
+
+                    <p className={`font-headline font-semibold tracking-tight leading-snug ${
+                      isActive
+                        ? 'text-lg sm:text-xl text-on-surface text-secondary drop-shadow-[0_0_12px_rgba(76,215,246,0.8)] font-bold'
+                        : 'text-base sm:text-lg text-on-surface'
+                    }`}>
+                      {line.text}
+                    </p>
+                  </div>
+                );
+              })
+            ) : (
+              /* Fallback Atmospheric Lyrics Preview if API response pending */
+              <div className="flex flex-col gap-6 py-6 text-left">
+                <div className="opacity-35">
+                  <span className="font-code text-xs text-outline">[00:24]</span>
+                  <p className="font-headline font-semibold text-lg text-on-surface">
+                    Chrome horizons bleeding into the purple dusk
+                  </p>
+                </div>
+                <div className="opacity-50">
+                  <span className="font-code text-xs text-outline">[00:48]</span>
+                  <p className="font-headline font-semibold text-lg text-on-surface">
+                    Neon lights reflect across the asphalt rain
+                  </p>
+                </div>
+                <div className="p-4 rounded-xl bg-surface-container-high/60 backdrop-blur-xl shadow-[0_0_24px_rgba(160,120,255,0.25)] border border-primary/20">
+                  <div className="flex items-center justify-between pb-1">
+                    <span className="font-code text-xs text-secondary font-semibold flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-secondary animate-ping" />
+                      ACTIVE RESONANCE
+                    </span>
+                    <span className="material-symbols-outlined text-sm text-primary">equalizer</span>
+                  </div>
+                  <p className="font-headline font-bold text-xl text-secondary drop-shadow-[0_0_12px_rgba(76,215,246,0.8)]">
+                    {currentSong.title}
+                  </p>
+                  <p className="font-body text-xs text-on-surface-variant italic pt-1">
+                    "Tracing signals through the midnight frequency"
+                  </p>
+                </div>
+                <div className="opacity-65">
+                  <span className="font-code text-xs text-outline">[01:52]</span>
+                  <p className="font-headline font-medium text-lg text-on-surface">
+                    We accelerate into the infinite static
+                  </p>
+                </div>
+                <div className="opacity-45">
+                  <span className="font-code text-xs text-outline">[02:18]</span>
+                  <p className="font-headline font-medium text-lg text-on-surface">
+                    Hold the signal till the morning breaks the grid
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Bottom Fade */}
+            <div className="sticky bottom-0 left-0 right-0 h-14 bg-gradient-to-t from-surface-container-lowest via-surface-container-lowest/70 to-transparent pointer-events-none -mb-8 mt-2" />
+          </div>
+
+          <div className="pt-3 flex items-center justify-between text-outline font-code text-xs border-t border-white/[0.04]">
+            <span>Synced with Timecode Engine</span>
+            <button
+              type="button"
+              onClick={() => {
+                if (activeLineRef.current) {
+                  activeLineRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+              }}
+              className="text-primary hover:text-on-surface flex items-center gap-1 transition-colors"
+            >
+              <span className="material-symbols-outlined text-xs">my_location</span>
+              <span>Recenter</span>
+            </button>
+          </div>
+        </section>
+
+        {/* ── RIGHT PANEL: QUEUE & STUDIO DSP ACOUSTICS (3 Columns) ── */}
+        <aside className={`lg:col-span-3 flex flex-col gap-4 ${
+          activeTab === 'lyrics' ? 'hidden lg:flex' : 'flex'
+        }`}>
+          {/* Widget 1: Studio DSP Equalizer */}
+          <div className="flex flex-col gap-3 bg-surface-container-lowest/60 backdrop-blur-2xl rounded-2xl p-4 sm:p-5 shadow-xl border border-white/[0.04]">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-secondary text-base">tune</span>
+                <span className="font-headline font-bold text-base text-on-surface">Studio DSP EQ</span>
+              </div>
+              <span className="px-2 py-0.5 rounded-full bg-secondary-container/20 text-secondary font-code text-[10px] font-bold">
+                ACTIVE
+              </span>
+            </div>
+
+            {/* Preset Selection Chips */}
+            <div className="grid grid-cols-2 gap-1.5 pt-1">
+              {EQ_PRESETS.map((preset) => (
+                <button
+                  key={preset.name}
+                  type="button"
+                  onClick={() => setSelectedEqPreset(preset.name)}
+                  className={`px-2 py-1 rounded-lg font-label text-xs font-semibold truncate transition-all ${
+                    selectedEqPreset === preset.name
+                      ? 'bg-primary-container text-on-primary-container shadow-sm'
+                      : 'bg-surface-container hover:bg-surface-container-high text-on-surface-variant'
+                  }`}
+                >
+                  {preset.name}
+                </button>
+              ))}
+            </div>
+
+            {/* 5-Band Vertical Slider Stage */}
+            <div className="flex items-end justify-between gap-2 h-32 pt-3 pb-2 px-3 bg-surface-container-low/70 rounded-xl border border-white/[0.02]">
+              {['32Hz', '120Hz', '1kHz', '4kHz', '16kHz'].map((hz, idx) => {
+                const val = currentEqPresetObj.bands[idx];
+                const heightPercent = Math.min(100, Math.max(20, (val + 6) * 8.3));
+                return (
+                  <div key={hz} className="flex flex-col items-center gap-1.5 h-full justify-end flex-1">
+                    <span className="font-code text-[10px] text-primary font-semibold">
+                      {val > 0 ? `+${val}` : `${val}`}
+                    </span>
+                    <div className="relative w-2 h-16 bg-surface-container-highest rounded-full overflow-hidden flex items-end">
+                      <div
+                        className="w-full bg-primary rounded-full shadow-[0_0_8px_rgba(208,188,255,0.7)] transition-all duration-300"
+                        style={{ height: `${heightPercent}%` }}
+                      />
+                    </div>
+                    <span className="font-code text-[9px] text-outline truncate">{hz}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Widget 2: Up Next Queue Stream */}
+          <div className="flex flex-col gap-3 bg-surface-container-lowest/60 backdrop-blur-2xl rounded-2xl p-4 sm:p-5 shadow-xl border border-white/[0.04] flex-1">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary text-base">queue_music</span>
+                <span className="font-headline font-bold text-base text-on-surface">Up Next</span>
+              </div>
+              <span className="text-outline font-code text-xs">{queue.length} Tracks</span>
+            </div>
+
+            <div className="flex flex-col gap-1.5 max-h-[280px] overflow-y-auto no-scrollbar">
+              {queue.length === 0 ? (
+                <div className="py-8 text-center text-outline text-xs">
+                  <p>Queue is empty</p>
+                  <p className="text-[11px] text-white/30 mt-1">Playing related radio stations</p>
+                </div>
+              ) : (
+                queue.slice(0, 8).map((qSong, idx) => (
+                  <div
+                    key={`q-${qSong.videoId}-${idx}`}
+                    className="flex items-center justify-between p-2 rounded-xl hover:bg-surface-container transition-all group"
+                  >
+                    <div
+                      onClick={() => playSong(qSong)}
+                      className="flex items-center gap-2.5 min-w-0 flex-1 cursor-pointer"
+                    >
+                      <div className="w-8 h-8 rounded-lg overflow-hidden shrink-0 bg-surface-container-highest">
+                        <img
+                          src={qSong.thumbnail || `https://i.ytimg.com/vi/${qSong.videoId}/hqdefault.jpg`}
+                          alt={qSong.title}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-semibold text-on-surface truncate group-hover:text-primary transition-colors">
+                          {qSong.title}
+                        </p>
+                        <p className="text-[10px] text-on-surface-variant truncate">
+                          {qSong.channelTitle || 'Artist'}
+                        </p>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => removeFromQueue?.(idx)}
+                      className="text-outline hover:text-rose-400 p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                      title="Remove"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {queue.length > 0 && (
+              <div className="flex items-center justify-between pt-2 border-t border-white/[0.04]">
+                <button
+                  type="button"
+                  onClick={handleSaveQueueAsPlaylist}
+                  className="font-label text-xs text-primary hover:underline flex items-center gap-1"
+                >
+                  <BookmarkPlus className="w-3.5 h-3.5" />
+                  <span>{isSavedPlaylist ? 'Saved to Library!' : 'Save as Playlist'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={clearQueue}
+                  className="font-code text-xs text-outline hover:text-rose-400 transition-colors"
+                >
+                  Clear Queue
+                </button>
+              </div>
+            )}
+          </div>
+        </aside>
+
+      </div>
 
     </div>
   );
