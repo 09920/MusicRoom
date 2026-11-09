@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useMemo, useEffect } from 'react';
 import { 
   ChevronDown, 
   ListMusic, 
@@ -18,7 +18,9 @@ import {
   Headphones, 
   Trash2, 
   GripVertical,
-  Music2
+  Music2,
+  Mic2,
+  Disc3
 } from 'lucide-react';
 import { usePlayer } from '../context/PlayerContext';
 
@@ -59,10 +61,40 @@ export default function FullScreenPlayer() {
     queue,
     removeFromQueue,
     clearQueue,
-    playSong
+    playSong,
+    lyricsState,
+    fetchLyrics
   } = usePlayer();
 
   const [draggedIdx, setDraggedIdx] = useState(null);
+  const [viewMode, setViewMode] = useState('vinyl'); // 'vinyl' | 'lyrics'
+  const lyricsContainerRef = useRef(null);
+  const activeLineRef = useRef(null);
+
+  // Compute active lyric based on playback.currentTime
+  const activeLyricIndex = useMemo(() => {
+    if (!lyricsState?.lines || lyricsState.lines.length === 0) return -1;
+    const curTime = playback.currentTime;
+    let active = -1;
+    for (let i = 0; i < lyricsState.lines.length; i++) {
+      if (lyricsState.lines[i].time <= curTime) {
+        active = i;
+      } else {
+        break;
+      }
+    }
+    return active;
+  }, [lyricsState?.lines, playback.currentTime]);
+
+  // Smooth scroll active lyric into center view
+  useEffect(() => {
+    if (viewMode === 'lyrics' && activeLineRef.current) {
+      activeLineRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center'
+      });
+    }
+  }, [activeLyricIndex, viewMode]);
 
   if (!isFullScreen || !currentSong) return null;
 
@@ -88,7 +120,7 @@ export default function FullScreenPlayer() {
         </div>
       )}
 
-      {/* Top Header Bar (Collapse ⌄ & Queue ☰) */}
+      {/* Top Header Bar (Collapse ⌄, View Mode Toggle, Queue ☰) */}
       <div className="relative z-10 flex items-center justify-between px-5 pt-4 pb-2 shrink-0">
         <button
           type="button"
@@ -100,13 +132,35 @@ export default function FullScreenPlayer() {
           <ChevronDown className="w-6 h-6" />
         </button>
 
-        <div className="text-center min-w-0 px-2">
-          <span className="text-[10px] uppercase font-mono tracking-widest text-white/40 block">
-            {isAudioOnly ? 'Audio Only Mode' : 'Now Playing'}
-          </span>
-          <span className="text-xs font-medium text-white/70 truncate max-w-[200px] block">
-            {currentSong.channelTitle || 'MusicRoom'}
-          </span>
+        {/* View Mode Switcher: Vinyl vs Lyrics */}
+        <div className="flex items-center gap-1 bg-[#141620] p-1 rounded-full border border-white/10 shadow-inner">
+          <button
+            type="button"
+            onClick={() => setViewMode('vinyl')}
+            className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all ${
+              viewMode === 'vinyl'
+                ? 'bg-white text-black shadow'
+                : 'text-white/60 hover:text-white'
+            }`}
+          >
+            <Disc3 className="w-3.5 h-3.5" />
+            <span>Vinyl</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setViewMode('lyrics')}
+            className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all ${
+              viewMode === 'lyrics'
+                ? 'bg-[#9d8df1] text-[#0d0e14] shadow'
+                : 'text-white/60 hover:text-white'
+            }`}
+          >
+            <Mic2 className="w-3.5 h-3.5" />
+            <span>Lyrics</span>
+            {lyricsState.synced && (
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            )}
+          </button>
         </div>
 
         <button
@@ -124,44 +178,91 @@ export default function FullScreenPlayer() {
         </button>
       </div>
 
-      {/* Middle Stage: Spinning Vinyl / Visualizer */}
-      <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 py-2 min-h-0">
-        <div className="relative w-64 h-64 sm:w-80 sm:h-80 max-w-[70vw] max-h-[70vw] aspect-square rounded-full shadow-2xl p-2.5 liquid-glass flex items-center justify-center">
-          
-          {/* Spinning Vinyl Texture & Center Artwork */}
-          <div
-            className={`relative w-full h-full rounded-full overflow-hidden shadow-2xl border-4 border-white/10 ${
-              playback.isPlaying ? 'animate-[spin_16s_linear_infinite]' : ''
-            }`}
+      {/* Middle Stage: Spinning Vinyl OR Synchronized Karaoke Lyrics */}
+      {viewMode === 'lyrics' ? (
+        <div className="relative z-10 flex-1 w-full max-w-lg mx-auto px-6 py-2 min-h-0 flex flex-col">
+          <div 
+            ref={lyricsContainerRef}
+            className="flex-1 overflow-y-auto no-scrollbar py-28 space-y-4 text-center select-text scroll-smooth"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           >
-            <img
-              src={currentSong.thumbnail || `https://i.ytimg.com/vi/${currentSong.videoId}/hqdefault.jpg`}
-              alt={currentSong.title}
-              className="w-full h-full object-cover scale-105"
-            />
-            {/* Vinyl Record Grooves Overlay */}
-            <div className="absolute inset-0 rounded-full border-[10px] border-black/40 pointer-events-none" />
-            <div className="absolute inset-0 rounded-full border-[22px] border-black/20 pointer-events-none" />
+            {lyricsState.loading ? (
+              <div className="flex flex-col items-center justify-center h-full space-y-3 py-16 text-white/50">
+                <div className="w-8 h-8 rounded-full border-2 border-[#9d8df1] border-t-transparent animate-spin" />
+                <p className="text-sm font-medium animate-pulse">Fetching synchronized lyrics...</p>
+              </div>
+            ) : lyricsState.lines && lyricsState.lines.length > 0 ? (
+              lyricsState.lines.map((line, idx) => {
+                const isActive = idx === activeLyricIndex;
+                return (
+                  <p
+                    key={`lyric-${idx}`}
+                    ref={isActive ? activeLineRef : null}
+                    onClick={() => line.time !== undefined && seekTo(line.time)}
+                    className={`transition-all duration-300 cursor-pointer rounded-2xl px-4 py-2 ${
+                      isActive
+                        ? 'text-[#9d8df1] font-bold text-xl sm:text-2xl scale-105 drop-shadow-[0_0_20px_rgba(157,141,241,0.5)] bg-white/[0.04]'
+                        : 'text-white/30 hover:text-white/75 text-base sm:text-lg font-medium hover:scale-102'
+                    }`}
+                  >
+                    {line.text}
+                  </p>
+                );
+              })
+            ) : (
+              <div className="flex flex-col items-center justify-center h-full space-y-3 py-16 text-white/40">
+                <Music2 className="w-10 h-10 stroke-1 text-white/20" />
+                <p className="text-sm font-medium">Lyrics unavailable for this track</p>
+                <button
+                  type="button"
+                  onClick={() => setViewMode('vinyl')}
+                  className="px-4 py-1.5 rounded-full liquid-glass text-xs text-white/80 hover:text-white border border-white/10"
+                >
+                  Return to Vinyl
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      ) : (
+        <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 py-2 min-h-0">
+          <div className="relative w-64 h-64 sm:w-80 sm:h-80 max-w-[70vw] max-h-[70vw] aspect-square rounded-full shadow-2xl p-2.5 liquid-glass flex items-center justify-center">
             
-            {/* Center Vinyl Hole */}
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-black/95 border-2 border-white/20 flex items-center justify-center shadow-inner">
-                <div className="w-4 h-4 rounded-full bg-white/80 shadow" />
+            {/* Spinning Vinyl Texture & Center Artwork */}
+            <div
+              className={`relative w-full h-full rounded-full overflow-hidden shadow-2xl border-4 border-white/10 ${
+                playback.isPlaying ? 'animate-[spin_16s_linear_infinite]' : ''
+              }`}
+            >
+              <img
+                src={currentSong.thumbnail || `https://i.ytimg.com/vi/${currentSong.videoId}/hqdefault.jpg`}
+                alt={currentSong.title}
+                className="w-full h-full object-cover scale-105"
+              />
+              {/* Vinyl Record Grooves Overlay */}
+              <div className="absolute inset-0 rounded-full border-[10px] border-black/40 pointer-events-none" />
+              <div className="absolute inset-0 rounded-full border-[22px] border-black/20 pointer-events-none" />
+              
+              {/* Center Vinyl Hole */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-black/95 border-2 border-white/20 flex items-center justify-center shadow-inner">
+                  <div className="w-4 h-4 rounded-full bg-white/80 shadow" />
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Equalizer Wave Bars on Audio Mode */}
-          {playback.isPlaying && (
-            <div className="absolute -bottom-3 px-3 py-1 rounded-full liquid-glass-strong border border-white/10 flex items-end gap-1 shadow-lg">
-              <span className="w-1 bg-purple-400 h-3 rounded-full animate-[bounce_0.8s_infinite_100ms]" />
-              <span className="w-1 bg-indigo-400 h-4 rounded-full animate-[bounce_0.8s_infinite_300ms]" />
-              <span className="w-1 bg-pink-400 h-2.5 rounded-full animate-[bounce_0.8s_infinite_200ms]" />
-              <span className="w-1 bg-purple-400 h-4 rounded-full animate-[bounce_0.8s_infinite_400ms]" />
-            </div>
-          )}
+            {/* Equalizer Wave Bars on Audio Mode */}
+            {playback.isPlaying && (
+              <div className="absolute -bottom-3 px-3 py-1 rounded-full liquid-glass-strong border border-white/10 flex items-end gap-1 shadow-lg">
+                <span className="w-1 bg-purple-400 h-3 rounded-full animate-[bounce_0.8s_infinite_100ms]" />
+                <span className="w-1 bg-indigo-400 h-4 rounded-full animate-[bounce_0.8s_infinite_300ms]" />
+                <span className="w-1 bg-pink-400 h-2.5 rounded-full animate-[bounce_0.8s_infinite_200ms]" />
+                <span className="w-1 bg-purple-400 h-4 rounded-full animate-[bounce_0.8s_infinite_400ms]" />
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Bottom Control Section */}
       <div className="relative z-10 px-6 pb-6 pt-2 shrink-0 max-w-xl mx-auto w-full space-y-4">
@@ -289,7 +390,7 @@ export default function FullScreenPlayer() {
           </button>
         </div>
 
-        {/* Utility Row: [Audio | Video] [📻 Radio] [🔊 Volume] */}
+        {/* Utility Row: [Audio | Video] [🎤 Lyrics] [📻 Radio] [🔊 Volume] */}
         <div className="flex items-center justify-between pt-1 text-xs">
           {/* Audio / Video Toggle */}
           <button
@@ -313,6 +414,21 @@ export default function FullScreenPlayer() {
                 <span>Video Mode</span>
               </>
             )}
+          </button>
+
+          {/* Lyrics View Quick Pill */}
+          <button
+            type="button"
+            onClick={() => setViewMode((prev) => (prev === 'lyrics' ? 'vinyl' : 'lyrics'))}
+            className={`px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1.5 transition-all border active:scale-95 ${
+              viewMode === 'lyrics'
+                ? 'bg-[#9d8df1]/30 text-[#c8bdfc] border-[#9d8df1]/50 shadow-md shadow-[#9d8df1]/20'
+                : 'liquid-glass text-white/70 border-white/10 hover:text-white'
+            }`}
+            title="Toggle Synchronized Lyrics"
+          >
+            <Mic2 className="w-3.5 h-3.5 text-[#9d8df1]" />
+            <span>Lyrics</span>
           </button>
 
           {/* Radio / Auto-Mode Toggle */}

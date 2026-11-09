@@ -7,7 +7,8 @@ import {
   Share2, 
   ExternalLink, 
   X, 
-  Check 
+  Check,
+  Radio
 } from 'lucide-react';
 import { usePlayer } from '../context/PlayerContext';
 
@@ -18,6 +19,7 @@ export default function SongMenuModal() {
     playSong,
     playNext,
     addToQueue,
+    startRadio,
     isLiked,
     toggleLike,
     openAddToPlaylistModal
@@ -75,6 +77,24 @@ export default function SongMenuModal() {
               <Play className="w-4 h-4 fill-current translate-x-0.5" />
             </div>
             <span className="font-medium">Play Now</span>
+          </button>
+
+          {/* Start Radio */}
+          <button
+            type="button"
+            onClick={() => {
+              startRadio(menuSong);
+              closeSongMenu();
+            }}
+            className="w-full p-3 rounded-2xl hover:bg-white/10 text-left flex items-center gap-3 text-sm text-white transition-all active:scale-98 group"
+          >
+            <div className="w-8 h-8 rounded-xl bg-emerald-600/20 text-emerald-300 flex items-center justify-center">
+              <Radio className="w-4 h-4" />
+            </div>
+            <div>
+              <span className="font-medium block">Start Radio</span>
+              <span className="text-[11px] text-white/40 block font-light">Endless continuous songs like this</span>
+            </div>
           </button>
 
           {/* Play Next */}

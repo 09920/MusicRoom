@@ -9,6 +9,7 @@ const roomManager = require('./roomManager');
 const playlistParser = require('./playlistParser');
 const searchService = require('./searchService');
 const autoModeService = require('./autoModeService');
+const lyricsService = require('./lyricsService');
 
 const app = express();
 const server = http.createServer(app);
@@ -77,6 +78,36 @@ app.get('/api/trending', async (req, res) => {
   } catch (err) {
     console.error('API trending error:', err);
     res.status(500).json({ success: false, error: 'Failed to fetch trending songs' });
+  }
+});
+
+// REST API: Synchronized Lyrics
+app.get('/api/lyrics', async (req, res) => {
+  try {
+    const { videoId, title, artist, duration } = req.query;
+    const lyrics = await lyricsService.getLyrics({
+      videoId,
+      title,
+      channelTitle: artist,
+      duration: Number(duration) || 0
+    });
+    res.json(lyrics);
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// REST API: Radio tracks
+app.get('/api/radio', async (req, res) => {
+  try {
+    const { videoId, title, artist } = req.query;
+    const tracks = await autoModeService.getRadioTracks(
+      { videoId, title, channelTitle: artist },
+      process.env.YOUTUBE_API_KEY
+    );
+    res.json({ success: true, tracks });
+  } catch (err) {
+    res.status(500).json({ success: false, tracks: [] });
   }
 });
 
@@ -667,6 +698,29 @@ io.on('connection', (socket) => {
       if (typeof callback === 'function') {
         callback({ success: false, error: 'Failed to fetch trending songs' });
       }
+    }
+  });
+
+  // 4f3. Synchronized Karaoke Lyrics Fetch
+  socket.on('lyrics:get', async (payload, callback) => {
+    try {
+      const lyrics = await lyricsService.getLyrics(payload || {});
+      if (typeof callback === 'function') callback(lyrics);
+    } catch (err) {
+      console.error('Socket lyrics error:', err);
+      if (typeof callback === 'function') callback({ success: false, error: err.message });
+    }
+  });
+
+  // 4f4. Dynamic Endless Radio Recommendations
+  socket.on('radio:get_tracks', async (payload, callback) => {
+    try {
+      const song = payload?.song || payload;
+      const tracks = await autoModeService.getRadioTracks(song, process.env.YOUTUBE_API_KEY);
+      if (typeof callback === 'function') callback({ success: true, tracks });
+    } catch (err) {
+      console.error('Socket radio tracks error:', err);
+      if (typeof callback === 'function') callback({ success: false, tracks: [] });
     }
   });
 

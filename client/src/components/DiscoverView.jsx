@@ -72,7 +72,10 @@ export default function DiscoverView() {
       </div>
 
       {/* 2. Mood Pills (Horizontally Scrollable, pastel active pill) */}
-      <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 -mx-1 px-1">
+      <div 
+        className="flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth pb-1"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+      >
         {MOODS.map((mood) => {
           const isSelected = selectedMood === mood.id;
           return (
@@ -98,7 +101,10 @@ export default function DiscoverView() {
           Continue listening
         </h3>
 
-        <div className="flex items-center gap-3 overflow-x-auto no-scrollbar pb-1 -mx-1 px-1">
+        <div 
+          className="flex items-center gap-3 overflow-x-auto no-scrollbar scroll-smooth pb-1"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        >
           {continueList.map((song, idx) => {
             const isPlayingThis = currentSong?.videoId === song.videoId && playback.isPlaying;
             return (

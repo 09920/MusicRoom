@@ -117,7 +117,7 @@ function MainLayout() {
         <MobileTopBar />
 
         {/* Scrollable Content Area */}
-        <main className="flex-1 px-4 py-3 overflow-y-auto">
+        <main className="flex-1 px-4 py-3 overflow-y-auto overflow-x-hidden no-scrollbar">
           {activeTab === 'discover' && <DiscoverView />}
           {activeTab === 'search' && <SearchView />}
           {activeTab === 'library' && <LibraryView />}

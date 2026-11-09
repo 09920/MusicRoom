@@ -306,8 +306,56 @@ async function pickNextSong(room, apiKey) {
   return picked;
 }
 
+/**
+ * Get a batch of recommended tracks for continuous Endless Radio playback
+ */
+async function getRadioTracks(seedSong, apiKey) {
+  if (!seedSong || !seedSong.videoId) return [];
+  const tracks = [];
+  const seenIds = new Set([seedSong.videoId]);
+
+  // Strategy 1: Watch page related sidebar
+  try {
+    const related = await fetchWatchPageRelated(seedSong.videoId);
+    for (const s of related) {
+      if (!seenIds.has(s.videoId) && !isCompilation(s.title, s.videoId)) {
+        seenIds.add(s.videoId);
+        tracks.push(s);
+      }
+    }
+  } catch (e) {
+    console.warn('[Radio] getRadioTracks strategy 1 error:', e.message);
+  }
+
+  // Strategy 2: Artist & Title related search
+  if (tracks.length < 10) {
+    const { title, artist } = extractArtistAndTitle(seedSong);
+    const queries = [];
+    if (artist && artist.length >= 3) queries.push(`${artist} song audio`);
+    if (title && title.length >= 3) queries.push(`${title} similar songs`);
+
+    for (const q of queries) {
+      try {
+        const results = await searchSongs(q, apiKey);
+        for (const s of results) {
+          if (!seenIds.has(s.videoId) && !isCompilation(s.title, s.videoId)) {
+            seenIds.add(s.videoId);
+            tracks.push(s);
+          }
+        }
+        if (tracks.length >= 15) break;
+      } catch (err) {
+        console.warn(`[Radio] Query "${q}" failed:`, err.message);
+      }
+    }
+  }
+
+  return tracks.slice(0, 15);
+}
+
 module.exports = {
   pickNextSong,
+  getRadioTracks,
   isCompilation,
   extractArtistAndTitle
 };

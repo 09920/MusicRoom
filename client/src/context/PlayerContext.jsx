@@ -72,6 +72,15 @@ export function PlayerProvider({ children }) {
   const [isShuffled, setIsShuffled] = useState(false);
   const [repeatMode, setRepeatMode] = useState('off'); // 'off' | 'all' | 'one'
 
+  // Synchronized Karaoke Lyrics State
+  const [lyricsState, setLyricsState] = useState({
+    loading: false,
+    synced: false,
+    lines: [],
+    error: null,
+    source: null
+  });
+
   // Queue & Collections
   const [queue, setQueue] = useState(() => {
     try {
@@ -155,6 +164,45 @@ export function PlayerProvider({ children }) {
     }, 250);
     return () => clearInterval(timer);
   }, []);
+
+  // Synchronized Lyrics Fetcher
+  const fetchLyrics = (song) => {
+    const target = song || currentSong;
+    if (!target || !target.title) return;
+    setLyricsState({ loading: true, synced: false, lines: [], error: null, source: null });
+
+    socket.emit('lyrics:get', {
+      videoId: target.videoId,
+      title: target.title,
+      channelTitle: target.channelTitle,
+      duration: target.duration || playback.duration
+    }, (res) => {
+      if (res?.success && Array.isArray(res.lines) && res.lines.length > 0) {
+        setLyricsState({
+          loading: false,
+          synced: !!res.synced,
+          lines: res.lines,
+          error: null,
+          source: res.source
+        });
+      } else {
+        setLyricsState({
+          loading: false,
+          synced: false,
+          lines: [],
+          error: res?.error || 'Lyrics unavailable for this track',
+          source: null
+        });
+      }
+    });
+  };
+
+  // Pre-fetch lyrics automatically whenever currentSong changes
+  useEffect(() => {
+    if (currentSong?.videoId) {
+      fetchLyrics(currentSong);
+    }
+  }, [currentSong?.videoId]);
 
   // Sync state to localStorage
   useEffect(() => {
@@ -402,6 +450,18 @@ export function PlayerProvider({ children }) {
     setQueue([]);
   };
 
+  const startRadio = (song) => {
+    const seed = song || currentSong;
+    if (!seed || !seed.videoId) return;
+    playSong(seed, true);
+    setRadioMode(true);
+    socket.emit('radio:get_tracks', { song: seed }, (res) => {
+      if (res?.success && Array.isArray(res.tracks) && res.tracks.length > 0) {
+        setQueue(res.tracks.filter((t) => t.videoId !== seed.videoId));
+      }
+    });
+  };
+
   const nextSong = () => {
     if (repeatMode === 'one') {
       seekTo(0);
@@ -418,14 +478,27 @@ export function PlayerProvider({ children }) {
     if (activeRoom) {
       socket.emit('queue:skip_next', { roomId: activeRoom.id });
     } else if (radioMode && currentSong) {
-      // Auto-DJ: fetch next related song from server
-      socket.emit('song:trending', { mood: selectedMood }, (res) => {
-        if (res?.success && res.songs && res.songs.length > 0) {
-          const unplayed = res.songs.filter(
+      // Endless Auto-Mix / Radio: fetch next related songs
+      socket.emit('radio:get_tracks', { song: currentSong }, (res) => {
+        if (res?.success && Array.isArray(res.tracks) && res.tracks.length > 0) {
+          const unplayed = res.tracks.filter(
             (s) => s.videoId !== currentSong.videoId && !history.some((h) => h.videoId === s.videoId)
           );
-          const next = unplayed.length > 0 ? unplayed[0] : res.songs[Math.floor(Math.random() * res.songs.length)];
+          const next = unplayed.length > 0 ? unplayed[0] : res.tracks[0];
+          // Queue the rest of the radio tracks for continuous play
+          const remaining = unplayed.slice(1);
+          if (remaining.length > 0) {
+            setQueue(remaining);
+          }
           playSong(next, true);
+        } else {
+          // Fallback to trending
+          socket.emit('song:trending', { mood: selectedMood }, (res2) => {
+            if (res2?.success && res2.songs && res2.songs.length > 0) {
+              const next = res2.songs[Math.floor(Math.random() * res2.songs.length)];
+              playSong(next, true);
+            }
+          });
         }
       });
     } else {
@@ -625,6 +698,11 @@ export function PlayerProvider({ children }) {
     seekTo,
     nextSong,
     prevSong,
+    startRadio,
+
+    // Lyrics
+    lyricsState,
+    fetchLyrics,
 
     // Queue
     queue,
