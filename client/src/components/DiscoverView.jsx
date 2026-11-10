@@ -29,28 +29,28 @@ export default function DiscoverView({ onOpenAiTheme }) {
   // Trending tracks fallback segmented by timeframe
   const TRENDING_BY_FILTER = {
     'Today': [
-      { id: 1, title: 'Die With A Smile', artist: 'Lady Gaga, Bruno Mars', duration: '4:11', videoId: 'kPa7bsKwL-c', cover: 'https://i.ytimg.com/vi/kPa7bsKwL-c/hqdefault.jpg' },
-      { id: 2, title: 'Tauba Tauba', artist: 'Karan Aujla', duration: '3:24', videoId: 'LK7-_dgAVQE', cover: 'https://i.ytimg.com/vi/LK7-_dgAVQE/hqdefault.jpg' },
-      { id: 3, title: 'Big Dawgs', artist: 'Hanumankind, Kalmi', duration: '3:56', videoId: 'hOHKltAiKXQ', cover: 'https://i.ytimg.com/vi/hOHKltAiKXQ/hqdefault.jpg' },
-      { id: 4, title: 'Aayi Nai', artist: 'Pawan Singh, Simran Choudhary', duration: '2:58', videoId: '0nrvPVnTWlc', cover: 'https://i.ytimg.com/vi/0nrvPVnTWlc/hqdefault.jpg' },
-      { id: 5, title: 'Jo Tum Mere Ho', artist: 'Anuv Jain', duration: '4:05', videoId: 'ilNt2bikxDI', cover: 'https://i.ytimg.com/vi/ilNt2bikxDI/hqdefault.jpg' },
-      { id: 6, title: 'Softly', artist: 'Karan Aujla, Ikky', duration: '2:36', videoId: 'cWMxCE2HTag', cover: 'https://i.ytimg.com/vi/cWMxCE2HTag/hqdefault.jpg' }
+      { id: 1, title: 'Die With A Smile', artist: 'Lady Gaga, Bruno Mars', duration: '4:11', streams: '1.24B', videoId: 'kPa7bsKwL-c', cover: 'https://i.ytimg.com/vi/kPa7bsKwL-c/hqdefault.jpg' },
+      { id: 2, title: 'Tauba Tauba', artist: 'Karan Aujla', duration: '3:24', streams: '242.5M', videoId: 'LK7-_dgAVQE', cover: 'https://i.ytimg.com/vi/LK7-_dgAVQE/hqdefault.jpg' },
+      { id: 3, title: 'Big Dawgs', artist: 'Hanumankind, Kalmi', duration: '3:56', streams: '186.2M', videoId: 'hOHKltAiKXQ', cover: 'https://i.ytimg.com/vi/hOHKltAiKXQ/hqdefault.jpg' },
+      { id: 4, title: 'Aayi Nai', artist: 'Pawan Singh, Simran Choudhary', duration: '2:58', streams: '215.8M', videoId: '0nrvPVnTWlc', cover: 'https://i.ytimg.com/vi/0nrvPVnTWlc/hqdefault.jpg' },
+      { id: 5, title: 'Jo Tum Mere Ho', artist: 'Anuv Jain', duration: '4:05', streams: '128.4M', videoId: 'ilNt2bikxDI', cover: 'https://i.ytimg.com/vi/ilNt2bikxDI/hqdefault.jpg' },
+      { id: 6, title: 'Softly', artist: 'Karan Aujla, Ikky', duration: '2:36', streams: '198.1M', videoId: 'cWMxCE2HTag', cover: 'https://i.ytimg.com/vi/cWMxCE2HTag/hqdefault.jpg' }
     ],
     'This Week': [
-      { id: 1, title: 'Espresso', artist: 'Sabrina Carpenter', duration: '2:55', videoId: 'eVTXPUF4Oz4', cover: 'https://i.ytimg.com/vi/eVTXPUF4Oz4/hqdefault.jpg' },
-      { id: 2, title: 'Birds of a Feather', artist: 'Billie Eilish', duration: '3:18', videoId: 'V9PVRfjEBTI', cover: 'https://i.ytimg.com/vi/V9PVRfjEBTI/hqdefault.jpg' },
-      { id: 3, title: 'Millionaire', artist: 'Yo Yo Honey Singh', duration: '3:21', videoId: 'XO8wew38VM8', cover: 'https://i.ytimg.com/vi/XO8wew38VM8/hqdefault.jpg' },
-      { id: 4, title: 'Taste', artist: 'Sabrina Carpenter', duration: '2:37', videoId: 'KEG7b851Ric', cover: 'https://i.ytimg.com/vi/KEG7b851Ric/hqdefault.jpg' },
-      { id: 5, title: 'Winning Speech', artist: 'Karan Aujla', duration: '3:38', videoId: '0DS5jYQeiw0', cover: 'https://i.ytimg.com/vi/0DS5jYQeiw0/hqdefault.jpg' },
-      { id: 6, title: 'Too Sweet', artist: 'Hozier', duration: '4:11', videoId: 'NTpbbQUBbuo', cover: 'https://i.ytimg.com/vi/NTpbbQUBbuo/hqdefault.jpg' }
+      { id: 1, title: 'Espresso', artist: 'Sabrina Carpenter', duration: '2:55', streams: '1.64B', videoId: 'eVTXPUF4Oz4', cover: 'https://i.ytimg.com/vi/eVTXPUF4Oz4/hqdefault.jpg' },
+      { id: 2, title: 'Birds of a Feather', artist: 'Billie Eilish', duration: '3:18', streams: '1.42B', videoId: 'V9PVRfjEBTI', cover: 'https://i.ytimg.com/vi/V9PVRfjEBTI/hqdefault.jpg' },
+      { id: 3, title: 'Millionaire', artist: 'Yo Yo Honey Singh', duration: '3:21', streams: '284.6M', videoId: 'XO8wew38VM8', cover: 'https://i.ytimg.com/vi/XO8wew38VM8/hqdefault.jpg' },
+      { id: 4, title: 'Taste', artist: 'Sabrina Carpenter', duration: '2:37', streams: '682.1M', videoId: 'KEG7b851Ric', cover: 'https://i.ytimg.com/vi/KEG7b851Ric/hqdefault.jpg' },
+      { id: 5, title: 'Winning Speech', artist: 'Karan Aujla', duration: '3:38', streams: '142.3M', videoId: '0DS5jYQeiw0', cover: 'https://i.ytimg.com/vi/0DS5jYQeiw0/hqdefault.jpg' },
+      { id: 6, title: 'Too Sweet', artist: 'Hozier', duration: '4:11', streams: '924.5M', videoId: 'NTpbbQUBbuo', cover: 'https://i.ytimg.com/vi/NTpbbQUBbuo/hqdefault.jpg' }
     ],
     'All Time': [
-      { id: 1, title: 'Blinding Lights', artist: 'The Weeknd', duration: '3:20', videoId: '4NRXx6U8ABQ', cover: 'https://i.ytimg.com/vi/4NRXx6U8ABQ/hqdefault.jpg' },
-      { id: 2, title: 'Starboy', artist: 'The Weeknd ft. Daft Punk', duration: '3:50', videoId: '34Na4j8AVgA', cover: 'https://i.ytimg.com/vi/34Na4j8AVgA/hqdefault.jpg' },
-      { id: 3, title: 'Tum Hi Ho', artist: 'Arijit Singh', duration: '4:22', videoId: 'IJq0yyWug1k', cover: 'https://i.ytimg.com/vi/IJq0yyWug1k/hqdefault.jpg' },
-      { id: 4, title: 'Kesariya', artist: 'Arijit Singh, Pritam', duration: '4:28', videoId: 'BddP6PYo2gs', cover: 'https://i.ytimg.com/vi/BddP6PYo2gs/hqdefault.jpg' },
-      { id: 5, title: 'As It Was', artist: 'Harry Styles', duration: '2:47', videoId: 'H5v3kku4y6Q', cover: 'https://i.ytimg.com/vi/H5v3kku4y6Q/hqdefault.jpg' },
-      { id: 6, title: 'Cruel Summer', artist: 'Taylor Swift', duration: '2:58', videoId: 'ic8j13piAhQ', cover: 'https://i.ytimg.com/vi/ic8j13piAhQ/hqdefault.jpg' }
+      { id: 1, title: 'Blinding Lights', artist: 'The Weeknd', duration: '3:20', streams: '4.42B', videoId: '4NRXx6U8ABQ', cover: 'https://i.ytimg.com/vi/4NRXx6U8ABQ/hqdefault.jpg' },
+      { id: 2, title: 'Starboy', artist: 'The Weeknd ft. Daft Punk', duration: '3:50', streams: '3.35B', videoId: '34Na4j8AVgA', cover: 'https://i.ytimg.com/vi/34Na4j8AVgA/hqdefault.jpg' },
+      { id: 3, title: 'Tum Hi Ho', artist: 'Arijit Singh', duration: '4:22', streams: '1.84B', videoId: 'IJq0yyWug1k', cover: 'https://i.ytimg.com/vi/IJq0yyWug1k/hqdefault.jpg' },
+      { id: 4, title: 'Kesariya', artist: 'Arijit Singh, Pritam', duration: '4:28', streams: '1.22B', videoId: 'BddP6PYo2gs', cover: 'https://i.ytimg.com/vi/BddP6PYo2gs/hqdefault.jpg' },
+      { id: 5, title: 'As It Was', artist: 'Harry Styles', duration: '2:47', streams: '3.18B', videoId: 'H5v3kku4y6Q', cover: 'https://i.ytimg.com/vi/H5v3kku4y6Q/hqdefault.jpg' },
+      { id: 6, title: 'Cruel Summer', artist: 'Taylor Swift', duration: '2:58', streams: '2.41B', videoId: 'ic8j13piAhQ', cover: 'https://i.ytimg.com/vi/ic8j13piAhQ/hqdefault.jpg' }
     ]
   };
 
@@ -484,10 +484,11 @@ export default function DiscoverView({ onOpenAiTheme }) {
             {/* Table Header */}
             <div className="grid grid-cols-12 px-space-md py-2.5 text-label-sm uppercase tracking-wider text-outline font-semibold border-b border-surface-container-high">
               <div className="col-span-1 text-center">#</div>
-              <div className="col-span-5">Title</div>
+              <div className="col-span-5 md:col-span-4">Title</div>
               <div className="col-span-3 hidden md:block">Artist</div>
-              <div className="col-span-2 hidden md:block text-right">Duration</div>
-              <div className="col-span-6 md:col-span-1 text-right">Play</div>
+              <div className="col-span-3 sm:col-span-2 hidden sm:block text-right">Streams</div>
+              <div className="col-span-1 hidden md:block text-right">Duration</div>
+              <div className="col-span-6 sm:col-span-1 text-right">Play</div>
             </div>
 
             {/* Table Body */}
@@ -509,7 +510,7 @@ export default function DiscoverView({ onOpenAiTheme }) {
                         <span>{track.id}</span>
                       )}
                     </div>
-                    <div className="col-span-5 flex items-center gap-space-sm min-w-0 pr-space-xs">
+                    <div className="col-span-5 md:col-span-4 flex items-center gap-space-sm min-w-0 pr-space-xs">
                       <img 
                         className="w-9 h-9 rounded object-cover flex-shrink-0" 
                         alt={track.title} 
@@ -526,10 +527,13 @@ export default function DiscoverView({ onOpenAiTheme }) {
                     <div className="col-span-3 hidden md:block text-body-sm text-on-surface-variant truncate">
                       {track.artist}
                     </div>
-                    <div className="col-span-2 hidden md:block text-right text-body-sm font-metric-mono text-outline">
+                    <div className="col-span-3 sm:col-span-2 hidden sm:block text-right text-body-sm font-metric-mono text-on-surface-variant font-medium">
+                      {track.streams || '120.5M'}
+                    </div>
+                    <div className="col-span-1 hidden md:block text-right text-body-sm font-metric-mono text-outline">
                       {track.duration}
                     </div>
-                    <div className="col-span-6 md:col-span-1 flex items-center justify-end">
+                    <div className="col-span-6 sm:col-span-1 flex items-center justify-end">
                       <button
                         type="button"
                         onClick={(e) => {

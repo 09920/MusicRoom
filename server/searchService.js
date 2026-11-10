@@ -228,34 +228,34 @@ function isCleanMusicSingle(title = '', channel = '') {
 
 const TIMEFRAME_BASE = {
   'today': [
-    { id: 1, title: 'Die With A Smile', artist: 'Lady Gaga, Bruno Mars', duration: '4:11', videoId: 'kPa7bsKwL-c', cover: 'https://i.ytimg.com/vi/kPa7bsKwL-c/hqdefault.jpg' },
-    { id: 2, title: 'Tauba Tauba', artist: 'Karan Aujla', duration: '3:24', videoId: 'LK7-_dgAVQE', cover: 'https://i.ytimg.com/vi/LK7-_dgAVQE/hqdefault.jpg' },
-    { id: 3, title: 'Big Dawgs', artist: 'Hanumankind, Kalmi', duration: '3:56', videoId: 'hOHKltAiKXQ', cover: 'https://i.ytimg.com/vi/hOHKltAiKXQ/hqdefault.jpg' },
-    { id: 4, title: 'Aayi Nai', artist: 'Pawan Singh, Simran Choudhary', duration: '2:58', videoId: '0nrvPVnTWlc', cover: 'https://i.ytimg.com/vi/0nrvPVnTWlc/hqdefault.jpg' },
-    { id: 5, title: 'Jo Tum Mere Ho', artist: 'Anuv Jain', duration: '4:05', videoId: 'ilNt2bikxDI', cover: 'https://i.ytimg.com/vi/ilNt2bikxDI/hqdefault.jpg' },
-    { id: 6, title: 'Softly', artist: 'Karan Aujla, Ikky', duration: '2:36', videoId: 'cWMxCE2HTag', cover: 'https://i.ytimg.com/vi/cWMxCE2HTag/hqdefault.jpg' },
-    { id: 7, title: 'Winning Speech', artist: 'Karan Aujla', duration: '3:38', videoId: '0DS5jYQeiw0', cover: 'https://i.ytimg.com/vi/0DS5jYQeiw0/hqdefault.jpg' },
-    { id: 8, title: 'White Brown Black', artist: 'Karan Aujla, Avvy Sra', duration: '3:05', videoId: 'BtQp2U6hJII', cover: 'https://i.ytimg.com/vi/BtQp2U6hJII/hqdefault.jpg' },
-    { id: 9, title: 'With You', artist: 'AP Dhillon', duration: '2:34', videoId: 'mZQH8CPQ-wo', cover: 'https://i.ytimg.com/vi/mZQH8CPQ-wo/hqdefault.jpg' },
-    { id: 10, title: 'Millionaire', artist: 'Yo Yo Honey Singh', duration: '3:21', videoId: 'XO8wew38VM8', cover: 'https://i.ytimg.com/vi/XO8wew38VM8/hqdefault.jpg' }
+    { id: 1, title: 'Die With A Smile', artist: 'Lady Gaga, Bruno Mars', duration: '4:11', streams: '1.24B', videoId: 'kPa7bsKwL-c', cover: 'https://i.ytimg.com/vi/kPa7bsKwL-c/hqdefault.jpg' },
+    { id: 2, title: 'Tauba Tauba', artist: 'Karan Aujla', duration: '3:24', streams: '242.5M', videoId: 'LK7-_dgAVQE', cover: 'https://i.ytimg.com/vi/LK7-_dgAVQE/hqdefault.jpg' },
+    { id: 3, title: 'Big Dawgs', artist: 'Hanumankind, Kalmi', duration: '3:56', streams: '186.2M', videoId: 'hOHKltAiKXQ', cover: 'https://i.ytimg.com/vi/hOHKltAiKXQ/hqdefault.jpg' },
+    { id: 4, title: 'Aayi Nai', artist: 'Pawan Singh, Simran Choudhary', duration: '2:58', streams: '215.8M', videoId: '0nrvPVnTWlc', cover: 'https://i.ytimg.com/vi/0nrvPVnTWlc/hqdefault.jpg' },
+    { id: 5, title: 'Jo Tum Mere Ho', artist: 'Anuv Jain', duration: '4:05', streams: '128.4M', videoId: 'ilNt2bikxDI', cover: 'https://i.ytimg.com/vi/ilNt2bikxDI/hqdefault.jpg' },
+    { id: 6, title: 'Softly', artist: 'Karan Aujla, Ikky', duration: '2:36', streams: '198.1M', videoId: 'cWMxCE2HTag', cover: 'https://i.ytimg.com/vi/cWMxCE2HTag/hqdefault.jpg' },
+    { id: 7, title: 'Winning Speech', artist: 'Karan Aujla', duration: '3:38', streams: '142.3M', videoId: '0DS5jYQeiw0', cover: 'https://i.ytimg.com/vi/0DS5jYQeiw0/hqdefault.jpg' },
+    { id: 8, title: 'White Brown Black', artist: 'Karan Aujla, Avvy Sra', duration: '3:05', streams: '168.7M', videoId: 'BtQp2U6hJII', cover: 'https://i.ytimg.com/vi/BtQp2U6hJII/hqdefault.jpg' },
+    { id: 9, title: 'With You', artist: 'AP Dhillon', duration: '2:34', streams: '176.9M', videoId: 'mZQH8CPQ-wo', cover: 'https://i.ytimg.com/vi/mZQH8CPQ-wo/hqdefault.jpg' },
+    { id: 10, title: 'Millionaire', artist: 'Yo Yo Honey Singh', duration: '3:21', streams: '284.6M', videoId: 'XO8wew38VM8', cover: 'https://i.ytimg.com/vi/XO8wew38VM8/hqdefault.jpg' }
   ],
   'thisweek': [
-    { id: 1, title: 'Espresso', artist: 'Sabrina Carpenter', duration: '2:55', videoId: 'eVTXPUF4Oz4', cover: 'https://i.ytimg.com/vi/eVTXPUF4Oz4/hqdefault.jpg' },
-    { id: 2, title: 'Birds of a Feather', artist: 'Billie Eilish', duration: '3:18', videoId: 'V9PVRfjEBTI', cover: 'https://i.ytimg.com/vi/V9PVRfjEBTI/hqdefault.jpg' },
-    { id: 3, title: 'Millionaire', artist: 'Yo Yo Honey Singh', duration: '3:21', videoId: 'XO8wew38VM8', cover: 'https://i.ytimg.com/vi/XO8wew38VM8/hqdefault.jpg' },
-    { id: 4, title: 'Taste', artist: 'Sabrina Carpenter', duration: '2:37', videoId: 'KEG7b851Ric', cover: 'https://i.ytimg.com/vi/KEG7b851Ric/hqdefault.jpg' },
-    { id: 5, title: 'Winning Speech', artist: 'Karan Aujla', duration: '3:38', videoId: '0DS5jYQeiw0', cover: 'https://i.ytimg.com/vi/0DS5jYQeiw0/hqdefault.jpg' },
-    { id: 6, title: 'Too Sweet', artist: 'Hozier', duration: '4:11', videoId: 'NTpbbQUBbuo', cover: 'https://i.ytimg.com/vi/NTpbbQUBbuo/hqdefault.jpg' },
-    { id: 7, title: 'I Had Some Help', artist: 'Post Malone ft. Morgan Wallen', duration: '2:58', videoId: '4QIZE708gJ4', cover: 'https://i.ytimg.com/vi/4QIZE708gJ4/hqdefault.jpg' },
-    { id: 8, title: 'Snooze', artist: 'SZA', duration: '3:21', videoId: 'LDY_XyxBu8A', cover: 'https://i.ytimg.com/vi/LDY_XyxBu8A/hqdefault.jpg' }
+    { id: 1, title: 'Espresso', artist: 'Sabrina Carpenter', duration: '2:55', streams: '1.64B', videoId: 'eVTXPUF4Oz4', cover: 'https://i.ytimg.com/vi/eVTXPUF4Oz4/hqdefault.jpg' },
+    { id: 2, title: 'Birds of a Feather', artist: 'Billie Eilish', duration: '3:18', streams: '1.42B', videoId: 'V9PVRfjEBTI', cover: 'https://i.ytimg.com/vi/V9PVRfjEBTI/hqdefault.jpg' },
+    { id: 3, title: 'Millionaire', artist: 'Yo Yo Honey Singh', duration: '3:21', streams: '284.6M', videoId: 'XO8wew38VM8', cover: 'https://i.ytimg.com/vi/XO8wew38VM8/hqdefault.jpg' },
+    { id: 4, title: 'Taste', artist: 'Sabrina Carpenter', duration: '2:37', streams: '682.1M', videoId: 'KEG7b851Ric', cover: 'https://i.ytimg.com/vi/KEG7b851Ric/hqdefault.jpg' },
+    { id: 5, title: 'Winning Speech', artist: 'Karan Aujla', duration: '3:38', streams: '142.3M', videoId: '0DS5jYQeiw0', cover: 'https://i.ytimg.com/vi/0DS5jYQeiw0/hqdefault.jpg' },
+    { id: 6, title: 'Too Sweet', artist: 'Hozier', duration: '4:11', streams: '924.5M', videoId: 'NTpbbQUBbuo', cover: 'https://i.ytimg.com/vi/NTpbbQUBbuo/hqdefault.jpg' },
+    { id: 7, title: 'I Had Some Help', artist: 'Post Malone ft. Morgan Wallen', duration: '2:58', streams: '856.3M', videoId: '4QIZE708gJ4', cover: 'https://i.ytimg.com/vi/4QIZE708gJ4/hqdefault.jpg' },
+    { id: 8, title: 'Snooze', artist: 'SZA', duration: '3:21', streams: '1.12B', videoId: 'LDY_XyxBu8A', cover: 'https://i.ytimg.com/vi/LDY_XyxBu8A/hqdefault.jpg' }
   ],
   'alltime': [
-    { id: 1, title: 'Blinding Lights', artist: 'The Weeknd', duration: '3:20', videoId: '4NRXx6U8ABQ', cover: 'https://i.ytimg.com/vi/4NRXx6U8ABQ/hqdefault.jpg' },
-    { id: 2, title: 'Starboy', artist: 'The Weeknd ft. Daft Punk', duration: '3:50', videoId: '34Na4j8AVgA', cover: 'https://i.ytimg.com/vi/34Na4j8AVgA/hqdefault.jpg' },
-    { id: 3, title: 'Tum Hi Ho', artist: 'Arijit Singh', duration: '4:22', videoId: 'IJq0yyWug1k', cover: 'https://i.ytimg.com/vi/IJq0yyWug1k/hqdefault.jpg' },
-    { id: 4, title: 'Kesariya', artist: 'Arijit Singh, Pritam', duration: '4:28', videoId: 'BddP6PYo2gs', cover: 'https://i.ytimg.com/vi/BddP6PYo2gs/hqdefault.jpg' },
-    { id: 5, title: 'As It Was', artist: 'Harry Styles', duration: '2:47', videoId: 'H5v3kku4y6Q', cover: 'https://i.ytimg.com/vi/H5v3kku4y6Q/hqdefault.jpg' },
-    { id: 6, title: 'Cruel Summer', artist: 'Taylor Swift', duration: '2:58', videoId: 'ic8j13piAhQ', cover: 'https://i.ytimg.com/vi/ic8j13piAhQ/hqdefault.jpg' }
+    { id: 1, title: 'Blinding Lights', artist: 'The Weeknd', duration: '3:20', streams: '4.42B', videoId: '4NRXx6U8ABQ', cover: 'https://i.ytimg.com/vi/4NRXx6U8ABQ/hqdefault.jpg' },
+    { id: 2, title: 'Starboy', artist: 'The Weeknd ft. Daft Punk', duration: '3:50', streams: '3.35B', videoId: '34Na4j8AVgA', cover: 'https://i.ytimg.com/vi/34Na4j8AVgA/hqdefault.jpg' },
+    { id: 3, title: 'Tum Hi Ho', artist: 'Arijit Singh', duration: '4:22', streams: '1.84B', videoId: 'IJq0yyWug1k', cover: 'https://i.ytimg.com/vi/IJq0yyWug1k/hqdefault.jpg' },
+    { id: 4, title: 'Kesariya', artist: 'Arijit Singh, Pritam', duration: '4:28', streams: '1.22B', videoId: 'BddP6PYo2gs', cover: 'https://i.ytimg.com/vi/BddP6PYo2gs/hqdefault.jpg' },
+    { id: 5, title: 'As It Was', artist: 'Harry Styles', duration: '2:47', streams: '3.18B', videoId: 'H5v3kku4y6Q', cover: 'https://i.ytimg.com/vi/H5v3kku4y6Q/hqdefault.jpg' },
+    { id: 6, title: 'Cruel Summer', artist: 'Taylor Swift', duration: '2:58', streams: '2.41B', videoId: 'ic8j13piAhQ', cover: 'https://i.ytimg.com/vi/ic8j13piAhQ/hqdefault.jpg' }
   ]
 };
 
