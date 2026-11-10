@@ -12,18 +12,11 @@ const RECORD_LABEL_REGEX = /\b(t-series|tseries|sony music|zee music|yrf|tips|sa
 function cleanSongTitle(rawTitle) {
   if (!rawTitle) return '';
   return rawTitle
-    .replace(/\(Official[^\)]*\)/gi, '')
-    .replace(/\[Official[^\]]*\]/gi, '')
-    .replace(/\(Audio[^\)]*\)/gi, '')
-    .replace(/\[Audio[^\]]*\]/gi, '')
-    .replace(/\(Lyric[^\)]*\)/gi, '')
-    .replace(/\[Lyric[^\]]*\]/gi, '')
-    .replace(/\(Video[^\)]*\)/gi, '')
-    .replace(/\[Video[^\]]*\]/gi, '')
-    .replace(/\(4K[^\)]*\)/gi, '')
-    .replace(/\[4K[^\]]*\]/gi, '')
-    .replace(/\(Visualizer[^\)]*\)/gi, '')
+    .replace(/\((Official|Music|Lyrical|Full|Visualizer|HD|4K|Audio|Video)[^\)]*\)/gi, '')
+    .replace(/\[(Official|Music|Lyrical|Full|Visualizer|HD|4K|Audio|Video)[^\]]*\]/gi, '')
     .replace(/\(From "[^"]*"\)/gi, '')
+    .replace(/\(feat\..*?\)/gi, '')
+    .replace(/\[feat\..*?\]/gi, '')
     .replace(/feat\..*$/gi, '')
     .replace(/ft\..*$/gi, '')
     .replace(/Prod\.? by.*$/gi, '')
@@ -74,11 +67,22 @@ function parseLrc(lrcText) {
   const parsed = [];
   const timeRegex = /\[(\d{2}):(\d{2}(?:\.\d{1,3})?)\]/g;
 
+  // Extract [offset: +/- ms] header if present in LRC
+  let offsetSec = 0;
+  for (const rawLine of lines) {
+    const trimmed = rawLine.trim();
+    const offsetMatch = trimmed.match(/^\[offset:\s*([+-]?\d+)\s*\]/i);
+    if (offsetMatch) {
+      offsetSec = (parseInt(offsetMatch[1], 10) || 0) / 1000;
+      break;
+    }
+  }
+
   for (const rawLine of lines) {
     const trimmed = rawLine.trim();
     if (!trimmed) continue;
 
-    // Skip metadata headers like [ar:Artist], [ti:Title]
+    // Skip metadata headers like [ar:Artist], [ti:Title], [al:Album], [offset:123], [length:...]
     if (/^\[(ti|ar|al|by|offset|length):/i.test(trimmed)) continue;
 
     let match;
@@ -86,7 +90,8 @@ function parseLrc(lrcText) {
     while ((match = timeRegex.exec(trimmed)) !== null) {
       const mins = parseFloat(match[1]);
       const secs = parseFloat(match[2]);
-      timestamps.push(mins * 60 + secs);
+      const lineTime = Math.max(0, mins * 60 + secs + offsetSec);
+      timestamps.push(lineTime);
     }
 
     const text = trimmed.replace(timeRegex, '').trim();
