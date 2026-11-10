@@ -60,3 +60,4 @@ async function getSkipSegments(videoId) {
 module.exports = {
   getSkipSegments
 };
+
