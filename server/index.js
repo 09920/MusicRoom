@@ -103,17 +103,27 @@ app.get('/api/lyrics', async (req, res) => {
   }
 });
 
-// REST API: Radio tracks
+// REST API: Radio tracks matching current song vibe
 app.get('/api/radio', async (req, res) => {
   try {
-    const { videoId, title, artist } = req.query;
+    const { videoId, title, artist, mood } = req.query;
     const tracks = await autoModeService.getRadioTracks(
-      { videoId, title, channelTitle: artist },
-      process.env.YOUTUBE_API_KEY
+      { videoId, title, channelTitle: artist, artist },
+      process.env.YOUTUBE_API_KEY,
+      mood || 'all'
     );
-    res.json({ success: true, tracks });
+    const cleanTitle = (title || 'Song')
+      .replace(/\s*\(Official.*$/i, '')
+      .replace(/\s*\|.*$/i, '')
+      .replace(/\s*-.*$/i, '')
+      .trim();
+    res.json({
+      success: true,
+      mixTitle: `${cleanTitle} Mix`,
+      tracks
+    });
   } catch (err) {
-    res.status(500).json({ success: false, tracks: [] });
+    res.status(500).json({ success: false, tracks: [], mixTitle: 'Radio Mix' });
   }
 });
 

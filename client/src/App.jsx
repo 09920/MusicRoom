@@ -123,14 +123,8 @@ function MainLayout() {
         )}
       </div>
 
-      {/* Persistent Headless YouTube Audio / Video Engine */}
-      <div
-        className={
-          isFullScreen && !isAudioOnly
-            ? 'fixed z-50 inset-x-4 top-20 bottom-36 sm:inset-x-20 sm:top-24 sm:bottom-44 rounded-3xl overflow-hidden shadow-2xl pointer-events-auto'
-            : 'fixed bottom-0 right-0 w-[300px] h-[200px] opacity-[0.001] pointer-events-none -z-50 overflow-hidden'
-        }
-      >
+      {/* Persistent Headless YouTube Audio Engine */}
+      <div className="fixed bottom-0 right-0 w-[300px] h-[200px] opacity-[0.001] pointer-events-none -z-50 overflow-hidden">
         <Player
           currentSong={currentSong}
           playback={playback}

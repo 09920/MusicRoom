@@ -128,7 +128,7 @@ export default function PlaylistView() {
       artist: track.artist || track.channelTitle || playlist.artist,
       channelTitle: track.channelTitle || track.artist || playlist.artist,
       thumbnail: track.thumbnail || albumCover
-    }, true);
+    }, true, { openPlayer: true });
   };
 
   return (

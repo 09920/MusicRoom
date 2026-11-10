@@ -232,7 +232,7 @@ export default function LibraryView() {
                   return (
                     <div
                       key={song.videoId || idx}
-                      onClick={() => playSong(song, true)}
+                      onClick={() => playSong(song, true, { openPlayer: true })}
                       className="flex items-center justify-between px-space-md py-3 hover:bg-surface-container transition-colors group cursor-pointer"
                     >
                       <div className="flex items-center gap-space-md min-w-0 flex-1">

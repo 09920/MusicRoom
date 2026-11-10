@@ -95,12 +95,12 @@ export default function DiscoverView({ onOpenAiTheme }) {
       artist: track.artist,
       channelTitle: track.artist,
       thumbnail: track.cover
-    }, true);
+    }, true, { openPlayer: true });
   };
 
   const handlePlayMix = (mixData, mixTitle) => {
     if (mixData && mixData.length > 0) {
-      playSong(mixData[0], true);
+      playSong(mixData[0], true, { openPlayer: true });
       // Queue remaining songs
       for (let i = 1; i < Math.min(mixData.length, 15); i++) {
         addToQueue(mixData[i]);

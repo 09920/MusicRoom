@@ -7,7 +7,8 @@ const COMPILATION_KEYWORDS = [
   'non stop', 'non-stop', 'nonstop', 'hour', 'hours', 'top 10', 'top 20', 'top 50', 'top 100',
   'best of', 'mashup', 'discography', 'collection', 'full ep', 'audio jukebox', 'video jukebox',
   'hit songs', 'golden hits', 'evergreen hits', 'superhit songs', 'all hit songs', 'songs collection',
-  'song collection', 'phonics', 'nursery', 'cocomelon', 'kids tv', 'kids song', 'kids songs',
+  'song collection', 'love songs', 'romantic hits', 'melodies', 'evergreen songs', 'purane gane',
+  'phonics', 'nursery', 'cocomelon', 'kids tv', 'kids song', 'kids songs',
   'toddler', 'rhymes', 'abc song', 'shapes song', 'alphabet song', 'chuchu', 'baby shark',
   'educational songs', 'kindergarten', 'preschool', 'bedtime rhyme'
 ];
@@ -22,6 +23,10 @@ function isCompilation(title, videoId) {
   if (!title) return false;
   const lower = title.toLowerCase();
   if (lower.startsWith('mix -') || lower.startsWith('mix ')) return true;
+  if ((lower.match(/\|\|/g) || []).length >= 2) return true; // SEO tag stuffing
+  if ((lower.match(/\bsongs\b/g) || []).length >= 2) return true; // repeated 'songs'
+  if ((lower.match(/\bsong\b/g) || []).length >= 3) return true;
+  if ((title.match(/,/g) || []).length >= 3) return true; // multiple singers/actors listed in title
   return COMPILATION_KEYWORDS.some(kw => lower.includes(kw));
 }
 
@@ -306,33 +311,93 @@ async function pickNextSong(room, apiKey) {
   return picked;
 }
 
+const GENRE_FALLBACKS = {
+  punjabi: [
+    { title: 'Tauba Tauba', artist: 'Karan Aujla', videoId: 'LK7-_dgAVQE', thumbnail: 'https://i.ytimg.com/vi/LK7-_dgAVQE/hqdefault.jpg', duration: 204 },
+    { title: 'Winning Speech', artist: 'Karan Aujla', videoId: '0DS5jYQeiw0', thumbnail: 'https://i.ytimg.com/vi/0DS5jYQeiw0/hqdefault.jpg', duration: 218 },
+    { title: 'Softly', artist: 'Karan Aujla, Ikky', videoId: 'cWMxCE2HTag', thumbnail: 'https://i.ytimg.com/vi/cWMxCE2HTag/hqdefault.jpg', duration: 156 },
+    { title: 'White Brown Black', artist: 'Karan Aujla, Avvy Sra', videoId: 'BtQp2U6hJII', thumbnail: 'https://i.ytimg.com/vi/BtQp2U6hJII/hqdefault.jpg', duration: 185 },
+    { title: 'With You', artist: 'AP Dhillon', videoId: 'mZQH8CPQ-wo', thumbnail: 'https://i.ytimg.com/vi/mZQH8CPQ-wo/hqdefault.jpg', duration: 154 },
+    { title: 'Millionaire', artist: 'Yo Yo Honey Singh', videoId: 'XO8wew38VM8', thumbnail: 'https://i.ytimg.com/vi/XO8wew38VM8/hqdefault.jpg', duration: 201 },
+    { title: 'Born to Shine', artist: 'Diljit Dosanjh', videoId: 'dCmp56tSSmA', thumbnail: 'https://i.ytimg.com/vi/dCmp56tSSmA/hqdefault.jpg', duration: 214 },
+    { title: 'Lover', artist: 'Diljit Dosanjh', videoId: 'mH_LFkWxpI0', thumbnail: 'https://i.ytimg.com/vi/mH_LFkWxpI0/hqdefault.jpg', duration: 195 }
+  ],
+  hindi: [
+    { title: 'Jo Tum Mere Ho', artist: 'Anuv Jain', videoId: 'ilNt2bikxDI', thumbnail: 'https://i.ytimg.com/vi/ilNt2bikxDI/hqdefault.jpg', duration: 245 },
+    { title: 'Aayi Nai', artist: 'Pawan Singh, Simran Choudhary', videoId: '0nrvPVnTWlc', thumbnail: 'https://i.ytimg.com/vi/0nrvPVnTWlc/hqdefault.jpg', duration: 178 },
+    { title: 'Chaleya', artist: 'Arijit Singh, Anirudh', videoId: 'VAdGW7QDJiU', thumbnail: 'https://i.ytimg.com/vi/VAdGW7QDJiU/hqdefault.jpg', duration: 200 },
+    { title: 'Satranga', artist: 'Arijit Singh', videoId: 'HrnrqYxYrbk', thumbnail: 'https://i.ytimg.com/vi/HrnrqYxYrbk/hqdefault.jpg', duration: 271 },
+    { title: 'O Maahi', artist: 'Arijit Singh', videoId: 'pCYojfACnzQ', thumbnail: 'https://i.ytimg.com/vi/pCYojfACnzQ/hqdefault.jpg', duration: 233 },
+    { title: 'Kesariya', artist: 'Arijit Singh, Pritam', videoId: 'BddP6PYo2gs', thumbnail: 'https://i.ytimg.com/vi/BddP6PYo2gs/hqdefault.jpg', duration: 268 },
+    { title: 'Tum Hi Ho', artist: 'Arijit Singh', videoId: 'IJq0yyWug1k', thumbnail: 'https://i.ytimg.com/vi/IJq0yyWug1k/hqdefault.jpg', duration: 262 },
+    { title: 'Pehle Bhi Main', artist: 'Vishal Mishra', videoId: 'iAIBF2ngbWY', thumbnail: 'https://i.ytimg.com/vi/iAIBF2ngbWY/hqdefault.jpg', duration: 250 }
+  ],
+  pop: [
+    { title: 'Die With A Smile', artist: 'Lady Gaga, Bruno Mars', videoId: 'kPa7bsKwL-c', thumbnail: 'https://i.ytimg.com/vi/kPa7bsKwL-c/hqdefault.jpg', duration: 251 },
+    { title: 'Espresso', artist: 'Sabrina Carpenter', videoId: 'eVTXPUF4Oz4', thumbnail: 'https://i.ytimg.com/vi/eVTXPUF4Oz4/hqdefault.jpg', duration: 175 },
+    { title: 'Birds of a Feather', artist: 'Billie Eilish', videoId: 'V9PVRfjEBTI', thumbnail: 'https://i.ytimg.com/vi/V9PVRfjEBTI/hqdefault.jpg', duration: 198 },
+    { title: 'Taste', artist: 'Sabrina Carpenter', videoId: 'KEG7b851Ric', thumbnail: 'https://i.ytimg.com/vi/KEG7b851Ric/hqdefault.jpg', duration: 157 },
+    { title: 'Blinding Lights', artist: 'The Weeknd', videoId: '4NRXx6U8ABQ', thumbnail: 'https://i.ytimg.com/vi/4NRXx6U8ABQ/hqdefault.jpg', duration: 200 },
+    { title: 'Starboy', artist: 'The Weeknd ft. Daft Punk', videoId: '34Na4j8AVgA', thumbnail: 'https://i.ytimg.com/vi/34Na4j8AVgA/hqdefault.jpg', duration: 230 },
+    { title: 'As It Was', artist: 'Harry Styles', videoId: 'H5v3kku4y6Q', thumbnail: 'https://i.ytimg.com/vi/H5v3kku4y6Q/hqdefault.jpg', duration: 167 },
+    { title: 'Too Sweet', artist: 'Hozier', videoId: 'NTpbbQUBbuo', thumbnail: 'https://i.ytimg.com/vi/NTpbbQUBbuo/hqdefault.jpg', duration: 251 }
+  ]
+};
+
+function detectGenre(song) {
+  const str = ((song.title || '') + ' ' + (song.artist || '') + ' ' + (song.channelTitle || '')).toLowerCase();
+  if (/punjabi|aujla|diljit|shubh|dhillon|sidhu|bhangra|desi|honey singh/i.test(str)) return 'punjabi';
+  if (/hindi|arijit|pritam|anuv|pawan|mishra|jain|bollywood|zeemusic|tseries|sony music/i.test(str)) return 'hindi';
+  return 'pop';
+}
+
 /**
  * Get a batch of recommended tracks for continuous Endless Radio playback
  */
-async function getRadioTracks(seedSong, apiKey) {
+async function getRadioTracks(seedSong, apiKey, mood = 'all') {
   if (!seedSong || !seedSong.videoId) return [];
   const tracks = [];
   const seenIds = new Set([seedSong.videoId]);
 
-  // Strategy 1: Watch page related sidebar
-  try {
-    const related = await fetchWatchPageRelated(seedSong.videoId);
-    for (const s of related) {
-      if (!seenIds.has(s.videoId) && !isCompilation(s.title, s.videoId)) {
-        seenIds.add(s.videoId);
-        tracks.push(s);
+  const { title, artist } = extractArtistAndTitle(seedSong);
+
+  // Strategy 1: Watch page related sidebar (YouTube's actual Up Next recommendations)
+  if (mood === 'all' || mood === 'familiar') {
+    try {
+      const related = await fetchWatchPageRelated(seedSong.videoId);
+      for (const s of related) {
+        if (!seenIds.has(s.videoId) && !isCompilation(s.title, s.videoId)) {
+          seenIds.add(s.videoId);
+          tracks.push({
+            videoId: s.videoId,
+            title: cleanTitle(s.title),
+            artist: cleanTitle(s.channelTitle || artist || 'Artist'),
+            channelTitle: cleanTitle(s.channelTitle || artist || 'Artist'),
+            thumbnail: `https://i.ytimg.com/vi/${s.videoId}/hqdefault.jpg`,
+            duration: 215
+          });
+        }
       }
+    } catch (e) {
+      console.warn('[Radio] getRadioTracks strategy 1 error:', e.message);
     }
-  } catch (e) {
-    console.warn('[Radio] getRadioTracks strategy 1 error:', e.message);
   }
 
-  // Strategy 2: Artist & Title related search
+  // Strategy 2: Vibe/Mood-tailored search
   if (tracks.length < 10) {
-    const { title, artist } = extractArtistAndTitle(seedSong);
     const queries = [];
-    if (artist && artist.length >= 3) queries.push(`${artist} song audio`);
-    if (title && title.length >= 3) queries.push(`${title} similar songs`);
+    if (mood === 'chill' || mood === 'downbeat') {
+      queries.push(`${artist || title} chill acoustic lofi song audio`);
+    } else if (mood === 'upbeat') {
+      queries.push(`${artist || title} dance upbeat hit song audio`);
+    } else if (mood === 'romance') {
+      queries.push(`${artist || title} romantic love song audio`);
+    } else if (mood === 'discover') {
+      queries.push(`similar songs to ${title} indie official video`);
+    } else {
+      if (artist && artist.length >= 3) queries.push(`${artist} song official audio`);
+      if (title && title.length >= 3) queries.push(`${title} similar songs audio`);
+    }
 
     for (const q of queries) {
       try {
@@ -340,12 +405,38 @@ async function getRadioTracks(seedSong, apiKey) {
         for (const s of results) {
           if (!seenIds.has(s.videoId) && !isCompilation(s.title, s.videoId)) {
             seenIds.add(s.videoId);
-            tracks.push(s);
+            tracks.push({
+              videoId: s.videoId,
+              title: cleanTitle(s.title),
+              artist: cleanTitle(s.channelTitle || artist || 'Artist'),
+              channelTitle: cleanTitle(s.channelTitle || artist || 'Artist'),
+              thumbnail: s.thumbnail || `https://i.ytimg.com/vi/${s.videoId}/hqdefault.jpg`,
+              duration: 215
+            });
           }
         }
         if (tracks.length >= 15) break;
       } catch (err) {
         console.warn(`[Radio] Query "${q}" failed:`, err.message);
+      }
+    }
+  }
+
+  // Strategy 3: Guaranteed genre fallback from verified hits
+  if (tracks.length < 6) {
+    const genre = detectGenre(seedSong);
+    const fallbackPool = GENRE_FALLBACKS[genre] || GENRE_FALLBACKS.hindi;
+    for (const s of fallbackPool) {
+      if (!seenIds.has(s.videoId)) {
+        seenIds.add(s.videoId);
+        tracks.push({
+          videoId: s.videoId,
+          title: s.title,
+          artist: s.artist,
+          channelTitle: s.artist,
+          thumbnail: s.thumbnail,
+          duration: s.duration || 215
+        });
       }
     }
   }

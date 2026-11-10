@@ -124,7 +124,7 @@ export default function SearchView() {
       artist: song.artist,
       channelTitle: song.artist,
       thumbnail: song.thumbnail
-    }, true);
+    }, true, { openPlayer: true });
   };
 
   const GENRES_LIST = [

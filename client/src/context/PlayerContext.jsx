@@ -72,6 +72,15 @@ export function PlayerProvider({ children }) {
   });
 
   const [radioMode, setRadioMode] = useState(true);
+  const [autoplay, setAutoplay] = useState(() => {
+    try {
+      return localStorage.getItem('musicroom_autoplay') !== 'false';
+    } catch {
+      return true;
+    }
+  });
+  const [activeMood, setActiveMood] = useState('All');
+  const [isRadioLoading, setIsRadioLoading] = useState(false);
   const [isShuffled, setIsShuffled] = useState(false);
   const [repeatMode, setRepeatMode] = useState('off'); // 'off' | 'all' | 'one'
 
@@ -316,8 +325,44 @@ export function PlayerProvider({ children }) {
     };
   }, []);
 
+  // Generate YouTube Music-style radio queue matching the seed song's vibe & artist
+  const generateRadioQueue = async (seedSong, mood = 'all') => {
+    if (!seedSong || !seedSong.videoId) return;
+    setIsRadioLoading(true);
+    try {
+      const q = `videoId=${seedSong.videoId}&title=${encodeURIComponent(seedSong.title || '')}&artist=${encodeURIComponent(seedSong.channelTitle || seedSong.artist || '')}&mood=${mood.toLowerCase()}`;
+      const res = await fetch(`/api/radio?${q}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.tracks && Array.isArray(data.tracks) && data.tracks.length > 0) {
+          const filtered = data.tracks.filter(t => t.videoId !== seedSong.videoId);
+          setQueue(filtered);
+          setPlayingFrom({
+            name: data.mixTitle || `${seedSong.title} Mix`,
+            type: 'radio',
+            seedSong
+          });
+        }
+      }
+    } catch (err) {
+      console.warn('Radio queue generation error:', err);
+    } finally {
+      setIsRadioLoading(false);
+    }
+  };
+
+  const toggleAutoplay = () => {
+    setAutoplay(prev => {
+      const next = !prev;
+      try {
+        localStorage.setItem('musicroom_autoplay', String(next));
+      } catch (_) {}
+      return next;
+    });
+  };
+
   // Playback Operations
-  const playSong = (song, immediatePlay = true) => {
+  const playSong = (song, immediatePlay = true, options = {}) => {
     if (!song || !song.videoId) return;
 
     // Push previous song to history if different
@@ -340,6 +385,15 @@ export function PlayerProvider({ children }) {
         isPlaying: immediatePlay,
         currentTime: 0
       }));
+
+      // Automatically generate similar song radio queue if not preserving existing queue and autoplay is enabled
+      if (!options?.preserveQueue && autoplay) {
+        generateRadioQueue(song, activeMood);
+      }
+
+      if (options?.openPlayer) {
+        setIsFullScreen(true);
+      }
 
       const p = playerRef.current || (typeof window !== 'undefined' ? window.musicroom_player : null);
       if (p) {
@@ -486,7 +540,7 @@ export function PlayerProvider({ children }) {
     if (queue.length > 0) {
       const nextTrack = queue[0];
       setQueue((prev) => prev.slice(1));
-      playSong(nextTrack, true);
+      playSong(nextTrack, true, { preserveQueue: true });
       return;
     }
 
@@ -746,6 +800,13 @@ export function PlayerProvider({ children }) {
     toggleAudioOnly,
     radioMode,
     toggleRadio,
+    autoplay,
+    setAutoplay,
+    toggleAutoplay,
+    activeMood,
+    setActiveMood,
+    generateRadioQueue,
+    isRadioLoading,
     isShuffled,
     toggleShuffle,
     repeatMode,
@@ -766,6 +827,7 @@ export function PlayerProvider({ children }) {
 
     // Queue
     queue,
+    setQueue,
     addToQueue,
     playNext,
     removeFromQueue,
