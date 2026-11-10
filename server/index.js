@@ -279,7 +279,7 @@ io.on('connection', (socket) => {
   });
 
   // 3. Playback Control (Play, Pause, Seek)
-  socket.on('player:control', (payload) => {
+  const handlePlayerControl = (payload) => {
     const rid = resolveRoomId(payload);
     if (!rid) return;
 
@@ -315,7 +315,10 @@ io.on('connection', (socket) => {
         message: `${result.actorName} resumed playback`
       });
     }
-  });
+  };
+
+  socket.on('player:control', handlePlayerControl);
+  socket.on('player:action', handlePlayerControl);
 
   // 4. Change Song / Play Now
   socket.on('player:change_song', (payload) => {

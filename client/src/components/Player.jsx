@@ -100,7 +100,14 @@ export default function Player({
     try {
       const state = playerRef.current.getPlayerState();
       if (playback?.isPlaying && state !== 1 && state !== 3) {
-        playerRef.current.playVideo();
+        const p = playerRef.current.playVideo();
+        if (p && typeof p.catch === 'function') {
+          p.catch(() => {
+            // If browser blocks unmuted playback, fallback to muted play so stream runs
+            playerRef.current.mute();
+            playerRef.current.playVideo();
+          });
+        }
       } else if (!playback?.isPlaying && (state === 1 || state === 3)) {
         playerRef.current.pauseVideo();
       }
@@ -170,6 +177,7 @@ export default function Player({
           modestbranding: 1,
           playsinline: 1,
           iv_load_policy: 3,
+          enablejsapi: 1,
           origin: window.location.origin
         },
         events: {
@@ -351,8 +359,10 @@ export default function Player({
       }, 600);
     };
 
+    socket.on('player:synced', handlePlayerState);
     socket.on('player:sync', handlePlayerState);
     return () => {
+      socket.off('player:synced', handlePlayerState);
       socket.off('player:sync', handlePlayerState);
     };
   }, []);
@@ -568,20 +578,49 @@ export default function Player({
           </button>
         )}
 
-        {/* Touch Shield: Click anywhere on video to toggle play/pause */}
+        {/* Touch Shield & Center Play Trigger */}
         <div
           onClick={() => {
-            if (canControl && onPlaybackChange) {
-              const nextPlaying = !playback?.isPlaying;
-              socket.emit('player:action', {
-                action: nextPlaying ? 'play' : 'pause',
-                currentTime: playerRef.current?.getCurrentTime ? playerRef.current.getCurrentTime() : 0
-              });
+            if (!canControl) return;
+            const p = playerRef.current || (typeof window !== 'undefined' ? window.musicroom_player : null);
+            const isCurrentlyPlaying = (p?.getPlayerState?.() === 1) || playback?.isPlaying;
+            const curTime = p?.getCurrentTime?.() || playback?.currentTime || 0;
+
+            if (p) {
+              try {
+                if (isCurrentlyPlaying) {
+                  p.pauseVideo();
+                } else {
+                  p.unMute();
+                  p.setVolume(volume);
+                  const promise = p.playVideo();
+                  if (promise && typeof promise.catch === 'function') {
+                    promise.catch(() => {
+                      p.mute();
+                      p.playVideo();
+                    });
+                  }
+                }
+              } catch (_) {}
             }
+
+            const rId = (typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('room') : '');
+            socket.emit('player:control', {
+              roomId: rId,
+              action: isCurrentlyPlaying ? 'pause' : 'play',
+              currentTime: curTime
+            });
           }}
-          className="!absolute inset-0 z-[5] bg-transparent cursor-pointer"
+          className="!absolute inset-0 z-[5] bg-transparent cursor-pointer flex items-center justify-center group/stage"
           title={canControl ? (playback?.isPlaying ? "Click to Pause" : "Click to Play") : "MusicRoom Stream"}
-        />
+        >
+          {/* Big Center Play Button when paused or unstarted */}
+          {!playback?.isPlaying && (
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-primary text-on-primary shadow-[0_0_32px_rgba(208,188,255,0.7)] flex items-center justify-center transition-transform transform group-hover/stage:scale-110 active:scale-95 border border-white/20">
+              <span className="material-symbols-outlined text-[36px] sm:text-[44px] ml-1">play_arrow</span>
+            </div>
+          )}
+        </div>
 
         {/* YouTube IFrame target element */}
         <div className="!absolute inset-0 z-0 w-full h-full pointer-events-none">

@@ -251,14 +251,15 @@ export default function Room({ initialRoom, currentSocketId, userId, onLeaveRoom
     };
   }, []);
 
-  const handlePlaybackChange = ({ isPlaying }) => {
+  const handlePlaybackChange = ({ currentTime, duration }) => {
     setRoom((prev) => {
-      if (!prev || prev.playback?.isPlaying === isPlaying) return prev;
+      if (!prev) return prev;
       return {
         ...prev,
         playback: {
           ...prev.playback,
-          isPlaying
+          currentTime: typeof currentTime === 'number' ? currentTime : prev.playback.currentTime,
+          ...(duration ? { duration } : {})
         }
       };
     });
@@ -266,9 +267,35 @@ export default function Room({ initialRoom, currentSocketId, userId, onLeaveRoom
 
   const handlePlayPause = () => {
     if (!canControl) return;
-    const playerState = playerRef.current?.getPlayerState?.();
-    const currentlyPlaying = (playerState === 1) || room?.playback?.isPlaying;
-    const currentTime = playerRef.current?.getCurrentTime?.() || room?.playback?.currentTime || 0;
+    const player = playerRef.current || (typeof window !== 'undefined' ? window.musicroom_player : null);
+    const playerState = player?.getPlayerState?.();
+    
+    // Only consider currently playing if YouTube is actively playing (state === 1).
+    // If it's -1 (unstarted), 5 (cued), or 2 (paused), clicking play must START playback!
+    const currentlyPlaying = playerState === 1;
+    const currentTime = player?.getCurrentTime?.() || room?.playback?.currentTime || 0;
+
+    // Synchronous User Gesture Playback Trigger (CRITICAL for Chrome/Brave Autoplay Policy)
+    if (player && typeof player.playVideo === 'function') {
+      try {
+        if (currentlyPlaying) {
+          player.pauseVideo();
+        } else {
+          player.unMute();
+          player.setVolume(volume);
+          const playPromise = player.playVideo();
+          if (playPromise && typeof playPromise.catch === 'function') {
+            playPromise.catch(() => {
+              // Fallback to muted playback if browser restricts audio without prior interaction
+              player.mute();
+              player.playVideo();
+            });
+          }
+        }
+      } catch (err) {
+        console.warn('Direct user gesture play failed:', err);
+      }
+    }
 
     socket.emit('player:control', {
       roomId: room.id,

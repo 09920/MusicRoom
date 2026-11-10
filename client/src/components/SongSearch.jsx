@@ -61,6 +61,20 @@ export default function SongSearch({ roomId, canControl, onSongPicked }) {
   const handlePick = (song, playNow) => {
     if (!canControl) return;
 
+    // Direct synchronous user gesture to load & play immediately
+    if (playNow && typeof window !== 'undefined' && window.musicroom_player) {
+      try {
+        window.musicroom_player.unMute();
+        if (typeof window.musicroom_player.loadVideoById === 'function') {
+          window.musicroom_player.loadVideoById({
+            videoId: song.videoId,
+            startSeconds: 0
+          });
+        }
+        window.musicroom_player.playVideo();
+      } catch (_) {}
+    }
+
     socket.emit('song:pick', { roomId, song, playNow });
 
     if (!playNow) {
