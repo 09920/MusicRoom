@@ -11,42 +11,6 @@ const VIBE_PRESETS = [
   { id: 'English', label: 'English 🌐' }
 ];
 
-const PUBLIC_ROOM_PRESETS = [
-  {
-    id: 'lofi-beats-live',
-    name: 'Late Night Lo-Fi Beats',
-    code: '#fa0b-378f',
-    tag: 'LO-FI',
-    host: 'Alex',
-    listeners: 8,
-    track: 'Lofi Girl – beats to relax/study to',
-    image: 'https://images.unsplash.com/photo-1518609878373-06d740f60d8b?w=400&q=80',
-    color: 'tertiary'
-  },
-  {
-    id: 'synthwave-odyssey',
-    name: 'Neon Synthwave Odyssey',
-    code: '#9e1c-55b2',
-    tag: 'SYNTH',
-    host: 'KavinskyVibe',
-    listeners: 19,
-    track: 'The Midnight – Sunset (Official Audio)',
-    image: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=400&q=80',
-    color: 'primary'
-  },
-  {
-    id: 'bollywood-indie-vibes',
-    name: 'Bollywood & Indie Vibes',
-    code: '#c28e-89a1',
-    tag: 'BOLLYWOOD',
-    host: 'Dev',
-    listeners: 14,
-    track: 'Arijit Singh – Kesariya (Acoustic)',
-    image: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400&q=80',
-    color: 'secondary'
-  }
-];
-
 export default function Home({ onRoomJoined, initialRoomId, userId }) {
   const [tab, setTab] = useState(initialRoomId ? 'join' : 'create');
 
@@ -696,85 +660,7 @@ export default function Home({ onRoomJoined, initialRoomId, userId }) {
 
           </div>
 
-          {/* Live Public Rooms Discovery */}
-          <div className="flex flex-col space-y-space-sm">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-tertiary text-[20px]">podcasts</span>
-                <h3 className="font-title-md text-title-md text-on-surface font-bold">Featured Music Rooms</h3>
-              </div>
-              <span className="flex items-center gap-1 font-label-sm text-label-sm text-tertiary bg-surface-container-high px-2 py-0.5 rounded-full border border-tertiary/20">
-                <span className="w-1.5 h-1.5 rounded-full bg-tertiary animate-pulse" />
-                Active
-              </span>
-            </div>
 
-            {/* Presets Cards */}
-            <div className="grid grid-cols-1 gap-space-sm">
-              {PUBLIC_ROOM_PRESETS.map((room) => (
-                <div
-                  key={room.id}
-                  className="flex flex-col p-space-md rounded-2xl bg-surface-container shadow-md space-y-space-sm border border-outline-variant/15"
-                >
-                  <div className="flex items-start justify-between gap-space-sm">
-                    <div className="flex items-center gap-space-sm min-w-0">
-                      <div className="w-12 h-12 rounded-xl bg-surface-container-high overflow-hidden shrink-0 relative border border-outline-variant/20">
-                        <img
-                          src={room.image}
-                          alt={room.name}
-                          className="w-full h-full object-cover"
-                        />
-                        <div className="absolute bottom-1 left-1 w-2.5 h-2.5 rounded-full bg-tertiary ring-2 ring-surface" />
-                      </div>
-                      <div className="flex flex-col min-w-0">
-                        <div className="flex items-center gap-1.5">
-                          <span className="font-title-md text-title-md text-on-surface font-bold truncate">
-                            {room.name}
-                          </span>
-                          <span className="px-1.5 py-0.2 rounded-full bg-primary-container/30 text-primary-fixed-dim font-label-sm text-label-sm font-semibold">
-                            {room.tag}
-                          </span>
-                        </div>
-                        <span className="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1 truncate mt-0.5">
-                          <span className="material-symbols-outlined text-[13px] text-secondary">music_note</span>
-                          {room.track}
-                        </span>
-                      </div>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => handleQuickRejoin(room.id, room.name)}
-                      disabled={loading}
-                      className="px-3.5 py-1.5 rounded-full bg-primary text-on-primary font-label-md text-label-md font-bold shrink-0 active:scale-95 shadow-[0_0_12px_rgba(208,188,255,0.3)] transition-all"
-                    >
-                      Join
-                    </button>
-                  </div>
-
-                  {/* Real-time Listeners Stack */}
-                  <div className="flex items-center justify-between pt-1 bg-surface-container-lowest/40 p-2 rounded-xl border border-outline-variant/10">
-                    <div className="flex items-center gap-2">
-                      <div className="flex items-end gap-0.5 h-3">
-                        <span className="w-1 bg-secondary rounded-full h-full animate-bounce" />
-                        <span className="w-1 bg-secondary rounded-full h-2" />
-                        <span className="w-1 bg-secondary rounded-full h-3 animate-pulse" />
-                        <span className="w-1 bg-secondary rounded-full h-1.5" />
-                      </div>
-                      <span className="font-label-sm text-label-sm text-on-surface-variant">
-                        DJ: @{room.host}
-                      </span>
-                    </div>
-
-                    <span className="font-label-sm text-label-sm text-tertiary font-bold tracking-tight">
-                      {room.listeners} Vibing
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-          </div>
 
         </div>
       </main>

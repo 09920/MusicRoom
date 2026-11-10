@@ -476,20 +476,6 @@ export default function Player({
       {/* Visual Stage Container (16:9 Aspect) */}
       <div id="youtube-stage-container" className="relative w-full aspect-video bg-black flex items-center justify-center overflow-hidden">
         
-        {/* Animated Graphic Equalizer Wave Overlay (Stitch 2_player.html) */}
-        <div className="absolute inset-x-0 bottom-3 px-space-md flex items-end justify-between gap-1 h-9 pointer-events-none z-10">
-          <div className={`w-1 rounded-full bg-secondary/80 h-4 ${playback?.isPlaying ? 'animate-[bounce_1.1s_infinite_100ms]' : ''}`} />
-          <div className={`w-1 rounded-full bg-primary/90 h-7 ${playback?.isPlaying ? 'animate-[bounce_0.8s_infinite_200ms]' : ''}`} />
-          <div className={`w-1 rounded-full bg-tertiary h-8 shadow-[0_0_8px_#4edea3] ${playback?.isPlaying ? 'animate-[bounce_1.3s_infinite_150ms]' : ''}`} />
-          <div className={`w-1 rounded-full bg-primary h-5 ${playback?.isPlaying ? 'animate-[bounce_0.9s_infinite_300ms]' : ''}`} />
-          <div className={`w-1 rounded-full bg-secondary h-6 shadow-[0_0_8px_#4cd7f6] ${playback?.isPlaying ? 'animate-[bounce_1.4s_infinite_50ms]' : ''}`} />
-          <div className={`w-1 rounded-full bg-primary-fixed-dim h-8 ${playback?.isPlaying ? 'animate-[bounce_1.0s_infinite_250ms]' : ''}`} />
-          <div className={`w-1 rounded-full bg-tertiary h-3 ${playback?.isPlaying ? 'animate-[bounce_0.7s_infinite_100ms]' : ''}`} />
-          <div className={`w-1 rounded-full bg-secondary h-7 ${playback?.isPlaying ? 'animate-[bounce_1.2s_infinite_400ms]' : ''}`} />
-          <div className={`w-1 rounded-full bg-primary h-5 ${playback?.isPlaying ? 'animate-[bounce_0.85s_infinite_120ms]' : ''}`} />
-          <div className={`w-1 rounded-full bg-secondary/80 h-6 ${playback?.isPlaying ? 'animate-[bounce_1.15s_infinite_350ms]' : ''}`} />
-        </div>
-
         {/* Deep Ambient Vignette Gradient */}
         <div className="absolute inset-0 bg-gradient-to-t from-surface-container-lowest via-surface-container-lowest/30 to-black/60 pointer-events-none z-[4]" />
 

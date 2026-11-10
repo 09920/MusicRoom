@@ -19,10 +19,15 @@ export default function ChatBox({
 }) {
   const [inputText, setInputText] = useState('');
   const [floatingReactions, setFloatingReactions] = useState([]);
-  const messagesEndRef = useRef(null);
+  const chatScrollContainerRef = useRef(null);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (chatScrollContainerRef.current) {
+      chatScrollContainerRef.current.scrollTo({
+        top: chatScrollContainerRef.current.scrollHeight,
+        behavior: 'smooth'
+      });
+    }
   }, [messages]);
 
   const spawnReaction = (emoji) => {
@@ -76,7 +81,7 @@ export default function ChatBox({
       </div>
 
       {/* Messages Scroll Area */}
-      <div className="flex-1 overflow-y-auto p-3.5 space-y-3 pr-1.5 text-xs">
+      <div ref={chatScrollContainerRef} className="flex-1 overflow-y-auto p-3.5 space-y-3 pr-1.5 text-xs">
         {/* System Event Pill (Current Song Sync) */}
         {currentSong && (
           <div className="flex items-center justify-center my-1.5">
@@ -152,7 +157,7 @@ export default function ChatBox({
             );
           })
         )}
-        <div ref={messagesEndRef} />
+
       </div>
 
       {/* Sticky Bottom Dock: Reactions & Input */}
