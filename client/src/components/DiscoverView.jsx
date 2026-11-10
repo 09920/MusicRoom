@@ -20,7 +20,8 @@ export default function DiscoverView({ onOpenAiTheme }) {
     addToQueue,
     setActiveTab,
     likedSongs,
-    toggleLike
+    toggleLike,
+    openPlaylist
   } = usePlayer();
 
   const [trendingFilter, setTrendingFilter] = useState('Today'); // 'Today' | 'This Week' | 'All Time'
@@ -141,9 +142,64 @@ export default function DiscoverView({ onOpenAiTheme }) {
         </div>
 
         {/* 2. Clean Featured Hero Banner */}
-        <div className="flex flex-col md:flex-row items-center gap-space-lg p-space-lg rounded-xl bg-surface-container-low shadow-sm border border-surface-container-high/40">
+        <div 
+          onClick={() => openPlaylist({
+            id: 'chrono-trigger',
+            name: featuredRelease.title,
+            title: featuredRelease.title,
+            artist: featuredRelease.artist,
+            composer: featuredRelease.artist,
+            year: '2024',
+            genre: 'Symphonic Orchestral',
+            description: featuredRelease.description,
+            cover: featuredRelease.cover,
+            songs: [
+              {
+                videoId: 'kPa7bsKwL-c',
+                title: 'Presentiment (Wind Scene)',
+                artist: 'Yasunori Mitsuda, London Symphony Orchestra',
+                plays: '1,248,392',
+                duration: '4:18',
+                thumbnail: featuredRelease.cover
+              },
+              {
+                videoId: 'eVTXPUF4Oz4',
+                title: 'Chrono Corridor (Corridors of Time)',
+                artist: 'Yasunori Mitsuda',
+                plays: '2,841,902',
+                duration: '5:24',
+                thumbnail: featuredRelease.cover
+              },
+              {
+                videoId: 'V9PVRfjEBTI',
+                title: 'Secret of the Forest',
+                artist: 'Yasunori Mitsuda, London Symphony Orchestra',
+                plays: '954,120',
+                duration: '4:46',
+                thumbnail: featuredRelease.cover
+              },
+              {
+                videoId: 'LK7-_dgAVQE',
+                title: 'Schala’s Theme',
+                artist: 'Yasunori Mitsuda',
+                plays: '3,109,481',
+                duration: '3:58',
+                thumbnail: featuredRelease.cover
+              },
+              {
+                videoId: 'MV_3Dpw-BRY',
+                title: 'To Far Away Times',
+                artist: 'Yasunori Mitsuda, London Symphony Orchestra',
+                plays: '1,720,443',
+                duration: '4:30',
+                thumbnail: featuredRelease.cover
+              }
+            ]
+          })}
+          className="flex flex-col md:flex-row items-center gap-space-lg p-space-lg rounded-xl bg-surface-container-low shadow-sm border border-surface-container-high/40 cursor-pointer hover:border-primary/40 transition-all group"
+        >
           <img 
-            className="w-48 h-48 md:w-56 md:h-56 rounded-lg object-cover shadow-sm flex-shrink-0" 
+            className="w-48 h-48 md:w-56 md:h-56 rounded-lg object-cover shadow-sm flex-shrink-0 group-hover:scale-[1.02] transition-transform duration-300" 
             alt={featuredRelease.title} 
             src={featuredRelease.cover} 
           />
@@ -151,7 +207,7 @@ export default function DiscoverView({ onOpenAiTheme }) {
             <span className="text-label-sm uppercase tracking-wider text-outline font-semibold mb-1">
               Featured Release
             </span>
-            <h2 className="text-headline-sm font-headline font-bold text-on-surface mb-1 truncate">
+            <h2 className="text-headline-sm font-headline font-bold text-on-surface mb-1 truncate group-hover:text-primary transition-colors">
               {featuredRelease.title}
             </h2>
             <p className="text-body-md font-medium text-primary mb-space-sm">
@@ -163,7 +219,10 @@ export default function DiscoverView({ onOpenAiTheme }) {
             <div className="flex items-center gap-space-sm">
               <button
                 type="button"
-                onClick={() => handlePlayTrack(featuredRelease)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handlePlayTrack(featuredRelease);
+                }}
                 className="flex items-center gap-1.5 px-space-lg py-2 rounded-lg bg-primary hover:bg-primary-container text-on-primary font-semibold text-body-sm transition-all shadow active:scale-95"
               >
                 <span className="material-symbols-outlined text-title-md" style={{ fontVariationSettings: "'FILL' 1" }}>
@@ -173,7 +232,26 @@ export default function DiscoverView({ onOpenAiTheme }) {
               </button>
               <button
                 type="button"
-                onClick={() => {
+                onClick={(e) => {
+                  e.stopPropagation();
+                  openPlaylist({
+                    id: 'chrono-trigger',
+                    name: featuredRelease.title,
+                    title: featuredRelease.title,
+                    artist: featuredRelease.artist,
+                    cover: featuredRelease.cover,
+                    songs: getTracksForCompilation(featuredRelease.title)
+                  });
+                }}
+                className="flex items-center gap-1.5 px-space-md py-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-semibold text-body-sm transition-colors"
+              >
+                <span className="material-symbols-outlined text-title-md">queue_music</span>
+                <span>View Playlist</span>
+              </button>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
                   toggleLike({
                     videoId: featuredRelease.videoId,
                     title: featuredRelease.title,
@@ -184,7 +262,7 @@ export default function DiscoverView({ onOpenAiTheme }) {
                 className="flex items-center gap-1.5 px-space-md py-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-semibold text-body-sm transition-colors"
               >
                 <span className="material-symbols-outlined text-title-md">favorite_border</span>
-                <span>Save to Library</span>
+                <span>Save</span>
               </button>
             </div>
           </div>
@@ -208,8 +286,18 @@ export default function DiscoverView({ onOpenAiTheme }) {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-md">
             {/* Card 1: Daily Mix 1 */}
             <div 
-              onClick={() => handlePlayMix(DAILY_MIX_1, 'Daily Mix 1')}
-              className="flex flex-col p-space-sm rounded-lg bg-surface-container-low hover:bg-surface-container transition-all cursor-pointer group border border-surface-container-high/30"
+              onClick={() => openPlaylist({
+                id: 'daily-mix-1',
+                name: 'Daily Mix 1',
+                title: 'Daily Mix 1',
+                artist: 'Jon Hopkins, Bonobo, Rival Consoles',
+                composer: 'MusicRoom Algorithm',
+                genre: 'Synthwave / Electronic',
+                year: '2024',
+                cover: 'https://lh3.googleusercontent.com/aida-public/AB6AXuA6yVw5M7qnJyfkF3OHN41cm40lxRjqtO2st6JrDM1mNqVV6ARQOTh_WxE1b4i7DEPy46fYWs1zX0NDVkY6UuZlRKyq0g_x2l26ZXeK56GAcWwJHy0QHyk3i_0RuzL9yQnaUIASU4s9jbwBgD3PqGuXRCHADf2d6Mj7dAv1JUyRIV_JwivTEHfBJ-seB_DcMWR8aEBNAXmPjfpTMyIt32jRaMogwyl8JBlCx8gP2cQ',
+                songs: DAILY_MIX_1
+              })}
+              className="flex flex-col p-space-sm rounded-lg bg-surface-container-low hover:bg-surface-container transition-all cursor-pointer group border border-surface-container-high/30 hover:border-primary/40"
             >
               <div className="relative aspect-square w-full rounded-md overflow-hidden mb-space-sm bg-surface-container-high">
                 <img 
@@ -219,6 +307,10 @@ export default function DiscoverView({ onOpenAiTheme }) {
                 />
                 <button 
                   type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handlePlayMix(DAILY_MIX_1, 'Daily Mix 1');
+                  }}
                   className="absolute bottom-2 right-2 w-10 h-10 rounded-full bg-primary text-on-primary flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-opacity hover:scale-105"
                   title="Play Daily Mix 1"
                 >
@@ -227,15 +319,25 @@ export default function DiscoverView({ onOpenAiTheme }) {
                   </span>
                 </button>
               </div>
-              <span className="text-body-md font-semibold text-on-surface truncate">Daily Mix 1</span>
+              <span className="text-body-md font-semibold text-on-surface truncate group-hover:text-primary transition-colors">Daily Mix 1</span>
               <span className="text-body-sm text-on-surface-variant truncate">Synthwave, Electronic</span>
-              <span className="text-label-sm font-metric-mono text-outline mt-1">50 Tracks</span>
+              <span className="text-label-sm font-metric-mono text-outline mt-1">50 Tracks • Tap to Open</span>
             </div>
 
             {/* Card 2: Discover Weekly */}
             <div 
-              onClick={() => handlePlayMix(DISCOVER_WEEKLY, 'Discover Weekly')}
-              className="flex flex-col p-space-sm rounded-lg bg-surface-container-low hover:bg-surface-container transition-all cursor-pointer group border border-surface-container-high/30"
+              onClick={() => openPlaylist({
+                id: 'discover-weekly',
+                name: 'Discover Weekly',
+                title: 'Discover Weekly',
+                artist: 'Indie & Underground Electronic',
+                composer: 'MusicRoom Algorithm',
+                genre: 'Indie / Electronica',
+                year: '2024',
+                cover: 'https://lh3.googleusercontent.com/aida-public/AB6AXuACHyCSyZUmrwQ84aavBBf8tKqLQDJX9ELKXsnm0x3oeUOWP-Y37tOBxfCgh0rUsy3bu4FCDucAW8Iom7aDB2WXkiKQyyd60HGUzIOH3h3h_gya-VezLu89Y75nD9GdREotRwjC-IkAinyeXAFirB-aD8-cRp56cL8LTYVdLyo7BBVpotaYlu1yI7uc4ESIto8Hq8E6ngeIek6KQAMX2cJGlukkNVDJSG202sdlstQ',
+                songs: DISCOVER_WEEKLY
+              })}
+              className="flex flex-col p-space-sm rounded-lg bg-surface-container-low hover:bg-surface-container transition-all cursor-pointer group border border-surface-container-high/30 hover:border-primary/40"
             >
               <div className="relative aspect-square w-full rounded-md overflow-hidden mb-space-sm bg-surface-container-high">
                 <img 
@@ -245,6 +347,10 @@ export default function DiscoverView({ onOpenAiTheme }) {
                 />
                 <button 
                   type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handlePlayMix(DISCOVER_WEEKLY, 'Discover Weekly');
+                  }}
                   className="absolute bottom-2 right-2 w-10 h-10 rounded-full bg-primary text-on-primary flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-opacity hover:scale-105"
                   title="Play Discover Weekly"
                 >
@@ -253,15 +359,25 @@ export default function DiscoverView({ onOpenAiTheme }) {
                   </span>
                 </button>
               </div>
-              <span className="text-body-md font-semibold text-on-surface truncate">Discover Weekly</span>
+              <span className="text-body-md font-semibold text-on-surface truncate group-hover:text-primary transition-colors">Discover Weekly</span>
               <span className="text-body-sm text-on-surface-variant truncate">Indie &amp; Electronica</span>
-              <span className="text-label-sm font-metric-mono text-outline mt-1">30 Tracks</span>
+              <span className="text-label-sm font-metric-mono text-outline mt-1">30 Tracks • Tap to Open</span>
             </div>
 
             {/* Card 3: Deep Focus */}
             <div 
-              onClick={() => handlePlayMix(DEEP_FOCUS_NEURAL, 'Deep Focus')}
-              className="flex flex-col p-space-sm rounded-lg bg-surface-container-low hover:bg-surface-container transition-all cursor-pointer group border border-surface-container-high/30"
+              onClick={() => openPlaylist({
+                id: 'deep-focus',
+                name: 'Deep Focus',
+                title: 'Deep Focus',
+                artist: 'Ambient & Binaural Drone Masters',
+                composer: 'MusicRoom Neural Studio',
+                genre: 'Ambient / Study',
+                year: '2024',
+                cover: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBIZKkFakC3ShKy-Bl4JFWJDBM4G1OK8l_CyPAYEq2CXTqqhxRzmjDUHy5qcBGNgTQP1izrcFAkWz7hOukD7-Bvyx3oxyPDcH9y1ObW9npDJyct3G6eoCJs_Leo-zwaQBukaPoARCwGrJ4vcKqRXHPXxWa1UCS3i8RcpjaVvmzDC2pQiYPFiEloYolQIykVT4FwdXuwcry7SNBIo0UStEq0mrv83wHvtxX3T_feFTo',
+                songs: DEEP_FOCUS_NEURAL
+              })}
+              className="flex flex-col p-space-sm rounded-lg bg-surface-container-low hover:bg-surface-container transition-all cursor-pointer group border border-surface-container-high/30 hover:border-primary/40"
             >
               <div className="relative aspect-square w-full rounded-md overflow-hidden mb-space-sm bg-surface-container-high">
                 <img 
@@ -271,6 +387,10 @@ export default function DiscoverView({ onOpenAiTheme }) {
                 />
                 <button 
                   type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handlePlayMix(DEEP_FOCUS_NEURAL, 'Deep Focus');
+                  }}
                   className="absolute bottom-2 right-2 w-10 h-10 rounded-full bg-primary text-on-primary flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-opacity hover:scale-105"
                   title="Play Deep Focus"
                 >
@@ -279,15 +399,25 @@ export default function DiscoverView({ onOpenAiTheme }) {
                   </span>
                 </button>
               </div>
-              <span className="text-body-md font-semibold text-on-surface truncate">Deep Focus</span>
+              <span className="text-body-md font-semibold text-on-surface truncate group-hover:text-primary transition-colors">Deep Focus</span>
               <span className="text-body-sm text-on-surface-variant truncate">Ambient Study Beats</span>
-              <span className="text-label-sm font-metric-mono text-outline mt-1">44 Tracks</span>
+              <span className="text-label-sm font-metric-mono text-outline mt-1">44 Tracks • Tap to Open</span>
             </div>
 
             {/* Card 4: Late Night Lo-Fi */}
             <div 
-              onClick={() => handlePlayMix(LATE_NIGHT_LOFI, 'Late Night Lo-Fi')}
-              className="flex flex-col p-space-sm rounded-lg bg-surface-container-low hover:bg-surface-container transition-all cursor-pointer group border border-surface-container-high/30"
+              onClick={() => openPlaylist({
+                id: 'late-night-lofi',
+                name: 'Late Night Lo-Fi',
+                title: 'Late Night Lo-Fi',
+                artist: 'Warm Vinyl, Coffee & Rain',
+                composer: 'MusicRoom Lo-Fi Lab',
+                genre: 'Lo-Fi / Chill',
+                year: '2024',
+                cover: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCRHOsES2xlzV9VZseDMLjq_ioK5JH63zcZv0YBu1e2Isa3Je053YU15mhBT3SVi7aSbOAqIVNNbyOIStb9h7I_nyS3whTiTGgAsmR4D0g2povJCwIx2RfKrEQBjOPjgxf3huRBe-ktPXL8VGLjxKhP3t58XYqEXFnUoAhQdMh28YzIl-R4QLChijH2uzKdUinSpcosYSgEMmFouyrgr9OAOLlDNidzk-1UIXKJteQ',
+                songs: LATE_NIGHT_LOFI
+              })}
+              className="flex flex-col p-space-sm rounded-lg bg-surface-container-low hover:bg-surface-container transition-all cursor-pointer group border border-surface-container-high/30 hover:border-primary/40"
             >
               <div className="relative aspect-square w-full rounded-md overflow-hidden mb-space-sm bg-surface-container-high">
                 <img 
@@ -297,6 +427,10 @@ export default function DiscoverView({ onOpenAiTheme }) {
                 />
                 <button 
                   type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handlePlayMix(LATE_NIGHT_LOFI, 'Late Night Lo-Fi');
+                  }}
                   className="absolute bottom-2 right-2 w-10 h-10 rounded-full bg-primary text-on-primary flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-opacity hover:scale-105"
                   title="Play Late Night Lo-Fi"
                 >
@@ -305,9 +439,9 @@ export default function DiscoverView({ onOpenAiTheme }) {
                   </span>
                 </button>
               </div>
-              <span className="text-body-md font-semibold text-on-surface truncate">Late Night Lo-Fi</span>
+              <span className="text-body-md font-semibold text-on-surface truncate group-hover:text-primary transition-colors">Late Night Lo-Fi</span>
               <span className="text-body-sm text-on-surface-variant truncate">Warm Vinyl &amp; Rain</span>
-              <span className="text-label-sm font-metric-mono text-outline mt-1">62 Tracks</span>
+              <span className="text-label-sm font-metric-mono text-outline mt-1">62 Tracks • Tap to Open</span>
             </div>
           </div>
         </section>

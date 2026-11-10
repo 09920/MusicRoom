@@ -144,10 +144,18 @@ export default function LibraryView() {
                   if (card.isLikedCard) {
                     card.onClick();
                   } else if (card.tracks) {
-                    handlePlayTracks(card.tracks);
+                    openPlaylist({
+                      id: card.id,
+                      name: card.title,
+                      title: card.title,
+                      artist: 'MusicRoom Curated',
+                      composer: 'MusicRoom Curated',
+                      cover: card.cover,
+                      songs: card.tracks
+                    });
                   }
                 }}
-                className="group relative flex items-center gap-space-md p-space-md rounded-xl bg-surface-container-low hover:bg-surface-container transition-all cursor-pointer shadow-sm overflow-hidden border border-surface-container-high/40"
+                className="group relative flex items-center gap-space-md p-space-md rounded-xl bg-surface-container-low hover:bg-surface-container transition-all cursor-pointer shadow-sm overflow-hidden border border-surface-container-high/40 hover:border-primary/40"
               >
                 {card.isLikedCard ? (
                   <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-primary-container via-inverse-primary to-surface-container-high flex-shrink-0 flex items-center justify-center text-on-primary shadow-sm">

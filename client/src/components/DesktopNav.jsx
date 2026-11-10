@@ -26,17 +26,17 @@ export function DesktopLeftSidebar() {
   return (
     <aside className="fixed left-0 top-0 bottom-20 w-64 bg-surface-container-low z-40 flex flex-col justify-between shadow-[0_1px_8px_rgba(0,0,0,0.04)] select-none border-r border-surface-container-high">
       <div className="flex flex-col flex-1 min-h-0">
-        
+
         {/* Brand Header */}
-        <div 
+        <div
           onClick={() => setActiveTab('discover')}
           className="px-gutter-sm pt-space-lg pb-space-md flex items-center justify-between cursor-pointer group"
         >
           <div className="flex items-center gap-space-sm">
-            <img 
-              alt="MusicRoom Brand Mark" 
-              className="h-8 w-auto object-contain transition-transform group-hover:scale-105" 
-              src="https://lh3.googleusercontent.com/aida/ALJJyrBOkg2RAx8dgowYF5zHZZ2e5aYwPREUsOUawFJlwR7Rt3x95vsabcN1lAzcarKZWgPGIQ1fpHcfi5H-6uAF0niJe2Skch_9yiGnmulyJS_rt8a9RAe-_zRprOlra9AWWFC-VPITVQXvE42EXKTBz14gFfkBhLUjToMJ32DhfDfStFc-ngsHLucBEwMfwE01y7MhUOC_3nlAfqe28xOxFYzZ6MJOqTp3X27z-pmgQKU" 
+            <img
+              alt="MusicRoom Brand Mark"
+              className="h-8 w-auto object-contain transition-transform group-hover:scale-105"
+              src="https://lh3.googleusercontent.com/aida/ALJJyrBOkg2RAx8dgowYF5zHZZ2e5aYwPREUsOUawFJlwR7Rt3x95vsabcN1lAzcarKZWgPGIQ1fpHcfi5H-6uAF0niJe2Skch_9yiGnmulyJS_rt8a9RAe-_zRprOlra9AWWFC-VPITVQXvE42EXKTBz14gFfkBhLUjToMJ32DhfDfStFc-ngsHLucBEwMfwE01y7MhUOC_3nlAfqe28xOxFYzZ6MJOqTp3X27z-pmgQKU"
             />
             <span className="font-title text-title-lg font-bold text-on-surface tracking-tight">
               MusicRoom
@@ -53,11 +53,10 @@ export function DesktopLeftSidebar() {
             <button
               type="button"
               onClick={() => setActiveTab('discover')}
-              className={`flex items-center gap-space-sm px-space-sm py-2 rounded-lg transition-colors text-left ${
-                activeTab === 'discover'
+              className={`flex items-center gap-space-sm px-space-sm py-2 rounded-lg transition-colors text-left ${activeTab === 'discover'
                   ? 'bg-surface-container-high text-primary font-bold'
                   : 'text-on-surface-variant hover:bg-surface-container hover:text-on-surface'
-              }`}
+                }`}
             >
               <span className="material-symbols-outlined text-title-md font-normal">explore</span>
               <span className="font-title text-title-sm font-medium">Discovery</span>
@@ -66,11 +65,10 @@ export function DesktopLeftSidebar() {
             <button
               type="button"
               onClick={() => setActiveTab('search')}
-              className={`flex items-center gap-space-sm px-space-sm py-2 rounded-lg transition-colors text-left ${
-                activeTab === 'search'
+              className={`flex items-center gap-space-sm px-space-sm py-2 rounded-lg transition-colors text-left ${activeTab === 'search'
                   ? 'bg-surface-container-high text-primary font-bold'
                   : 'text-on-surface-variant hover:bg-surface-container hover:text-on-surface'
-              }`}
+                }`}
             >
               <span className="material-symbols-outlined text-title-md font-normal">search</span>
               <span className="font-title text-title-sm font-medium">Search &amp; Explore</span>
@@ -79,11 +77,10 @@ export function DesktopLeftSidebar() {
             <button
               type="button"
               onClick={() => setActiveTab('library')}
-              className={`flex items-center gap-space-sm px-space-sm py-2 rounded-lg transition-colors text-left ${
-                activeTab === 'library'
+              className={`flex items-center gap-space-sm px-space-sm py-2 rounded-lg transition-colors text-left ${activeTab === 'library'
                   ? 'bg-surface-container-high text-primary font-bold'
                   : 'text-on-surface-variant hover:bg-surface-container hover:text-on-surface'
-              }`}
+                }`}
             >
               <span className="material-symbols-outlined text-title-md font-normal">library_music</span>
               <span className="font-title text-title-sm font-medium">Your Library</span>
@@ -157,7 +154,7 @@ export function DesktopLeftSidebar() {
             {/* Curated Presets */}
             <button
               type="button"
-              onClick={() => playPlaylist('lofi-focus')}
+              onClick={() => openPlaylist('lofi-focus')}
               className="flex items-center justify-between px-space-sm py-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors text-left group"
             >
               <span className="truncate font-body-sm text-body-sm group-hover:text-primary transition-colors">
@@ -168,7 +165,7 @@ export function DesktopLeftSidebar() {
 
             <button
               type="button"
-              onClick={() => playPlaylist('synthwave')}
+              onClick={() => openPlaylist('synthwave')}
               className="flex items-center justify-between px-space-sm py-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors text-left group"
             >
               <span className="truncate font-body-sm text-body-sm group-hover:text-primary transition-colors">
@@ -179,7 +176,7 @@ export function DesktopLeftSidebar() {
 
             <button
               type="button"
-              onClick={() => playPlaylist('techno')}
+              onClick={() => openPlaylist('techno')}
               className="flex items-center justify-between px-space-sm py-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors text-left group"
             >
               <span className="truncate font-body-sm text-body-sm group-hover:text-primary transition-colors">
@@ -239,7 +236,7 @@ export function DesktopTopHeader() {
     <header className="fixed top-0 left-64 right-0 h-16 bg-surface/85 backdrop-blur-xl z-30 flex items-center justify-between px-gutter border-b border-surface-container-high/60 shadow-[0_1px_8px_rgba(0,0,0,0.04)]">
       {/* Live Interactive Search Input */}
       <div className="flex items-center gap-space-md max-w-md w-full">
-        <form 
+        <form
           onSubmit={(e) => {
             e.preventDefault();
             if (activeTab !== 'search') setActiveTab('search');
@@ -268,29 +265,29 @@ export function DesktopTopHeader() {
       {/* Navigation Shortcuts & User Status */}
       <div className="flex items-center gap-space-md">
         <nav className="hidden md:flex items-center gap-space-md text-body-sm text-on-surface-variant font-medium">
-          <button 
-            type="button" 
+          <button
+            type="button"
             onClick={() => setActiveTab('discover')}
             className="hover:text-on-surface transition-colors"
           >
             Discover
           </button>
-          <button 
-            type="button" 
+          <button
+            type="button"
             onClick={() => setActiveTab('search')}
             className="hover:text-on-surface transition-colors"
           >
             Search
           </button>
-          <button 
-            type="button" 
+          <button
+            type="button"
             onClick={() => setActiveTab('library')}
             className="hover:text-on-surface transition-colors"
           >
             Library
           </button>
-          <button 
-            type="button" 
+          <button
+            type="button"
             onClick={() => setIsPartyModalOpen(true)}
             className="hover:text-secondary transition-colors flex items-center gap-1.5"
           >
@@ -305,11 +302,10 @@ export function DesktopTopHeader() {
         <button
           type="button"
           onClick={() => setIsPartyModalOpen(true)}
-          className={`flex items-center gap-1.5 px-space-md py-1.5 rounded-full font-title text-title-sm font-semibold transition-all shadow-sm ${
-            activeRoom 
-              ? 'bg-secondary text-on-secondary shadow-glow-emerald' 
+          className={`flex items-center gap-1.5 px-space-md py-1.5 rounded-full font-title text-title-sm font-semibold transition-all shadow-sm ${activeRoom
+              ? 'bg-secondary text-on-secondary shadow-glow-emerald'
               : 'bg-surface-container-high hover:bg-surface-bright text-on-surface'
-          }`}
+            }`}
         >
           <span className="material-symbols-outlined text-title-sm">
             {activeRoom ? 'podcasts' : 'sensors'}
@@ -319,10 +315,10 @@ export function DesktopTopHeader() {
 
         {/* Profile Avatar */}
         <div className="relative flex items-center cursor-pointer" title="MusicRoom Session Profile">
-          <img 
-            alt="Profile Avatar" 
-            className="w-8 h-8 rounded-full object-cover ring-2 ring-primary/40 hover:ring-primary transition-all" 
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuCAHwDvGARDDVyKPZKt921jmiMDxRisc9Jbts1ryL_XwOVChyNE_S8ScaKyf3u2pVDCts-S1B13lo5Zz7S4932UWwCoH5EVeJqPnxKA2J1hxBjxycRXzJw7XNOYiNz48KOQqcFNxNua8rcTTRoZxlEnj1O4KjhEkC0kigETYBaGQUkNCRjnArkPuC6uEJ1L3hLAWL4HthsF9STx5Jp9gcocSBWn6M4kunNeHmOvLkg" 
+          <img
+            alt="Profile Avatar"
+            className="w-8 h-8 rounded-full object-cover ring-2 ring-primary/40 hover:ring-primary transition-all"
+            src="https://lh3.googleusercontent.com/aida-public/AB6AXuCAHwDvGARDDVyKPZKt921jmiMDxRisc9Jbts1ryL_XwOVChyNE_S8ScaKyf3u2pVDCts-S1B13lo5Zz7S4932UWwCoH5EVeJqPnxKA2J1hxBjxycRXzJw7XNOYiNz48KOQqcFNxNua8rcTTRoZxlEnj1O4KjhEkC0kigETYBaGQUkNCRjnArkPuC6uEJ1L3hLAWL4HthsF9STx5Jp9gcocSBWn6M4kunNeHmOvLkg"
           />
         </div>
       </div>
@@ -378,10 +374,10 @@ export function DesktopPlayerBar() {
 
   return (
     <footer className="fixed bottom-0 left-0 right-0 h-20 bg-surface-container-lowest/95 backdrop-blur-2xl z-50 px-gutter border-t border-surface-container-high/80 flex items-center justify-between shadow-[0_-4px_20px_rgba(0,0,0,0.4)] select-none">
-      
+
       {/* 1. Left: Track Artwork & Identity */}
       <div className="flex items-center gap-space-md w-1/4 min-w-[200px] max-w-sm">
-        <div 
+        <div
           onClick={() => setIsFullScreen(true)}
           className="w-12 h-12 rounded-lg bg-surface-container-high overflow-hidden flex-shrink-0 flex items-center justify-center cursor-pointer group shadow-sm relative border border-white/5"
           title="Open Lyrics & Now Playing Studio"
@@ -397,7 +393,7 @@ export function DesktopPlayerBar() {
         </div>
 
         <div className="flex flex-col min-w-0 flex-1">
-          <span 
+          <span
             onClick={() => setIsFullScreen(true)}
             className="truncate text-body-sm font-semibold text-on-surface cursor-pointer hover:text-primary transition-colors leading-tight"
             title={activeSong.title}
@@ -412,13 +408,12 @@ export function DesktopPlayerBar() {
         <button
           type="button"
           onClick={() => toggleLike(activeSong)}
-          className={`p-1 transition-colors ${
-            liked ? 'text-primary' : 'text-on-surface-variant hover:text-primary'
-          }`}
+          className={`p-1 transition-colors ${liked ? 'text-primary' : 'text-on-surface-variant hover:text-primary'
+            }`}
           title={liked ? "Remove from Liked" : "Like track"}
         >
-          <span 
-            className="material-symbols-outlined text-title-md" 
+          <span
+            className="material-symbols-outlined text-title-md"
             style={{ fontVariationSettings: liked ? "'FILL' 1" : "'FILL' 0" }}
           >
             {liked ? 'favorite' : 'favorite_border'}
@@ -454,8 +449,8 @@ export function DesktopPlayerBar() {
             className="w-10 h-10 rounded-full bg-primary hover:bg-primary-container text-on-primary flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-md"
             title={playback.isPlaying ? "Pause" : "Play"}
           >
-            <span 
-              className="material-symbols-outlined text-headline-sm" 
+            <span
+              className="material-symbols-outlined text-headline-sm"
               style={{ fontVariationSettings: "'FILL' 1" }}
             >
               {playback.isPlaying ? 'pause' : 'play_arrow'}
@@ -486,7 +481,7 @@ export function DesktopPlayerBar() {
           <span className="text-label-sm font-metric-mono text-outline min-w-[34px] text-right">
             {formatTime(playback.currentTime)}
           </span>
-          <div 
+          <div
             onClick={(e) => {
               const rect = e.currentTarget.getBoundingClientRect();
               const clickX = e.clientX - rect.left;
@@ -542,7 +537,7 @@ export function DesktopPlayerBar() {
               {isMuted || volume === 0 ? 'volume_off' : volume > 50 ? 'volume_up' : 'volume_down'}
             </span>
           </button>
-          <div 
+          <div
             onClick={(e) => {
               const rect = e.currentTarget.getBoundingClientRect();
               const clickX = e.clientX - rect.left;
@@ -552,9 +547,9 @@ export function DesktopPlayerBar() {
             className="w-20 h-1.5 bg-surface-container-high rounded-full overflow-hidden cursor-pointer relative py-1"
           >
             <div className="absolute top-1/2 -translate-y-1/2 left-0 right-0 h-1 bg-surface-container-high rounded-full">
-              <div 
-                className="h-full bg-on-surface-variant rounded-full" 
-                style={{ width: `${isMuted ? 0 : volume}%` }} 
+              <div
+                className="h-full bg-on-surface-variant rounded-full"
+                style={{ width: `${isMuted ? 0 : volume}%` }}
               />
             </div>
           </div>
@@ -564,11 +559,10 @@ export function DesktopPlayerBar() {
         <button
           type="button"
           onClick={() => setIsQueueOpen(!isQueueOpen)}
-          className={`p-1.5 rounded-lg transition-colors ${
-            isQueueOpen 
-              ? 'bg-surface-container-high text-primary' 
+          className={`p-1.5 rounded-lg transition-colors ${isQueueOpen
+              ? 'bg-surface-container-high text-primary'
               : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container'
-          }`}
+            }`}
           title="Up Next Queue"
         >
           <span className="material-symbols-outlined text-title-md">queue_music</span>

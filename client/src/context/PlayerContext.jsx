@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { socket } from '../socket';
+import { getTracksForCompilation } from '../data/topHitsData';
 
 const PlayerContext = createContext(null);
 
@@ -624,8 +625,27 @@ export function PlayerProvider({ children }) {
 
   const openPlaylist = (playlist) => {
     if (!playlist) return;
-    setSelectedPlaylist(playlist);
+    if (typeof playlist === 'string') {
+      const tracks = getTracksForCompilation(playlist) || [];
+      const title = playlist.replace(/[-_]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+      setSelectedPlaylist({
+        id: playlist,
+        name: title,
+        title: title,
+        artist: 'MusicRoom Curated',
+        composer: 'MusicRoom Curated',
+        year: '2024',
+        genre: 'Curated Collection',
+        songs: tracks,
+        cover: tracks[0]?.thumbnail || 'https://lh3.googleusercontent.com/aida-public/AB6AXuA5RLhC_0ngzLxhcP5ssJQZt91z6PaSdUcMBdNcX80qNkXeYv-MxXCJZmC8Tvl5iRLf6Z3U1j3v0YMWBeELFAMdljy3FSYTbfymw_LOqStXU2EbkePL2GGvFXc8_MrEiJAB7nZWzdyjM8ZzSJb9dQViKKag4Y6avP2BLieNwwaiQYW-bKjP7QbpxSBiN31N2Ea2W1HMyhjczPUnUZ7aXvDdYGkBiJRWyKZHZbksd_4'
+      });
+    } else {
+      setSelectedPlaylist(playlist);
+    }
     setActiveTab('playlist');
+    try {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (_) {}
   };
 
   // Search History
