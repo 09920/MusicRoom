@@ -26,6 +26,8 @@ export default function Player({
   const [syncDrift, setSyncDrift] = useState(0);
   const isRemoteActionRef = useRef(false);
   const skipSegmentsRef = useRef([]);
+  const hasEndedTriggeredRef = useRef(false);
+  const endingTimeoutRef = useRef(null);
   const [skippedNotice, setSkippedNotice] = useState('');
   const [isAudioOnly, setIsAudioOnly] = useState(() => {
     try {
@@ -47,6 +49,8 @@ export default function Player({
 
   useEffect(() => {
     setIsEnding(false);
+    hasEndedTriggeredRef.current = false;
+    if (endingTimeoutRef.current) clearTimeout(endingTimeoutRef.current);
     skipSegmentsRef.current = [];
 
     if (!currentSong?.videoId) return;
@@ -69,17 +73,34 @@ export default function Player({
           const cur = playerRef.current.getCurrentTime() || 0;
           const dur = playerRef.current.getDuration() || 0;
           if (dur > 15 && cur >= dur - 1.5) {
-            setIsEnding(true);
-            if (isHost && onSongEnd) {
-              onSongEnd();
+            if (!hasEndedTriggeredRef.current) {
+              hasEndedTriggeredRef.current = true;
+              setIsEnding(true);
+
+              // Strict 3.5s safety timeout: Shield auto-dismisses so it NEVER stays stuck
+              if (endingTimeoutRef.current) clearTimeout(endingTimeoutRef.current);
+              endingTimeoutRef.current = setTimeout(() => {
+                setIsEnding(false);
+              }, 3500);
+
+              if ((isHost || canControl) && onSongEnd) {
+                onSongEnd();
+              }
             }
+          } else if (cur < dur - 3) {
+            hasEndedTriggeredRef.current = false;
+            setIsEnding(false);
+            if (endingTimeoutRef.current) clearTimeout(endingTimeoutRef.current);
           }
         } catch (_) { }
       }
     }, 400);
 
-    return () => clearInterval(endCheckInterval);
-  }, [isHost, onSongEnd]);
+    return () => {
+      clearInterval(endCheckInterval);
+      if (endingTimeoutRef.current) clearTimeout(endingTimeoutRef.current);
+    };
+  }, [isHost, canControl, onSongEnd]);
 
   const onPlaybackChangeRef = useRef(onPlaybackChange);
   useEffect(() => {
@@ -242,6 +263,8 @@ export default function Player({
 
             if (event.data === 1) {
               setIsEnding(false);
+              hasEndedTriggeredRef.current = false;
+              if (endingTimeoutRef.current) clearTimeout(endingTimeoutRef.current);
               if (onPlaybackChange) {
                 onPlaybackChange({
                   isPlaying: true,
@@ -259,12 +282,18 @@ export default function Player({
               }
             } else if (event.data === 0) {
               setIsEnding(true);
-              if (isHost && onSongEnd) {
-                try {
-                  if (dur > 10 && cur >= dur - 3.5) {
+              if (endingTimeoutRef.current) clearTimeout(endingTimeoutRef.current);
+              endingTimeoutRef.current = setTimeout(() => {
+                setIsEnding(false);
+              }, 3000);
+
+              if (!hasEndedTriggeredRef.current) {
+                hasEndedTriggeredRef.current = true;
+                if ((isHost || canControl) && onSongEnd) {
+                  try {
                     onSongEnd();
-                  }
-                } catch (_) { }
+                  } catch (_) { }
+                }
               }
             }
           },
@@ -534,15 +563,29 @@ export default function Player({
 
         {/* Transition Shield: Covers video when track completes */}
         <div
-          className={`!absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/95 backdrop-blur-xl transition-opacity duration-300 pointer-events-none ${
-            isEnding ? 'opacity-100' : 'opacity-0'
+          className={`!absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/95 backdrop-blur-xl transition-opacity duration-300 ${
+            isEnding ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
           }`}
+          onClick={() => setIsEnding(false)}
         >
           <div className="w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center mb-2.5 text-primary">
             <Disc3 className="w-6 h-6 animate-spin" />
           </div>
           <p className="font-title-md text-title-md text-on-surface font-bold">Up Next...</p>
           <p className="font-label-sm text-label-sm text-on-surface-variant">Transitioning smoothly to next song</p>
+
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsEnding(false);
+              if (onSongEnd) onSongEnd();
+            }}
+            className="mt-3 px-3 py-1 rounded-full bg-surface-container-highest hover:bg-surface-bright text-xs text-on-surface font-semibold border border-white/10 active:scale-95 transition-all shadow-md flex items-center gap-1"
+          >
+            <span>Skip to Next</span>
+            <span className="material-symbols-outlined text-[14px]">skip_next</span>
+          </button>
         </div>
 
         {/* Audio-Only Visualizer Screen (Vinyl Screen) */}

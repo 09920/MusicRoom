@@ -324,7 +324,10 @@ async function pickNextSong(room, apiKey) {
     if (relaxed.length > 0) {
       return relaxed[Math.floor(Math.random() * relaxed.length)];
     }
-    return null;
+    const genre = detectGenre(seedSong || {});
+    const pool = GENRE_FALLBACKS[genre] || GENRE_FALLBACKS.hindi;
+    const fallback = pool.find(s => s.videoId !== room.currentSong?.videoId) || pool[0];
+    return fallback;
   }
 
   // Pick one from top candidates (weighted towards the top 5 vibe matches)
