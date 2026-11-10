@@ -18,5 +18,8 @@
     "collaborative"
   ],
   "author": "",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "puppeteer-core": "^25.16.0"
+  }
 }

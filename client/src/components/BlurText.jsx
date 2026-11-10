@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
 
-export default function BlurText({ text, className = '' }) {
-  const words = text.split(' ');
+export default function BlurText({ text = '', className = '' }) {
+  const words = text ? text.split(' ') : [];
   const [inView, setInView] = useState(false);
   const containerRef = useRef(null);
 
@@ -32,30 +31,19 @@ export default function BlurText({ text, className = '' }) {
       }}
     >
       {words.map((word, i) => (
-        <motion.span
+        <span
           key={i}
-          initial={{ filter: 'blur(10px)', opacity: 0, y: 50 }}
-          animate={
-            inView
-              ? {
-                  filter: ['blur(10px)', 'blur(5px)', 'blur(0px)'],
-                  opacity: [0, 0.5, 1],
-                  y: [50, -5, 0]
-                }
-              : { filter: 'blur(10px)', opacity: 0, y: 50 }
-          }
-          transition={{
-            duration: 0.7,
-            times: [0, 0.5, 1],
-            ease: 'easeOut',
-            delay: (i * 100) / 1000
+          className="inline-block transition-all duration-700 ease-out"
+          style={{
+            filter: inView ? 'blur(0px)' : 'blur(10px)',
+            opacity: inView ? 1 : 0,
+            transform: inView ? 'translateY(0)' : 'translateY(20px)',
+            transitionDelay: `${i * 60}ms`
           }}
-          style={{ display: 'inline-block', marginRight: '0.28em' }}
         >
-          {word}
-        </motion.span>
+          {word}&nbsp;
+        </span>
       ))}
     </p>
   );
 }
-

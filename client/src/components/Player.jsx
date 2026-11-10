@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { socket } from '../socket';
 import { Plus, Headphones, Video, Music2, Disc3, Zap } from 'lucide-react';
-import { usePlayer } from '../context/PlayerContext';
 
 export default function Player({
   currentSong,
@@ -26,7 +25,23 @@ export default function Player({
   const [showSyncBadge, setShowSyncBadge] = useState(false);
   const [syncDrift, setSyncDrift] = useState(0);
   const isRemoteActionRef = useRef(false);
-  const { isAudioOnly = false, toggleAudioOnly = () => {} } = usePlayer() || {};
+  const [isAudioOnly, setIsAudioOnly] = useState(() => {
+    try {
+      return localStorage.getItem('musicroom_audio_only') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const toggleAudioOnly = () => {
+    setIsAudioOnly(prev => {
+      const next = !prev;
+      try {
+        localStorage.setItem('musicroom_audio_only', String(next));
+      } catch { }
+      return next;
+    });
+  };
 
   useEffect(() => {
     setIsEnding(false);
@@ -65,13 +80,11 @@ export default function Player({
         try {
           const cur = p.getCurrentTime() || 0;
           const dur = typeof p.getDuration === 'function' ? p.getDuration() || 0 : 0;
-          const state = typeof p.getPlayerState === 'function' ? p.getPlayerState() : -1;
 
           if (onPlaybackChangeRef.current) {
             onPlaybackChangeRef.current({
               currentTime: cur,
-              ...(dur > 0 ? { duration: dur } : {}),
-              isPlaying: state === 1
+              ...(dur > 0 ? { duration: dur } : {})
             });
           }
         } catch (_) { }
@@ -80,6 +93,19 @@ export default function Player({
 
     return () => clearInterval(timeTracker);
   }, []);
+
+  // Handle play/pause sync when playback.isPlaying changes
+  useEffect(() => {
+    if (!playerRef.current || typeof playerRef.current.getPlayerState !== 'function') return;
+    try {
+      const state = playerRef.current.getPlayerState();
+      if (playback?.isPlaying && state !== 1 && state !== 3) {
+        playerRef.current.playVideo();
+      } else if (!playback?.isPlaying && (state === 1 || state === 3)) {
+        playerRef.current.pauseVideo();
+      }
+    } catch (_) {}
+  }, [playback?.isPlaying]);
 
   // Set 144p quality when in audio-only mode or on mobile to save ~85% mobile data & prevent buffering
   useEffect(() => {
@@ -110,23 +136,19 @@ export default function Player({
         if (typeof window !== 'undefined') window.musicroom_player = playerRef.current;
 
         const isNewTrack = lastLoadedVideoIdRef.current !== currentSong.videoId;
-        lastLoadedVideoIdRef.current = currentSong.videoId;
+        const alreadyHandledByPlaySong = typeof window !== 'undefined' && window.musicroom_target_videoId === currentSong.videoId;
 
-        playerRef.current.loadVideoById({
-          videoId: currentSong.videoId,
-          startSeconds: isNewTrack ? 0 : (playback?.currentTime || 0)
-        });
-        if (playback?.isPlaying !== false) {
-          playerRef.current.playVideo();
-          setTimeout(() => {
-            try {
-              if (playerRef.current && typeof playerRef.current.getPlayerState === 'function') {
-                if (playerRef.current.getPlayerState() !== 1) {
-                  playerRef.current.playVideo();
-                }
-              }
-            } catch (_) { }
-          }, 350);
+        if (isNewTrack && !alreadyHandledByPlaySong) {
+          lastLoadedVideoIdRef.current = currentSong.videoId;
+          playerRef.current.loadVideoById({
+            videoId: currentSong.videoId,
+            startSeconds: 0
+          });
+          if (playback?.isPlaying !== false) {
+            playerRef.current.playVideo();
+          }
+        } else {
+          lastLoadedVideoIdRef.current = currentSong.videoId;
         }
         return true;
       }
@@ -144,7 +166,7 @@ export default function Player({
           modestbranding: 1,
           playsinline: 1,
           iv_load_policy: 3,
-          origin: window.location.origin
+          enablejsapi: 1
         },
         events: {
           onReady: (event) => {
@@ -226,7 +248,13 @@ export default function Player({
                   const alternative = (data.results || []).find(r => r.videoId && r.videoId !== videoId);
                   if (alternative && alternative.videoId) {
                     console.log(`[Auto-Recover] Switching unplayable video (${videoId}) to working alternative (${alternative.videoId}): ${alternative.title}`);
-                    if (playerRef.current && typeof playerRef.current.loadVideoById === 'function') {
+                    if (typeof window !== 'undefined' && typeof window.musicroom_playSong === 'function') {
+                      window.musicroom_playSong({
+                        ...currentSong,
+                        videoId: alternative.videoId
+                      }, true);
+                      return;
+                    } else if (playerRef.current && typeof playerRef.current.loadVideoById === 'function') {
                       lastLoadedVideoIdRef.current = alternative.videoId;
                       playerRef.current.loadVideoById({
                         videoId: alternative.videoId,

@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { 
   ArrowUpRight, 
   KeyRound, 
@@ -204,20 +203,15 @@ export default function Home({ onRoomJoined, initialRoomId, userId }) {
         {/* Hero Content Layer */}
         <div className="relative z-10 flex-1 flex flex-col items-center justify-center text-center px-4 max-w-4xl mx-auto my-auto w-full">
           
-          {/* Animated Badge Chip (delay 0.4s) */}
-          <motion.div
-            initial={{ filter: 'blur(10px)', opacity: 0, y: 20 }}
-            animate={{ filter: 'blur(0px)', opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4, ease: 'easeOut' }}
-            className="liquid-glass rounded-full p-1 pr-3.5 flex items-center gap-2.5 mb-6 shadow-2xl"
-          >
+          {/* Animated Badge Chip */}
+          <div className="liquid-glass rounded-full p-1 pr-3.5 flex items-center gap-2.5 mb-6 shadow-2xl animate-in fade-in slide-in-from-bottom-2 duration-500">
             <span className="bg-white text-black px-3 py-1 text-xs font-semibold rounded-full">
               New
             </span>
             <span className="text-xs sm:text-sm text-white/90 font-medium">
               Synchronized Music Rooms • No Signups Needed
             </span>
-          </motion.div>
+          </div>
 
           {/* Headline with Word-by-Word Blur Animation */}
           <BlurText
@@ -225,23 +219,13 @@ export default function Home({ onRoomJoined, initialRoomId, userId }) {
             className="text-5xl sm:text-7xl lg:text-[5.5rem] font-heading italic text-white leading-[0.85] max-w-2xl justify-center tracking-[-3px] sm:tracking-[-4px]"
           />
 
-          {/* Subheading (delay 0.8s) */}
-          <motion.p
-            initial={{ filter: 'blur(10px)', opacity: 0, y: 20 }}
-            animate={{ filter: 'blur(0px)', opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.8, ease: 'easeOut' }}
-            className="mt-6 text-sm sm:text-base text-white/80 max-w-2xl font-body font-light leading-snug"
-          >
+          {/* Subheading */}
+          <p className="mt-6 text-sm sm:text-base text-white/80 max-w-2xl font-body font-light leading-snug animate-in fade-in slide-in-from-bottom-3 duration-700">
             Discover shared listening in ways once unimaginable. Create a private room in 1-click, send the link to friends, and hear every beat at the exact same millisecond.
-          </motion.p>
+          </p>
 
           {/* Main Liquid-Glass Session Card */}
-          <motion.div
-            initial={{ filter: 'blur(10px)', opacity: 0, y: 30 }}
-            animate={{ filter: 'blur(0px)', opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 1.0, ease: 'easeOut' }}
-            className="w-full max-w-md liquid-glass-strong rounded-[2rem] p-6 sm:p-7 shadow-2xl mt-8 text-left relative"
-          >
+          <div className="w-full max-w-md liquid-glass-strong rounded-[2rem] p-6 sm:p-7 shadow-2xl mt-8 text-left relative animate-in fade-in slide-in-from-bottom-4 duration-700">
             {/* Quick Rejoin Banner */}
             {recentSession && (
               <div className="mb-5 p-3.5 rounded-2xl liquid-glass border border-white/10 flex items-center justify-between gap-3 bg-white/[0.03]">
@@ -469,15 +453,10 @@ export default function Home({ onRoomJoined, initialRoomId, userId }) {
                 </button>
               </form>
             )}
-          </motion.div>
+          </div>
 
-          {/* Stats Row (delay 1.2s) */}
-          <motion.div
-            initial={{ filter: 'blur(10px)', opacity: 0, y: 20 }}
-            animate={{ filter: 'blur(0px)', opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 1.2, ease: 'easeOut' }}
-            className="flex items-stretch gap-4 mt-8"
-          >
+          {/* Stats Row */}
+          <div className="flex items-stretch gap-4 mt-8 animate-in fade-in duration-700">
             <div className="liquid-glass p-5 w-[180px] sm:w-[220px] rounded-[1.25rem] text-left flex flex-col justify-between shadow-2xl">
               <Wifi className="w-6 h-6 text-white/70" />
               <div className="mt-4">
@@ -501,17 +480,12 @@ export default function Home({ onRoomJoined, initialRoomId, userId }) {
                 </p>
               </div>
             </div>
-          </motion.div>
+          </div>
 
         </div>
 
-        {/* Partners / Ecosystem Row (delay 1.4s) */}
-        <motion.div
-          initial={{ filter: 'blur(10px)', opacity: 0, y: 20 }}
-          animate={{ filter: 'blur(0px)', opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 1.4, ease: 'easeOut' }}
-          className="relative z-10 flex flex-col items-center gap-3 pt-6"
-        >
+        {/* Partners / Ecosystem Row */}
+        <div className="relative z-10 flex flex-col items-center gap-3 pt-6 animate-in fade-in duration-700">
           <div className="liquid-glass rounded-full px-3.5 py-1 text-xs font-medium text-white shadow-xl">
             Powered by modern streaming & real-time protocols
           </div>
@@ -524,7 +498,7 @@ export default function Home({ onRoomJoined, initialRoomId, userId }) {
             <span>·</span>
             <span>Brave</span>
           </div>
-        </motion.div>
+        </div>
 
       </section>
 
