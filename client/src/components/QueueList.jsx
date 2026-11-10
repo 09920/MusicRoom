@@ -1,5 +1,5 @@
-import React from 'react';
-import { Play, Trash2, Plus, Radio, Music, ArrowUp, ArrowDown, GripVertical, CheckCircle2, Sparkles, RefreshCw } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Play, Trash2, Plus, Radio, Music, ArrowUp, ArrowDown, GripVertical, CheckCircle2, Sparkles, RefreshCw, Check } from 'lucide-react';
 
 function formatDuration(sec) {
   if (!sec || isNaN(sec)) return '--:--';
@@ -20,8 +20,14 @@ export default function QueueList({
   onRemoveItem,
   onMoveItem,
   onOpenImport,
-  onToggleAutoMode
+  onToggleAutoMode,
+  onAddSong,
+  onPlayNow
 }) {
+  const [radioUpcoming, setRadioUpcoming] = useState([]);
+  const [loadingUpcoming, setLoadingUpcoming] = useState(false);
+  const [addedIds, setAddedIds] = useState(new Set());
+
   // Calculate total remaining minutes
   const totalSeconds = queue.reduce((acc, item) => acc + (item.durationSec || 210), 0);
   const remainingMinutes = Math.ceil(totalSeconds / 60);
@@ -29,6 +35,63 @@ export default function QueueList({
   const currentTime = playback?.currentTime || 0;
   const duration = currentSong?.durationSec || 240;
   const progressPercent = duration > 0 ? Math.min(100, Math.max(0, (currentTime / duration) * 100)) : 0;
+
+  // Fetch upcoming predicted tracks from Last.fm / Radio whenever currentSong changes
+  const fetchUpcomingRadio = () => {
+    if (!currentSong?.videoId && !currentSong?.title) return;
+    setLoadingUpcoming(true);
+
+    const query = new URLSearchParams({
+      videoId: currentSong.videoId || '',
+      title: currentSong.title || '',
+      artist: currentSong.channelTitle || '',
+      mood: 'all'
+    });
+
+    fetch(`/api/radio?${query.toString()}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && Array.isArray(data.tracks)) {
+          // Filter out currentSong and songs already in manual queue
+          const queueIds = new Set(queue.map((q) => q.videoId));
+          if (currentSong?.videoId) queueIds.add(currentSong.videoId);
+          const filtered = data.tracks.filter((t) => !queueIds.has(t.videoId));
+          setRadioUpcoming(filtered.slice(0, 8));
+        } else {
+          setRadioUpcoming([]);
+        }
+        setLoadingUpcoming(false);
+      })
+      .catch((err) => {
+        console.warn('[QueueList] Failed to fetch upcoming radio:', err);
+        setRadioUpcoming([]);
+        setLoadingUpcoming(false);
+      });
+  };
+
+  useEffect(() => {
+    fetchUpcomingRadio();
+  }, [currentSong?.videoId, currentSong?.title, queue.length]);
+
+  const handleAddTrack = (track) => {
+    if (!onAddSong) return;
+    onAddSong({
+      videoId: track.videoId,
+      title: track.title,
+      channelTitle: track.channelTitle || track.artist || 'Artist',
+      thumbnail: track.thumbnail || `https://i.ytimg.com/vi/${track.videoId}/hqdefault.jpg`,
+      durationSec: track.duration || 215
+    });
+
+    setAddedIds((prev) => new Set([...prev, track.videoId]));
+    setTimeout(() => {
+      setAddedIds((prev) => {
+        const next = new Set(prev);
+        next.delete(track.videoId);
+        return next;
+      });
+    }, 2000);
+  };
 
   return (
     <div className="flex flex-col w-full space-y-4">
@@ -64,9 +127,13 @@ export default function QueueList({
               Shared Jukebox
             </h2>
             <p className="text-xs text-on-surface-variant font-medium mt-0.5">
-              {queue.length} {queue.length === 1 ? 'Track' : 'Tracks'} in Queue
-              <span className="text-outline mx-1.5">•</span>
-              {remainingMinutes}m remaining
+              {queue.length} {queue.length === 1 ? 'Track' : 'Tracks'} in User Queue
+              {remainingMinutes > 0 && (
+                <>
+                  <span className="text-outline mx-1.5">•</span>
+                  <span>{remainingMinutes}m queued</span>
+                </>
+              )}
             </p>
           </div>
 
@@ -111,7 +178,7 @@ export default function QueueList({
                 />
                 <div className="absolute inset-0 bg-surface-container-lowest/20"></div>
 
-                {/* Tiny Live Equalizer overlay */}
+                {/* Live Equalizer overlay */}
                 <div className="absolute bottom-1.5 right-1.5 flex items-end gap-0.5 h-3.5 px-1 py-0.5 rounded bg-surface-container-lowest/80 backdrop-blur-sm">
                   <span className="w-1 bg-secondary rounded-full animate-bounce h-3"></span>
                   <span className="w-1 bg-primary rounded-full animate-bounce h-2" style={{ animationDelay: '150ms' }}></span>
@@ -160,21 +227,21 @@ export default function QueueList({
             </div>
             <div className="flex flex-col min-w-0">
               <span className="text-xs font-semibold text-on-surface truncate">Collaborative Room</span>
-              <span className="text-[11px] text-on-surface-variant truncate">All members can queue & upvote</span>
+              <span className="text-[11px] text-on-surface-variant truncate">All members can queue &amp; upvote</span>
             </div>
           </div>
           <CheckCircle2 className="w-4 h-4 text-tertiary flex-shrink-0 ml-2" />
         </div>
 
-        {/* YouTube Infinite Radio Toggle Card */}
+        {/* Infinite Radio Toggle Card */}
         <div className="flex items-center justify-between p-3 rounded-2xl bg-surface-container-low border border-white/5">
           <div className="flex items-center space-x-2.5 min-w-0">
             <div className="w-7 h-7 rounded-full bg-secondary/15 flex items-center justify-center flex-shrink-0 text-secondary">
               <Radio className="w-4 h-4" />
             </div>
             <div className="flex flex-col min-w-0">
-              <span className="text-xs font-semibold text-on-surface truncate">Infinite Radio</span>
-              <span className="text-[11px] text-on-surface-variant truncate">Auto-queue similar vibes</span>
+              <span className="text-xs font-semibold text-on-surface truncate">Infinite Radio (Last.fm)</span>
+              <span className="text-[11px] text-on-surface-variant truncate">Auto-queues similar vibe tracks</span>
             </div>
           </div>
 
@@ -186,7 +253,7 @@ export default function QueueList({
             className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full transition-colors duration-200 ease-in-out focus:outline-none ml-2 ${
               autoMode ? 'bg-primary' : 'bg-surface-variant'
             } ${!canControl ? 'opacity-40 cursor-not-allowed' : ''}`}
-            title={canControl ? 'Toggle YouTube Infinite Radio' : 'Host controls radio'}
+            title={canControl ? 'Toggle Infinite Radio' : 'Host controls radio'}
           >
             <span
               className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-on-primary shadow-md ring-0 transition duration-200 ease-in-out mt-1 ml-1 ${
@@ -197,167 +264,266 @@ export default function QueueList({
         </div>
       </div>
 
-      {/* Queue Section Header */}
-      <div className="flex items-center justify-between pt-1">
-        <div className="flex items-center space-x-2">
-          <span className="text-sm font-bold text-on-surface">Upcoming Tracks</span>
-          <span className="text-[11px] bg-surface-container-high text-on-surface-variant px-2 py-0.5 rounded-full font-bold border border-white/5">
-            {queue.length} Next
-          </span>
-        </div>
-      </div>
-
-      {/* Queue Interactive List or Empty State */}
-      {queue.length === 0 ? (
-        <div className="text-center py-8 px-4 rounded-2xl bg-surface-container-low border border-white/5 space-y-3">
-          <div className="w-12 h-12 rounded-full bg-surface-container-high text-secondary mx-auto flex items-center justify-center border border-white/5">
-            {autoMode ? (
-              <Radio className="w-6 h-6 animate-pulse text-secondary" />
-            ) : (
-              <Music className="w-6 h-6 text-outline" />
-            )}
-          </div>
-          <div>
-            <p className="text-sm font-bold text-on-surface">
-              {autoMode ? `YouTube Infinite Radio Active` : 'Queue is empty'}
-            </p>
-            <p className="text-xs text-on-surface-variant max-w-sm mx-auto mt-1 leading-relaxed">
-              {autoMode
-                ? `When current song finishes, the room auto-streams continuous matching ${language} hits!`
-                : 'Search any track above or import a playlist to keep the room jamming.'}
-            </p>
+      {/* SECTION 1: MANUAL USER QUEUE (If items exist) */}
+      {queue.length > 0 && (
+        <div className="flex flex-col space-y-2">
+          <div className="flex items-center justify-between pt-1">
+            <div className="flex items-center space-x-2">
+              <span className="text-sm font-bold text-on-surface">Next Up in Queue</span>
+              <span className="text-[11px] bg-secondary/20 text-secondary px-2 py-0.5 rounded-full font-bold border border-secondary/30">
+                {queue.length} Queued
+              </span>
+            </div>
           </div>
 
-          <div className="pt-1 flex items-center justify-center">
-            <button
-              onClick={onOpenImport}
-              className="px-4 py-2 rounded-full bg-primary text-on-primary hover:bg-primary-container text-xs font-bold shadow-md active:scale-95 transition-all"
-            >
-              Import Playlist
-            </button>
-          </div>
-        </div>
-      ) : (
-        <div className="flex flex-col space-y-2 max-h-[460px] overflow-y-auto pr-1">
-          {queue.map((item, index) => {
-            const isFirst = index === 0;
-            const isLast = index === queue.length - 1;
+          <div className="flex flex-col space-y-2 max-h-[380px] overflow-y-auto pr-1">
+            {queue.map((item, index) => {
+              const isFirst = index === 0;
+              const isLast = index === queue.length - 1;
 
-            return (
-              <div
-                key={item.queueId || index}
-                className="group relative flex items-center justify-between p-3 rounded-2xl bg-surface-container hover:bg-surface-container-high transition-all duration-150 shadow-sm border border-white/5"
-              >
-                <div className="flex items-center space-x-3 min-w-0 flex-1">
-                  {/* Drag Indicator */}
-                  <GripVertical className="w-4 h-4 text-outline select-none shrink-0 group-hover:text-on-surface" />
+              return (
+                <div
+                  key={item.queueId || index}
+                  className="group relative flex items-center justify-between p-3 rounded-2xl bg-surface-container hover:bg-surface-container-high transition-all duration-150 shadow-sm border border-white/5"
+                >
+                  <div className="flex items-center space-x-3 min-w-0 flex-1">
+                    <GripVertical className="w-4 h-4 text-outline select-none shrink-0 group-hover:text-on-surface" />
 
-                  {/* Thumbnail with Rank Badge */}
-                  <div className="relative w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 bg-surface-container-highest border border-white/10">
-                    <img
-                      className="w-full h-full object-cover"
-                      src={item.thumbnail}
-                      alt={item.title}
-                      onError={(e) => {
-                        e.currentTarget.onerror = null;
-                        e.currentTarget.src = 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=120&q=80';
-                      }}
-                    />
-                    <div
-                      className={`absolute top-0 left-0 font-label-sm text-[9px] font-extrabold px-1.5 py-0.5 rounded-br ${
-                        isFirst
-                          ? 'bg-primary text-on-primary'
-                          : 'bg-surface-container-highest/90 text-on-surface'
-                      }`}
-                    >
-                      #{index + 1}
-                    </div>
-
-                    {canControl && (
-                      <button
-                        onClick={() => onPlayItem(item.queueId)}
-                        className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-opacity"
-                        title="Play now"
+                    <div className="relative w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 bg-surface-container-highest border border-white/10">
+                      <img
+                        className="w-full h-full object-cover"
+                        src={item.thumbnail}
+                        alt={item.title}
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=120&q=80';
+                        }}
+                      />
+                      <div
+                        className={`absolute top-0 left-0 font-label-sm text-[9px] font-extrabold px-1.5 py-0.5 rounded-br ${
+                          isFirst
+                            ? 'bg-primary text-on-primary'
+                            : 'bg-surface-container-highest/90 text-on-surface'
+                        }`}
                       >
-                        <Play className="w-5 h-5 fill-white translate-x-0.5" />
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Song Info */}
-                  <div
-                    className="flex flex-col min-w-0 flex-1 cursor-pointer"
-                    onClick={() => canControl && onPlayItem(item.queueId)}
-                  >
-                    <div className="flex items-center space-x-1.5">
-                      <span className="text-xs sm:text-sm text-on-surface font-bold truncate group-hover:text-primary transition-colors">
-                        {item.title}
-                      </span>
-                      {isFirst && (
-                        <span className="text-[10px] bg-secondary/15 text-secondary px-1.5 py-0.2 rounded font-bold shrink-0">
-                          UP NEXT
-                        </span>
-                      )}
-                    </div>
-                    <span className="text-xs text-on-surface-variant truncate mt-0.5">
-                      {item.channelTitle || 'YouTube'}
-                    </span>
-                    <div className="flex items-center space-x-1.5 mt-0.5 text-[11px] text-outline">
-                      <span className="text-secondary font-medium truncate">
-                        @{item.addedBy || 'Member'}
-                      </span>
-                      <span>•</span>
-                      <span>{item.durationSec ? formatDuration(item.durationSec) : '3:45'}</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Actions */}
-                <div className="flex items-center space-x-1 flex-shrink-0 ml-2">
-                  {canControl && (
-                    <>
-                      <div className="flex flex-col">
-                        <button
-                          onClick={() => onMoveItem(item.queueId, 'up')}
-                          disabled={isFirst}
-                          className="p-1 hover:text-secondary text-outline transition-colors disabled:opacity-20"
-                          title="Move up"
-                        >
-                          <ArrowUp className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={() => onMoveItem(item.queueId, 'down')}
-                          disabled={isLast}
-                          className="p-1 hover:text-secondary text-outline transition-colors disabled:opacity-20"
-                          title="Move down"
-                        >
-                          <ArrowDown className="w-3.5 h-3.5" />
-                        </button>
+                        #{index + 1}
                       </div>
 
+                      {canControl && (
+                        <button
+                          onClick={() => onPlayItem(item.queueId)}
+                          className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-opacity"
+                          title="Play now"
+                        >
+                          <Play className="w-5 h-5 fill-white translate-x-0.5" />
+                        </button>
+                      )}
+                    </div>
+
+                    <div
+                      className="flex flex-col min-w-0 flex-1 cursor-pointer"
+                      onClick={() => canControl && onPlayItem(item.queueId)}
+                    >
+                      <div className="flex items-center space-x-1.5">
+                        <span className="text-xs sm:text-sm text-on-surface font-bold truncate group-hover:text-primary transition-colors">
+                          {item.title}
+                        </span>
+                        {isFirst && (
+                          <span className="text-[10px] bg-secondary/15 text-secondary px-1.5 py-0.2 rounded font-bold shrink-0">
+                            PLAYING NEXT
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-xs text-on-surface-variant truncate mt-0.5">
+                        {item.channelTitle || 'YouTube'}
+                      </span>
+                      <div className="flex items-center space-x-1.5 mt-0.5 text-[11px] text-outline">
+                        <span className="text-secondary font-medium truncate">
+                          @{item.addedBy || 'Member'}
+                        </span>
+                        <span>•</span>
+                        <span>{item.durationSec ? formatDuration(item.durationSec) : '3:45'}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-1 flex-shrink-0 ml-2">
+                    {canControl && (
+                      <>
+                        <div className="flex flex-col">
+                          <button
+                            onClick={() => onMoveItem(item.queueId, 'up')}
+                            disabled={isFirst}
+                            className="p-1 hover:text-secondary text-outline transition-colors disabled:opacity-20"
+                            title="Move up"
+                          >
+                            <ArrowUp className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => onMoveItem(item.queueId, 'down')}
+                            disabled={isLast}
+                            className="p-1 hover:text-secondary text-outline transition-colors disabled:opacity-20"
+                            title="Move down"
+                          >
+                            <ArrowDown className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+
+                        <button
+                          onClick={() => onPlayItem(item.queueId)}
+                          className="p-2 hover:bg-surface-bright text-outline hover:text-secondary rounded-full transition-colors"
+                          title="Play immediately"
+                        >
+                          <Play className="w-3.5 h-3.5 fill-current" />
+                        </button>
+
+                        <button
+                          onClick={() => onRemoveItem(item.queueId)}
+                          className="p-2 hover:bg-error-container/30 hover:text-error text-outline rounded-full transition-colors ml-0.5"
+                          title="Remove track"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* SECTION 2: UPCOMING TRACKLIST (From Last.fm / Radio Graph) */}
+      <div className="flex flex-col space-y-2.5 pt-1">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <span className="w-2 h-2 rounded-full bg-secondary animate-pulse" />
+            <span className="text-sm font-bold text-on-surface">
+              {queue.length === 0 ? 'Up Next: Coming Up Automatically' : 'Up Next from Radio Flow'}
+            </span>
+            <span className="text-[10px] bg-rose-500/15 text-rose-400 px-2 py-0.5 rounded-full font-bold border border-rose-500/20">
+              Last.fm Vibe
+            </span>
+          </div>
+
+          <button
+            onClick={fetchUpcomingRadio}
+            disabled={loadingUpcoming}
+            className="flex items-center gap-1 text-[11px] font-medium text-on-surface-variant hover:text-on-surface p-1 rounded-full bg-surface-container-high transition-colors"
+            title="Refresh upcoming tracklist"
+          >
+            <RefreshCw className={`w-3 h-3 text-secondary ${loadingUpcoming ? 'animate-spin' : ''}`} />
+            <span className="pr-1.5">Refresh</span>
+          </button>
+        </div>
+
+        {loadingUpcoming ? (
+          <div className="flex items-center justify-center p-8 rounded-2xl bg-surface-container-low border border-white/5 space-x-2 text-xs text-on-surface-variant">
+            <RefreshCw className="w-4 h-4 text-secondary animate-spin" />
+            <span>Loading upcoming tracklist...</span>
+          </div>
+        ) : radioUpcoming.length === 0 ? (
+          <div className="p-4 rounded-2xl bg-surface-container-low border border-white/5 text-center text-xs text-on-surface-variant space-y-1">
+            <p className="font-semibold text-on-surface">Search any song above or import a playlist</p>
+            <p className="text-[11px] text-outline">Tracks will queue and auto-flow continuously</p>
+          </div>
+        ) : (
+          <div className="flex flex-col space-y-2">
+            {radioUpcoming.map((track, idx) => {
+              const isAdded = addedIds.has(track.videoId);
+
+              return (
+                <div
+                  key={track.videoId || idx}
+                  className="group flex items-center justify-between p-2.5 rounded-2xl bg-surface-container/70 hover:bg-surface-container-high transition-all border border-white/5"
+                >
+                  <div className="flex items-center space-x-3 min-w-0 flex-1">
+                    {/* Next Indicator */}
+                    <div className="relative w-11 h-11 rounded-xl overflow-hidden flex-shrink-0 bg-surface-container-highest border border-white/10">
+                      <img
+                        className="w-full h-full object-cover"
+                        src={track.thumbnail || `https://i.ytimg.com/vi/${track.videoId}/hqdefault.jpg`}
+                        alt={track.title}
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=120&q=80';
+                        }}
+                      />
+                      <div className="absolute top-0 left-0 bg-surface-container-highest/90 text-secondary text-[8px] font-black px-1 py-0.2 rounded-br">
+                        {idx === 0 && queue.length === 0 ? 'NEXT' : `+${idx + 1}`}
+                      </div>
+
+                      {canControl && onPlayNow && (
+                        <button
+                          onClick={() => onPlayNow(track)}
+                          className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-opacity"
+                          title="Play now"
+                        >
+                          <Play className="w-4 h-4 fill-white translate-x-0.5" />
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Track info */}
+                    <div className="flex flex-col min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs font-bold text-on-surface truncate group-hover:text-primary transition-colors">
+                          {track.title}
+                        </span>
+                        {track.source === 'lastfm' && (
+                          <span className="text-[9px] bg-rose-500/15 text-rose-400 font-bold px-1.5 py-0.2 rounded-full shrink-0">
+                            {track.matchScore ? `${track.matchScore}%` : 'Vibe'}
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-[11px] text-on-surface-variant truncate mt-0.5">
+                        {track.artist || track.channelTitle || 'Artist'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Quick Action buttons */}
+                  <div className="flex items-center space-x-1.5 shrink-0 ml-2">
+                    {canControl && onPlayNow && (
                       <button
-                        onClick={() => onPlayItem(item.queueId)}
-                        className="p-2 hover:bg-surface-bright text-outline hover:text-secondary rounded-full transition-colors"
+                        onClick={() => onPlayNow(track)}
+                        className="p-1.5 hover:bg-surface-bright text-on-surface-variant hover:text-on-surface rounded-full transition-colors"
                         title="Play immediately"
                       >
                         <Play className="w-3.5 h-3.5 fill-current" />
                       </button>
+                    )}
 
-                      <button
-                        onClick={() => onRemoveItem(item.queueId)}
-                        className="p-2 hover:bg-error-container/30 hover:text-error text-outline rounded-full transition-colors ml-0.5"
-                        title="Remove track"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </>
-                  )}
+                    <button
+                      onClick={() => handleAddTrack(track)}
+                      disabled={isAdded}
+                      className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold transition-all active:scale-95 shadow-sm ${
+                        isAdded
+                          ? 'bg-emerald-500 text-white'
+                          : 'bg-primary-container hover:bg-primary text-on-primary-container hover:text-on-primary'
+                      }`}
+                      title="Add to Room Queue"
+                    >
+                      {isAdded ? (
+                        <>
+                          <Check className="w-3 h-3" />
+                          <span>Added</span>
+                        </>
+                      ) : (
+                        <>
+                          <Plus className="w-3 h-3" />
+                          <span>Queue</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+              );
+            })}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

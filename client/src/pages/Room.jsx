@@ -539,6 +539,11 @@ export default function Room({ initialRoom, currentSocketId, userId, onLeaveRoom
                   onMoveItem={handleMoveQueueItem}
                   onOpenImport={() => setIsImportModalOpen(true)}
                   onToggleAutoMode={handleToggleAutoMode}
+                  onAddSong={(song) => {
+                    socket.emit('song:pick', { roomId: room.id, song, playNow: false });
+                    addToast(`Added "${song.title}" to queue`, 'success');
+                  }}
+                  onPlayNow={handlePlayNow}
                 />
               )}
 
