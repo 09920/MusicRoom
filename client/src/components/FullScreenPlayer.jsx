@@ -30,6 +30,8 @@ export default function FullScreenPlayer() {
     setQueue,
     playSong,
     removeFromQueue,
+    isAudioOnly,
+    toggleAudioOnly,
     lyricsState,
     fetchLyrics,
     openAddToPlaylistModal,
@@ -244,25 +246,62 @@ export default function FullScreenPlayer() {
           <div className="lg:col-span-5 flex flex-col gap-5">
             <div className="bg-[#121316] rounded-2xl p-5 sm:p-6 flex flex-col gap-4 shadow-xl border border-white/10">
               
-              {/* Artwork Sleeve */}
-              <div className="relative w-full aspect-square rounded-xl overflow-hidden bg-black/40 shadow-2xl border border-white/5 group">
+              {/* YouTube Music Song / Video Mode Toggle Pill */}
+              <div className="flex items-center justify-center p-1 bg-white/10 backdrop-blur-md rounded-full border border-white/10 max-w-fit mx-auto shadow-lg select-none">
+                <button
+                  type="button"
+                  onClick={() => !isAudioOnly && toggleAudioOnly()}
+                  className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                    isAudioOnly
+                      ? 'bg-white text-black shadow-md'
+                      : 'text-white/60 hover:text-white'
+                  }`}
+                  title="Switch to Song (Audio) Mode"
+                >
+                  <span className="material-symbols-outlined text-sm">music_note</span>
+                  <span>Song</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => isAudioOnly && toggleAudioOnly()}
+                  className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                    !isAudioOnly
+                      ? 'bg-white text-black shadow-md'
+                      : 'text-white/60 hover:text-white'
+                  }`}
+                  title="Switch to Music Video Mode"
+                >
+                  <span className="material-symbols-outlined text-sm">smart_display</span>
+                  <span>Video</span>
+                </button>
+              </div>
+
+              {/* Artwork Sleeve or Video Viewport Slot */}
+              <div
+                id="fullscreen-media-slot"
+                className="relative w-full aspect-square rounded-xl overflow-hidden bg-black shadow-2xl border border-white/5 group"
+              >
                 <img
                   src={currentSong.thumbnail || `https://i.ytimg.com/vi/${currentSong.videoId}/hqdefault.jpg`}
                   alt={currentSong.title}
-                  className="w-full h-full object-cover select-none transition-transform duration-500 group-hover:scale-105"
+                  className={`w-full h-full object-cover select-none transition-transform duration-500 group-hover:scale-105 ${
+                    !isAudioOnly ? 'opacity-0' : 'opacity-100'
+                  }`}
                   onError={(e) => {
                     e.currentTarget.onerror = null;
                     e.currentTarget.src = 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400&q=80';
                   }}
                 />
-                <div className="absolute top-3 right-3 flex gap-1.5">
-                  <span className="bg-black/60 backdrop-blur-md px-2 py-0.5 rounded text-[11px] font-mono text-white/90">
-                    Stereo
-                  </span>
-                  <span className="bg-sky-500/80 backdrop-blur-md px-2 py-0.5 rounded text-[11px] font-mono text-white font-bold">
-                    Master
-                  </span>
-                </div>
+                {isAudioOnly && (
+                  <div className="absolute top-3 right-3 flex gap-1.5">
+                    <span className="bg-black/60 backdrop-blur-md px-2 py-0.5 rounded text-[11px] font-mono text-white/90">
+                      Stereo
+                    </span>
+                    <span className="bg-sky-500/80 backdrop-blur-md px-2 py-0.5 rounded text-[11px] font-mono text-white font-bold">
+                      Master
+                    </span>
+                  </div>
+                )}
               </div>
 
               {/* Metadata & Actions */}

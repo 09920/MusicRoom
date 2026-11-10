@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { socket } from '../socket';
 import { Plus, Headphones, Video, Music2, Disc3, Zap } from 'lucide-react';
+import { usePlayer } from '../context/PlayerContext';
 
 export default function Player({
   currentSong,
@@ -25,23 +26,7 @@ export default function Player({
   const [showSyncBadge, setShowSyncBadge] = useState(false);
   const [syncDrift, setSyncDrift] = useState(0);
   const isRemoteActionRef = useRef(false);
-  const [isAudioOnly, setIsAudioOnly] = useState(() => {
-    try {
-      return localStorage.getItem('musicroom_audio_only') === 'true';
-    } catch {
-      return false;
-    }
-  });
-
-  const toggleAudioOnly = () => {
-    setIsAudioOnly(prev => {
-      const next = !prev;
-      try {
-        localStorage.setItem('musicroom_audio_only', String(next));
-      } catch { }
-      return next;
-    });
-  };
+  const { isAudioOnly = false, toggleAudioOnly = () => {} } = usePlayer() || {};
 
   useEffect(() => {
     setIsEnding(false);

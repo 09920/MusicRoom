@@ -797,6 +797,7 @@ export function PlayerProvider({ children }) {
     isMuted,
     setIsMuted,
     isAudioOnly,
+    setIsAudioOnly,
     toggleAudioOnly,
     radioMode,
     toggleRadio,

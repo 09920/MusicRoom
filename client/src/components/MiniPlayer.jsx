@@ -9,6 +9,8 @@ export default function MiniPlayer() {
     nextSong,
     isLiked,
     toggleLike,
+    isAudioOnly,
+    toggleAudioOnly,
     setIsFullScreen
   } = usePlayer();
 
@@ -49,6 +51,19 @@ export default function MiniPlayer() {
 
           {/* Right Controls */}
           <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+            <button
+              type="button"
+              onClick={toggleAudioOnly}
+              className={`p-2 transition-colors active:scale-90 ${
+                !isAudioOnly ? 'text-sky-400' : 'text-outline hover:text-on-surface'
+              }`}
+              title={isAudioOnly ? "Switch to Video" : "Switch to Audio"}
+            >
+              <span className="material-symbols-outlined text-title-md">
+                {!isAudioOnly ? 'smart_display' : 'videocam'}
+              </span>
+            </button>
+
             <button
               type="button"
               onClick={() => toggleLike(currentSong)}

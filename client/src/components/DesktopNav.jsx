@@ -343,6 +343,8 @@ export function DesktopPlayerBar() {
     setIsFullScreen,
     isQueueOpen,
     setIsQueueOpen,
+    isAudioOnly,
+    toggleAudioOnly,
     playSong
   } = usePlayer();
 
@@ -600,6 +602,22 @@ export function DesktopPlayerBar() {
             24-bit/96kHz
           </span>
         </div>
+
+        {/* Video / Audio Mode Toggle Button */}
+        <button
+          type="button"
+          onClick={toggleAudioOnly}
+          className={`p-1.5 rounded-lg transition-colors flex items-center justify-center ${
+            !isAudioOnly
+              ? 'bg-sky-500/20 text-sky-400 border border-sky-500/40 shadow-sm'
+              : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container'
+          }`}
+          title={isAudioOnly ? "Switch to Video Mode" : "Switch to Audio-Only Mode"}
+        >
+          <span className="material-symbols-outlined text-title-md">
+            {!isAudioOnly ? 'smart_display' : 'videocam'}
+          </span>
+        </button>
 
         {/* Lyrics Studio Button */}
         <button

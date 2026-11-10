@@ -34,6 +34,7 @@ function MainLayout() {
     playerRef,
     isAudioOnly,
     isFullScreen,
+    setIsFullScreen,
     activeRoom,
     roomMembers,
     setIsPartyModalOpen,
@@ -99,6 +100,42 @@ function MainLayout() {
     }
   }, [setIsPartyModalOpen]);
 
+  // Synchronously pin Video Player to FullScreenPlayer media viewport or floating PiP
+  const [slotStyle, setSlotStyle] = useState(null);
+
+  useEffect(() => {
+    if (isFullScreen && !isAudioOnly) {
+      const updatePosition = () => {
+        const slot = document.getElementById('fullscreen-media-slot');
+        if (slot) {
+          const rect = slot.getBoundingClientRect();
+          setSlotStyle({
+            position: 'fixed',
+            top: `${rect.top}px`,
+            left: `${rect.left}px`,
+            width: `${rect.width}px`,
+            height: `${rect.height}px`,
+            zIndex: 60,
+            borderRadius: '0.75rem',
+            overflow: 'hidden',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7)'
+          });
+        }
+      };
+      updatePosition();
+      window.addEventListener('resize', updatePosition);
+      window.addEventListener('scroll', updatePosition, true);
+      const interval = setInterval(updatePosition, 300);
+      return () => {
+        window.removeEventListener('resize', updatePosition);
+        window.removeEventListener('scroll', updatePosition, true);
+        clearInterval(interval);
+      };
+    } else {
+      setSlotStyle(null);
+    }
+  }, [isFullScreen, isAudioOnly]);
+
   return (
     <div className="min-h-screen bg-surface text-on-surface font-sans relative overflow-x-hidden select-none flex flex-col selection:bg-primary-container selection:text-on-primary-container">
       
@@ -123,8 +160,22 @@ function MainLayout() {
         )}
       </div>
 
-      {/* Persistent Headless YouTube Audio Engine */}
-      <div className="fixed bottom-0 right-0 w-[300px] h-[200px] opacity-[0.001] pointer-events-none -z-50 overflow-hidden">
+      {/* Persistent Audio / Video Stage */}
+      <div
+        style={slotStyle || undefined}
+        className={
+          slotStyle
+            ? 'transition-all duration-200 pointer-events-auto'
+            : !isAudioOnly
+            ? 'fixed bottom-24 right-6 w-72 sm:w-80 aspect-video z-40 rounded-2xl shadow-2xl border border-white/20 bg-black overflow-hidden cursor-pointer group hover:scale-105 transition-all'
+            : 'fixed bottom-0 right-0 w-[300px] h-[200px] opacity-[0.001] pointer-events-none -z-50 overflow-hidden'
+        }
+        onClick={() => {
+          if (!isAudioOnly && !isFullScreen) {
+            setIsFullScreen(true);
+          }
+        }}
+      >
         <Player
           currentSong={currentSong}
           playback={playback}
@@ -136,6 +187,12 @@ function MainLayout() {
           isMuted={isMuted}
           playerRefOut={playerRef}
         />
+        {!isAudioOnly && !isFullScreen && (
+          <div className="absolute top-2 left-2 z-30 opacity-0 group-hover:opacity-100 transition-opacity bg-black/70 backdrop-blur-md px-2 py-0.5 rounded text-[10px] text-white flex items-center gap-1 font-semibold">
+            <span className="material-symbols-outlined text-xs">open_in_full</span>
+            <span>Click to Expand</span>
+          </div>
+        )}
       </div>
 
       {/* ───────────────────────────────────────────────────────── */}
