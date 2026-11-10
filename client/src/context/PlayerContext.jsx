@@ -450,11 +450,12 @@ export function PlayerProvider({ children }) {
         });
       }
     } else {
-      setPlayback((prev) => ({ ...prev, currentTime: seconds }));
+      setPlayback((prev) => ({ ...prev, currentTime: seconds, isPlaying: true }));
       const p = playerRef.current || (typeof window !== 'undefined' ? window.musicroom_player : null);
       if (p && typeof p.seekTo === 'function') {
         try {
           p.seekTo(seconds, true);
+          if (typeof p.playVideo === 'function') p.playVideo();
         } catch (_) {}
       }
     }

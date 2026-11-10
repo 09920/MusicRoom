@@ -52,6 +52,11 @@ export default function Player({
     return () => clearInterval(endCheckInterval);
   }, [isHost, onSongEnd]);
 
+  const onPlaybackChangeRef = useRef(onPlaybackChange);
+  useEffect(() => {
+    onPlaybackChangeRef.current = onPlaybackChange;
+  }, [onPlaybackChange]);
+
   // Active Time & Duration Tracker to ensure UI progress bar starts and ticks smoothly
   useEffect(() => {
     const timeTracker = setInterval(() => {
@@ -62,8 +67,8 @@ export default function Player({
           const dur = typeof p.getDuration === 'function' ? p.getDuration() || 0 : 0;
           const state = typeof p.getPlayerState === 'function' ? p.getPlayerState() : -1;
 
-          if (onPlaybackChange) {
-            onPlaybackChange({
+          if (onPlaybackChangeRef.current) {
+            onPlaybackChangeRef.current({
               currentTime: cur,
               ...(dur > 0 ? { duration: dur } : {}),
               isPlaying: state === 1
@@ -74,7 +79,7 @@ export default function Player({
     }, 250);
 
     return () => clearInterval(timeTracker);
-  }, [onPlaybackChange, playerRefOut]);
+  }, []);
 
   // Set 144p quality when in audio-only mode or on mobile to save ~85% mobile data & prevent buffering
   useEffect(() => {

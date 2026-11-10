@@ -55,6 +55,17 @@ export default function FullScreenPlayer() {
   const [isScrubbing, setIsScrubbing] = useState(false);
   const [scrubProgress, setScrubProgress] = useState(null);
 
+  // Synced lyrics lines & current active index
+  const syncedLines = lyricsState?.lines || lyricsState?.syncedLines || [];
+  const currentSec = playback?.currentTime || 0;
+  let activeIndex = -1;
+  for (let i = syncedLines.length - 1; i >= 0; i--) {
+    if (currentSec >= syncedLines[i].time) {
+      activeIndex = i;
+      break;
+    }
+  }
+
   const volumeTrackRef = useRef(null);
   const scrubberTrackRef = useRef(null);
   const lyricsContainerRef = useRef(null);
@@ -136,7 +147,8 @@ export default function FullScreenPlayer() {
     }
   }, [isFullScreen, currentSong?.videoId]);
 
-  // Auto-scroll lyrics smoothly to active line
+
+  // Auto-scroll lyrics smoothly to active line when vocal line changes
   useEffect(() => {
     if (autoScroll && activeLyricRef.current && lyricsContainerRef.current) {
       activeLyricRef.current.scrollIntoView({
@@ -144,7 +156,7 @@ export default function FullScreenPlayer() {
         block: 'center'
       });
     }
-  }, [lyricsState?.lines, lyricsState?.syncedLines, playback.currentTime, autoScroll]);
+  }, [activeIndex, autoScroll]);
 
   // Save current mix to playlist
   const handleSaveMix = () => {
@@ -182,16 +194,6 @@ export default function FullScreenPlayer() {
     ? Math.min(100, Math.max(0, (currentDisplayTime / playback.duration) * 100))
     : 0;
 
-  // Find active line in synced lyrics
-  const syncedLines = lyricsState?.lines || lyricsState?.syncedLines || [];
-  const currentSec = playback.currentTime || 0;
-  let activeIndex = -1;
-  for (let i = syncedLines.length - 1; i >= 0; i--) {
-    if (currentSec >= syncedLines[i].time) {
-      activeIndex = i;
-      break;
-    }
-  }
 
   const currentMixTitle = playingFrom?.name || `${currentSong.title} Mix`;
 
@@ -279,7 +281,7 @@ export default function FullScreenPlayer() {
               {/* Artwork Sleeve or Video Viewport Slot */}
               <div
                 id="fullscreen-media-slot"
-                className="relative w-full aspect-square rounded-xl overflow-hidden bg-black shadow-2xl border border-white/5 group"
+                className="relative w-full max-w-[280px] sm:max-w-[310px] aspect-square mx-auto rounded-xl overflow-hidden bg-black shadow-2xl border border-white/5 group"
               >
                 <img
                   src={currentSong.thumbnail || `https://i.ytimg.com/vi/${currentSong.videoId}/hqdefault.jpg`}
@@ -740,8 +742,21 @@ export default function FullScreenPlayer() {
             {activeTab === 'lyrics' && (
               <div 
                 ref={lyricsContainerRef}
-                className="flex-1 overflow-y-auto max-h-[500px] flex flex-col gap-5 py-3 select-text no-scrollbar pr-2"
+                className="flex-1 overflow-y-auto max-h-[500px] flex flex-col gap-4 py-3 select-text no-scrollbar pr-2"
               >
+                {/* Instrumental Intro indicator if track is before the first line */}
+                {syncedLines.length > 0 && currentSec < (syncedLines[0]?.time || 0) && (
+                  <div className="py-3 px-4 bg-white/5 rounded-xl flex items-center justify-between border border-white/10 mb-2 animate-pulse">
+                    <div className="flex items-center gap-2 text-sky-400">
+                      <span className="material-symbols-outlined text-base">music_note</span>
+                      <span className="text-xs uppercase tracking-widest font-bold">Instrumental Intro</span>
+                    </div>
+                    <span className="text-xs font-mono text-white/50">
+                      Vocals start in {Math.max(0, Math.ceil((syncedLines[0]?.time || 0) - currentSec))}s
+                    </span>
+                  </div>
+                )}
+
                 {lyricsState?.loading ? (
                   <div className="flex-1 flex flex-col items-center justify-center gap-3 py-24 text-white/40">
                     <span className="material-symbols-outlined text-4xl animate-spin text-sky-400">sync</span>
@@ -759,7 +774,7 @@ export default function FullScreenPlayer() {
                         onClick={() => seekTo(line.time)}
                         className={`transition-all duration-300 cursor-pointer ${
                           isActive
-                            ? 'my-1 py-3 px-4 bg-white/10 rounded-xl flex items-center justify-between shadow-lg border border-sky-400/30'
+                            ? 'my-1 py-3 px-4 bg-sky-500/20 rounded-xl flex items-center justify-between shadow-lg border border-sky-400/50 scale-[1.01]'
                             : isPast
                             ? 'text-white/30 hover:text-white/60 text-lg font-medium'
                             : 'text-white/70 hover:text-white text-lg font-medium'
