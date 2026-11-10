@@ -399,6 +399,10 @@ export default function PlaylistView() {
                         src={track.thumbnail || albumCover}
                         alt={track.title}
                         className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = albumCover || 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=120&q=80';
+                        }}
                       />
                       {isPlayingThis && (
                         <div className="absolute inset-0 bg-black/50 flex items-end justify-center gap-0.5 pb-2">

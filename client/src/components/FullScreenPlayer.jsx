@@ -205,6 +205,10 @@ export default function FullScreenPlayer() {
                   src={currentSong.thumbnail || `https://i.ytimg.com/vi/${currentSong.videoId}/hqdefault.jpg`}
                   alt={currentSong.title}
                   className="w-full h-full object-cover select-none"
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400&q=80';
+                  }}
                 />
                 <div className="absolute top-space-md right-space-md flex gap-space-xs">
                   <span className="bg-surface-container-lowest/80 backdrop-blur-md px-space-sm py-0.5 rounded text-label-sm font-metric-mono text-on-surface">
@@ -407,6 +411,10 @@ export default function FullScreenPlayer() {
                             src={song.thumbnail || `https://i.ytimg.com/vi/${song.videoId}/hqdefault.jpg`}
                             alt=""
                             className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.currentTarget.onerror = null;
+                              e.currentTarget.src = 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=120&q=80';
+                            }}
                           />
                         </div>
                         <div className="flex flex-col min-w-0">

@@ -61,8 +61,8 @@ export const TOP_100_HITS = [
     title: 'Taste',
     artist: 'Sabrina Carpenter',
     channelTitle: 'Sabrina Carpenter',
-    videoId: 'TffW0bLgK0M',
-    thumbnail: 'https://i.ytimg.com/vi/TffW0bLgK0M/hqdefault.jpg',
+    videoId: 'KEG7b851Ric',
+    thumbnail: 'https://i.ytimg.com/vi/KEG7b851Ric/hqdefault.jpg',
     duration: 157
   },
   {
@@ -106,8 +106,8 @@ export const TOP_100_HITS = [
     title: 'Aayi Nai',
     artist: 'Pawan Singh, Simran Choudhary',
     channelTitle: 'Saregama Music',
-    videoId: 'qf48bK8f564',
-    thumbnail: 'https://i.ytimg.com/vi/qf48bK8f564/hqdefault.jpg',
+    videoId: '0nrvPVnTWlc',
+    thumbnail: 'https://i.ytimg.com/vi/0nrvPVnTWlc/hqdefault.jpg',
     duration: 178
   },
   {
@@ -115,8 +115,8 @@ export const TOP_100_HITS = [
     title: 'Jo Tum Mere Ho',
     artist: 'Anuv Jain',
     channelTitle: 'Anuv Jain',
-    videoId: 'gRhv0RrhYk8',
-    thumbnail: 'https://i.ytimg.com/vi/gRhv0RrhYk8/hqdefault.jpg',
+    videoId: 'ilNt2bikxDI',
+    thumbnail: 'https://i.ytimg.com/vi/ilNt2bikxDI/hqdefault.jpg',
     duration: 245
   },
   {
@@ -160,8 +160,8 @@ export const TOP_100_HITS = [
     title: 'Greedy',
     artist: 'Tate McRae',
     channelTitle: 'Tate McRae',
-    videoId: '7wfYx0qZJ34',
-    thumbnail: 'https://i.ytimg.com/vi/7wfYx0qZJ34/hqdefault.jpg',
+    videoId: 'To4SWGZkEPk',
+    thumbnail: 'https://i.ytimg.com/vi/To4SWGZkEPk/hqdefault.jpg',
     duration: 132
   },
   {
@@ -187,8 +187,8 @@ export const TOP_100_HITS = [
     title: 'With You',
     artist: 'AP Dhillon',
     channelTitle: 'AP Dhillon',
-    videoId: 'D-2q_KqQv-U',
-    thumbnail: 'https://i.ytimg.com/vi/D-2q_KqQv-U/hqdefault.jpg',
+    videoId: 'mZQH8CPQ-wo',
+    thumbnail: 'https://i.ytimg.com/vi/mZQH8CPQ-wo/hqdefault.jpg',
     duration: 154
   },
   {
@@ -214,8 +214,8 @@ export const TOP_100_HITS = [
     title: 'Chaleya',
     artist: 'Arijit Singh, Anirudh',
     channelTitle: 'T-Series',
-    videoId: 'VAdGW7QDJUI',
-    thumbnail: 'https://i.ytimg.com/vi/VAdGW7QDJUI/hqdefault.jpg',
+    videoId: 'VAdGW7QDJiU',
+    thumbnail: 'https://i.ytimg.com/vi/VAdGW7QDJiU/hqdefault.jpg',
     duration: 200
   },
   {
@@ -241,8 +241,8 @@ export const TOP_100_HITS = [
     title: 'Pehle Bhi Main',
     artist: 'Vishal Mishra, Raj Shekhar',
     channelTitle: 'T-Series',
-    videoId: '8vg_sX_Hh1w',
-    thumbnail: 'https://i.ytimg.com/vi/8vg_sX_Hh1w/hqdefault.jpg',
+    videoId: 'iAIBF2ngbWY',
+    thumbnail: 'https://i.ytimg.com/vi/iAIBF2ngbWY/hqdefault.jpg',
     duration: 250
   },
   {
@@ -268,8 +268,8 @@ export const TOP_100_HITS = [
     title: 'One Love',
     artist: 'Shubh',
     channelTitle: 'SHUBH',
-    videoId: 'b_KkU_K2XpA',
-    thumbnail: 'https://i.ytimg.com/vi/b_KkU_K2XpA/hqdefault.jpg',
+    videoId: '0pWsCiBvLOk',
+    thumbnail: 'https://i.ytimg.com/vi/0pWsCiBvLOk/hqdefault.jpg',
     duration: 161
   },
   {
@@ -304,8 +304,8 @@ export const TOP_100_HITS = [
     title: 'I Had Some Help',
     artist: 'Post Malone ft. Morgan Wallen',
     channelTitle: 'Post Malone',
-    videoId: 'T6s_8jV7K4g',
-    thumbnail: 'https://i.ytimg.com/vi/T6s_8jV7K4g/hqdefault.jpg',
+    videoId: '4QIZE708gJ4',
+    thumbnail: 'https://i.ytimg.com/vi/4QIZE708gJ4/hqdefault.jpg',
     duration: 178
   },
   {
@@ -313,8 +313,8 @@ export const TOP_100_HITS = [
     title: 'Too Sweet',
     artist: 'Hozier',
     channelTitle: 'Hozier',
-    videoId: 'aEZXWB4rQbw',
-    thumbnail: 'https://i.ytimg.com/vi/aEZXWB4rQbw/hqdefault.jpg',
+    videoId: 'NTpbbQUBbuo',
+    thumbnail: 'https://i.ytimg.com/vi/NTpbbQUBbuo/hqdefault.jpg',
     duration: 251
   },
   {
@@ -340,8 +340,8 @@ export const TOP_100_HITS = [
     title: 'Vampire',
     artist: 'Olivia Rodrigo',
     channelTitle: 'Olivia Rodrigo',
-    videoId: 'ZILm_bWkmGg',
-    thumbnail: 'https://i.ytimg.com/vi/ZILm_bWkmGg/hqdefault.jpg',
+    videoId: 'RlPNh_PBZb4',
+    thumbnail: 'https://i.ytimg.com/vi/RlPNh_PBZb4/hqdefault.jpg',
     duration: 219
   },
   {
@@ -376,8 +376,8 @@ export const TOP_100_HITS = [
     title: 'Snooze',
     artist: 'SZA',
     channelTitle: 'SZA',
-    videoId: '63x4P2tV8hM',
-    thumbnail: 'https://i.ytimg.com/vi/63x4P2tV8hM/hqdefault.jpg',
+    videoId: 'LDY_XyxBu8A',
+    thumbnail: 'https://i.ytimg.com/vi/LDY_XyxBu8A/hqdefault.jpg',
     duration: 201
   },
   {
@@ -421,8 +421,8 @@ export const TOP_100_HITS = [
     title: 'Stay',
     artist: 'The Kid LAROI, Justin Bieber',
     channelTitle: 'The Kid LAROI',
-    videoId: 'kTJczUoc56U',
-    thumbnail: 'https://i.ytimg.com/vi/kTJczUoc56U/hqdefault.jpg',
+    videoId: 'yWHrYNP6j4k',
+    thumbnail: 'https://i.ytimg.com/vi/yWHrYNP6j4k/hqdefault.jpg',
     duration: 141
   },
   {
@@ -439,8 +439,8 @@ export const TOP_100_HITS = [
     title: 'Industry Baby',
     artist: 'Lil Nas X, Jack Harlow',
     channelTitle: 'Lil Nas X',
-    videoId: 'UTHLKgkMtVw',
-    thumbnail: 'https://i.ytimg.com/vi/UTHLKgkMtVw/hqdefault.jpg',
+    videoId: 'UTHLKHL_whs',
+    thumbnail: 'https://i.ytimg.com/vi/UTHLKHL_whs/hqdefault.jpg',
     duration: 212
   },
   {
@@ -505,8 +505,8 @@ export const INSTAGRAM_TRENDING_HITS = [
     title: 'Softly',
     artist: 'Karan Aujla',
     channelTitle: 'Karan Aujla',
-    videoId: 'cHMmA2BRwZU',
-    thumbnail: 'https://i.ytimg.com/vi/cHMmA2BRwZU/hqdefault.jpg',
+    videoId: 'cWMxCE2HTag',
+    thumbnail: 'https://i.ytimg.com/vi/cWMxCE2HTag/hqdefault.jpg',
     duration: 156
   },
   {
@@ -514,8 +514,8 @@ export const INSTAGRAM_TRENDING_HITS = [
     title: 'Winning Speech',
     artist: 'Karan Aujla',
     channelTitle: 'Karan Aujla',
-    videoId: '3y-2Z-jC6Z8',
-    thumbnail: 'https://i.ytimg.com/vi/3y-2Z-jC6Z8/hqdefault.jpg',
+    videoId: '0DS5jYQeiw0',
+    thumbnail: 'https://i.ytimg.com/vi/0DS5jYQeiw0/hqdefault.jpg',
     duration: 218
   },
   {
@@ -523,8 +523,8 @@ export const INSTAGRAM_TRENDING_HITS = [
     title: 'White Brown Black',
     artist: 'Karan Aujla, Avvy Sra',
     channelTitle: 'Karan Aujla',
-    videoId: 'm8oM_9sFk8A',
-    thumbnail: 'https://i.ytimg.com/vi/m8oM_9sFk8A/hqdefault.jpg',
+    videoId: 'BtQp2U6hJII',
+    thumbnail: 'https://i.ytimg.com/vi/BtQp2U6hJII/hqdefault.jpg',
     duration: 185
   },
   {
@@ -550,8 +550,8 @@ export const INSTAGRAM_TRENDING_HITS = [
     title: 'O Maahi',
     artist: 'Arijit Singh',
     channelTitle: 'Sony Music India',
-    videoId: 'gn49bS4QyH4',
-    thumbnail: 'https://i.ytimg.com/vi/gn49bS4QyH4/hqdefault.jpg',
+    videoId: 'pCYojfACnzQ',
+    thumbnail: 'https://i.ytimg.com/vi/pCYojfACnzQ/hqdefault.jpg',
     duration: 233
   },
   {
@@ -559,8 +559,8 @@ export const INSTAGRAM_TRENDING_HITS = [
     title: 'Satranga',
     artist: 'Arijit Singh, Shreyas Puranik',
     channelTitle: 'T-Series',
-    videoId: 'HR5A6_oE7v4',
-    thumbnail: 'https://i.ytimg.com/vi/HR5A6_oE7v4/hqdefault.jpg',
+    videoId: 'HrnrqYxYrbk',
+    thumbnail: 'https://i.ytimg.com/vi/HrnrqYxYrbk/hqdefault.jpg',
     duration: 271
   },
   {
@@ -568,8 +568,8 @@ export const INSTAGRAM_TRENDING_HITS = [
     title: 'Pehle Bhi Main',
     artist: 'Vishal Mishra',
     channelTitle: 'T-Series',
-    videoId: 'rQ87o_jXm3I',
-    thumbnail: 'https://i.ytimg.com/vi/rQ87o_jXm3I/hqdefault.jpg',
+    videoId: '-2RAq5o5pwc',
+    thumbnail: 'https://i.ytimg.com/vi/-2RAq5o5pwc/hqdefault.jpg',
     duration: 250
   },
   {
@@ -577,8 +577,8 @@ export const INSTAGRAM_TRENDING_HITS = [
     title: 'Chuttamalle',
     artist: 'Shilpa Rao, Anirudh Ravichander',
     channelTitle: 'T-Series',
-    videoId: 'p1b2dZ93VjY',
-    thumbnail: 'https://i.ytimg.com/vi/p1b2dZ93VjY/hqdefault.jpg',
+    videoId: '2FhgKp_lfJQ',
+    thumbnail: 'https://i.ytimg.com/vi/2FhgKp_lfJQ/hqdefault.jpg',
     duration: 219
   },
   {
@@ -604,8 +604,8 @@ export const INSTAGRAM_TRENDING_HITS = [
     title: 'Cheques',
     artist: 'Shubh',
     channelTitle: 'Shubh',
-    videoId: '4DE_O8rX2p4',
-    thumbnail: 'https://i.ytimg.com/vi/4DE_O8rX2p4/hqdefault.jpg',
+    videoId: '4tywp83zkmk',
+    thumbnail: 'https://i.ytimg.com/vi/4tywp83zkmk/hqdefault.jpg',
     duration: 183
   },
   {
@@ -613,8 +613,8 @@ export const INSTAGRAM_TRENDING_HITS = [
     title: 'With You',
     artist: 'AP Dhillon',
     channelTitle: 'AP Dhillon',
-    videoId: 'Vhs0up92D28',
-    thumbnail: 'https://i.ytimg.com/vi/Vhs0up92D28/hqdefault.jpg',
+    videoId: 'mZQH8CPQ-wo',
+    thumbnail: 'https://i.ytimg.com/vi/mZQH8CPQ-wo/hqdefault.jpg',
     duration: 154
   },
   {
@@ -631,8 +631,8 @@ export const INSTAGRAM_TRENDING_HITS = [
     title: 'Sajni',
     artist: 'Arijit Singh',
     channelTitle: 'T-Series',
-    videoId: 'I1n_5y3yZ0o',
-    thumbnail: 'https://i.ytimg.com/vi/I1n_5y3yZ0o/hqdefault.jpg',
+    videoId: 'k3g_WjLCsXM',
+    thumbnail: 'https://i.ytimg.com/vi/k3g_WjLCsXM/hqdefault.jpg',
     duration: 170
   },
   {
@@ -649,8 +649,8 @@ export const INSTAGRAM_TRENDING_HITS = [
     title: 'Taste',
     artist: 'Sabrina Carpenter',
     channelTitle: 'Sabrina Carpenter',
-    videoId: 'TffW0bLgK0M',
-    thumbnail: 'https://i.ytimg.com/vi/TffW0bLgK0M/hqdefault.jpg',
+    videoId: 'KEG7b851Ric',
+    thumbnail: 'https://i.ytimg.com/vi/KEG7b851Ric/hqdefault.jpg',
     duration: 157
   },
   {
@@ -676,8 +676,8 @@ export const INSTAGRAM_TRENDING_HITS = [
     title: 'Stay',
     artist: 'The Kid LAROI, Justin Bieber',
     channelTitle: 'The Kid LAROI',
-    videoId: 'kTJczUoc56U',
-    thumbnail: 'https://i.ytimg.com/vi/kTJczUoc56U/hqdefault.jpg',
+    videoId: 'yWHrYNP6j4k',
+    thumbnail: 'https://i.ytimg.com/vi/yWHrYNP6j4k/hqdefault.jpg',
     duration: 141
   }
 ];
@@ -715,8 +715,8 @@ export const BOLLYWOOD_ROMANTIC_HITS = [
     title: 'O Maahi',
     artist: 'Arijit Singh',
     channelTitle: 'Sony Music India',
-    videoId: 'gn49bS4QyH4',
-    thumbnail: 'https://i.ytimg.com/vi/gn49bS4QyH4/hqdefault.jpg',
+    videoId: 'pCYojfACnzQ',
+    thumbnail: 'https://i.ytimg.com/vi/pCYojfACnzQ/hqdefault.jpg',
     duration: 233
   },
   {
@@ -724,8 +724,8 @@ export const BOLLYWOOD_ROMANTIC_HITS = [
     title: 'Sajni',
     artist: 'Arijit Singh, Ram Sampath',
     channelTitle: 'T-Series',
-    videoId: 'I1n_5y3yZ0o',
-    thumbnail: 'https://i.ytimg.com/vi/I1n_5y3yZ0o/hqdefault.jpg',
+    videoId: 'k3g_WjLCsXM',
+    thumbnail: 'https://i.ytimg.com/vi/k3g_WjLCsXM/hqdefault.jpg',
     duration: 170
   },
   {
@@ -733,8 +733,8 @@ export const BOLLYWOOD_ROMANTIC_HITS = [
     title: 'Pehla Pyaar',
     artist: 'Armaan Malik',
     channelTitle: 'T-Series',
-    videoId: 'zwtk_m_6uug',
-    thumbnail: 'https://i.ytimg.com/vi/zwtk_m_6uug/hqdefault.jpg',
+    videoId: 'B7SkAq_94J8',
+    thumbnail: 'https://i.ytimg.com/vi/B7SkAq_94J8/hqdefault.jpg',
     duration: 272
   },
   {
@@ -778,8 +778,8 @@ export const BOLLYWOOD_ROMANTIC_HITS = [
     title: 'Dil Diyan Gallan',
     artist: 'Atif Aslam',
     channelTitle: 'YRF',
-    videoId: 'mevO4I0EF5A',
-    thumbnail: 'https://i.ytimg.com/vi/mevO4I0EF5A/hqdefault.jpg',
+    videoId: 'POvFEQaK634',
+    thumbnail: 'https://i.ytimg.com/vi/POvFEQaK634/hqdefault.jpg',
     duration: 260
   },
   {
@@ -805,8 +805,8 @@ export const BOLLYWOOD_ROMANTIC_HITS = [
     title: 'Tera Ban Jaunga',
     artist: 'Akhil Sachdeva, Tulsi Kumar',
     channelTitle: 'T-Series',
-    videoId: '1_4h-82xG-A',
-    thumbnail: 'https://i.ytimg.com/vi/1_4h-82xG-A/hqdefault.jpg',
+    videoId: 'Qdz5n1Xe5Qo',
+    thumbnail: 'https://i.ytimg.com/vi/Qdz5n1Xe5Qo/hqdefault.jpg',
     duration: 236
   },
   {
@@ -814,8 +814,8 @@ export const BOLLYWOOD_ROMANTIC_HITS = [
     title: 'Pee Loon',
     artist: 'Mohit Chauhan',
     channelTitle: 'T-Series',
-    videoId: '5n3rG1Xq3tY',
-    thumbnail: 'https://i.ytimg.com/vi/5n3rG1Xq3tY/hqdefault.jpg',
+    videoId: 'D8XFTglfSMg',
+    thumbnail: 'https://i.ytimg.com/vi/D8XFTglfSMg/hqdefault.jpg',
     duration: 288
   }
 ];
@@ -835,8 +835,8 @@ export const PUNJABI_VIRAL_HITS = [
     title: 'Winning Speech',
     artist: 'Karan Aujla',
     channelTitle: 'Karan Aujla',
-    videoId: '3y-2Z-jC6Z8',
-    thumbnail: 'https://i.ytimg.com/vi/3y-2Z-jC6Z8/hqdefault.jpg',
+    videoId: '0DS5jYQeiw0',
+    thumbnail: 'https://i.ytimg.com/vi/0DS5jYQeiw0/hqdefault.jpg',
     duration: 218
   },
   {
@@ -844,8 +844,8 @@ export const PUNJABI_VIRAL_HITS = [
     title: 'Softly',
     artist: 'Karan Aujla',
     channelTitle: 'Karan Aujla',
-    videoId: 'cHMmA2BRwZU',
-    thumbnail: 'https://i.ytimg.com/vi/cHMmA2BRwZU/hqdefault.jpg',
+    videoId: 'cWMxCE2HTag',
+    thumbnail: 'https://i.ytimg.com/vi/cWMxCE2HTag/hqdefault.jpg',
     duration: 156
   },
   {
@@ -853,8 +853,8 @@ export const PUNJABI_VIRAL_HITS = [
     title: 'White Brown Black',
     artist: 'Karan Aujla, Avvy Sra',
     channelTitle: 'Karan Aujla',
-    videoId: 'm8oM_9sFk8A',
-    thumbnail: 'https://i.ytimg.com/vi/m8oM_9sFk8A/hqdefault.jpg',
+    videoId: 'BtQp2U6hJII',
+    thumbnail: 'https://i.ytimg.com/vi/BtQp2U6hJII/hqdefault.jpg',
     duration: 185
   },
   {
@@ -871,8 +871,8 @@ export const PUNJABI_VIRAL_HITS = [
     title: 'Lover',
     artist: 'Diljit Dosanjh',
     channelTitle: 'Diljit Dosanjh',
-    videoId: 'mH_LFkW3HmA',
-    thumbnail: 'https://i.ytimg.com/vi/mH_LFkW3HmA/hqdefault.jpg',
+    videoId: 'mH_LFkWxpI0',
+    thumbnail: 'https://i.ytimg.com/vi/mH_LFkWxpI0/hqdefault.jpg',
     duration: 195
   },
   {
@@ -880,8 +880,8 @@ export const PUNJABI_VIRAL_HITS = [
     title: 'Born to Shine',
     artist: 'Diljit Dosanjh',
     channelTitle: 'Diljit Dosanjh',
-    videoId: 'n_FCrCQ6-9U',
-    thumbnail: 'https://i.ytimg.com/vi/n_FCrCQ6-9U/hqdefault.jpg',
+    videoId: 'dCmp56tSSmA',
+    thumbnail: 'https://i.ytimg.com/vi/dCmp56tSSmA/hqdefault.jpg',
     duration: 214
   },
   {
@@ -898,8 +898,8 @@ export const PUNJABI_VIRAL_HITS = [
     title: 'Cheques',
     artist: 'Shubh',
     channelTitle: 'Shubh',
-    videoId: '4DE_O8rX2p4',
-    thumbnail: 'https://i.ytimg.com/vi/4DE_O8rX2p4/hqdefault.jpg',
+    videoId: '4tywp83zkmk',
+    thumbnail: 'https://i.ytimg.com/vi/4tywp83zkmk/hqdefault.jpg',
     duration: 183
   },
   {
@@ -907,8 +907,8 @@ export const PUNJABI_VIRAL_HITS = [
     title: 'With You',
     artist: 'AP Dhillon',
     channelTitle: 'AP Dhillon',
-    videoId: 'Vhs0up92D28',
-    thumbnail: 'https://i.ytimg.com/vi/Vhs0up92D28/hqdefault.jpg',
+    videoId: 'mZQH8CPQ-wo',
+    thumbnail: 'https://i.ytimg.com/vi/mZQH8CPQ-wo/hqdefault.jpg',
     duration: 154
   }
 ];
@@ -919,7 +919,7 @@ export const INDIE_HINDI_HITS = [
     title: 'Afsos',
     artist: 'Anuv Jain & AP Dhillon',
     channelTitle: 'Anuv Jain',
-    videoId: 'cHMmA2BRwZU',
+    videoId: 'cWMxCE2HTag',
     thumbnail: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=300&q=80',
     duration: 192
   },
@@ -937,7 +937,7 @@ export const INDIE_HINDI_HITS = [
     title: 'Jhol',
     artist: 'Maanu & Annural Khalid',
     channelTitle: 'Maanu',
-    videoId: '3y-2Z-jC6Z8',
+    videoId: '0DS5jYQeiw0',
     thumbnail: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=300&q=80',
     duration: 279
   },
@@ -964,7 +964,7 @@ export const INDIE_HINDI_HITS = [
     title: 'Gallan 4',
     artist: 'talwiinder • Gallan 4',
     channelTitle: 'Talwiinder',
-    videoId: 'm8oM_9sFk8A',
+    videoId: 'BtQp2U6hJII',
     thumbnail: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=300&q=80',
     duration: 178
   },
@@ -991,7 +991,7 @@ export const INDIE_HINDI_HITS = [
     title: 'Kasoor',
     artist: 'Prateek Kuhad',
     channelTitle: 'Prateek Kuhad',
-    videoId: 'gn49bS4QyH4',
+    videoId: 'pCYojfACnzQ',
     thumbnail: 'https://images.unsplash.com/photo-1487180144351-b8472da7d491?w=300&q=80',
     duration: 201
   },

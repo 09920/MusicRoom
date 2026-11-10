@@ -73,8 +73,8 @@ export default function DiscoverView({ onOpenAiTheme }) {
       title: 'Jo Tum Mere Ho',
       artist: 'Anuv Jain',
       duration: '4:05',
-      videoId: 'gPpQNzKP6g4',
-      cover: 'https://i.ytimg.com/vi/gPpQNzKP6g4/hqdefault.jpg'
+      videoId: 'ilNt2bikxDI',
+      cover: 'https://i.ytimg.com/vi/ilNt2bikxDI/hqdefault.jpg'
     }
   ];
 
@@ -503,7 +503,11 @@ export default function DiscoverView({ onOpenAiTheme }) {
                       <img 
                         className="w-9 h-9 rounded object-cover flex-shrink-0" 
                         alt={track.title} 
-                        src={track.cover} 
+                        src={track.cover}
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=120&q=80';
+                        }} 
                       />
                       <span className={`text-body-sm font-semibold truncate ${isPlayingThis ? 'text-primary' : 'text-on-surface'}`}>
                         {track.title}

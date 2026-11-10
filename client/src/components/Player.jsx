@@ -17,6 +17,7 @@ export default function Player({
   const playerRef = useRef(null);
   const silentAudioRef = useRef(null);
   const lastLoadedVideoIdRef = useRef(null);
+  const failedAttemptsRef = useRef({});
   const lastServerTimeRef = useRef(0);
   const bufferStallCountRef = useRef(0);
   const [isReady, setIsReady] = useState(false);
@@ -218,9 +219,40 @@ export default function Player({
               }
             }
           },
-          onError: (event) => {
-            console.warn('YouTube Player error:', event.data);
-            // Advance to next track on any unplayable or restricted video (both in solo and room host)
+          onError: async (event) => {
+            console.warn('YouTube Player error code:', event.data, 'for song:', currentSong?.title, currentSong?.videoId);
+
+            const videoId = currentSong?.videoId;
+            const attempts = (failedAttemptsRef.current[videoId] || 0) + 1;
+            failedAttemptsRef.current[videoId] = attempts;
+
+            // Auto-recover on first failure by querying backend search for alternative playable video stream
+            if (attempts === 1 && currentSong?.title) {
+              try {
+                const query = `${currentSong.title} ${currentSong.artist || currentSong.channelTitle || ''} official audio`;
+                const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+                if (res.ok) {
+                  const data = await res.json();
+                  const alternative = (data.results || []).find(r => r.videoId && r.videoId !== videoId);
+                  if (alternative && alternative.videoId) {
+                    console.log(`[Auto-Recover] Switching unplayable video (${videoId}) to working alternative (${alternative.videoId}): ${alternative.title}`);
+                    if (playerRef.current && typeof playerRef.current.loadVideoById === 'function') {
+                      lastLoadedVideoIdRef.current = alternative.videoId;
+                      playerRef.current.loadVideoById({
+                        videoId: alternative.videoId,
+                        startSeconds: 0
+                      });
+                      playerRef.current.playVideo();
+                      return;
+                    }
+                  }
+                }
+              } catch (err) {
+                console.warn('[Auto-Recover] Fallback search failed:', err);
+              }
+            }
+
+            // Advance to next track if recovery was not possible
             if (canControl || isHost) {
               if (onSongEnd) onSongEnd();
             }

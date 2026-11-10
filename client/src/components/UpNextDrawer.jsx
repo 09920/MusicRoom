@@ -92,6 +92,10 @@ export default function UpNextDrawer({ isOpen, onClose }) {
               src={currentSong.thumbnail || `https://i.ytimg.com/vi/${currentSong.videoId}/hqdefault.jpg`}
               alt=""
               className="w-11 h-11 rounded-lg object-cover flex-shrink-0"
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=120&q=80';
+              }}
             />
             <div className="min-w-0 flex-1">
               <span className="text-[10px] font-metric-mono uppercase tracking-wider text-primary font-bold block">
@@ -142,6 +146,10 @@ export default function UpNextDrawer({ isOpen, onClose }) {
                     src={song.thumbnail || `https://i.ytimg.com/vi/${song.videoId}/hqdefault.jpg`}
                     alt=""
                     className="w-9 h-9 rounded-lg object-cover flex-shrink-0"
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=120&q=80';
+                    }}
                   />
                   <div className="min-w-0 flex-1 pr-2">
                     <p className="text-body-sm font-semibold text-on-surface truncate group-hover:text-primary transition-colors">

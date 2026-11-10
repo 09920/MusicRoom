@@ -461,6 +461,10 @@ export function DesktopPlayerBar() {
             src={activeSong.thumbnail || `https://i.ytimg.com/vi/${activeSong.videoId}/hqdefault.jpg`}
             alt={activeSong.title}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+            onError={(e) => {
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=120&q=80';
+            }}
           />
           <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
             <span className="material-symbols-outlined text-white text-title-md">open_in_full</span>

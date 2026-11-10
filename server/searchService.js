@@ -147,46 +147,46 @@ async function searchSongs(query, apiKey) {
 
 const CURATED_MOODS = {
   'trending': [
-    { videoId: 'hBCrkxP6L4A', title: 'Millionaire', channelTitle: 'Yo Yo Honey Singh', thumbnail: 'https://i.ytimg.com/vi/hBCrkxP6L4A/hqdefault.jpg' },
+    { videoId: 'XO8wew38VM8', title: 'Millionaire', channelTitle: 'Yo Yo Honey Singh', thumbnail: 'https://i.ytimg.com/vi/XO8wew38VM8/hqdefault.jpg' },
     { videoId: 'LK7-_dgAVQE', title: 'Tauba Tauba', channelTitle: 'Karan Aujla', thumbnail: 'https://i.ytimg.com/vi/LK7-_dgAVQE/hqdefault.jpg' },
     { videoId: 'hOHKltAiKXQ', title: 'Big Dawgs', channelTitle: 'Hanumankind', thumbnail: 'https://i.ytimg.com/vi/hOHKltAiKXQ/hqdefault.jpg' },
-    { videoId: 'qf48bK8f564', title: 'Aayi Nai', channelTitle: 'Pawan Singh, Simran Choudhary', thumbnail: 'https://i.ytimg.com/vi/qf48bK8f564/hqdefault.jpg' },
+    { videoId: '0nrvPVnTWlc', title: 'Aayi Nai', channelTitle: 'Pawan Singh, Simran Choudhary', thumbnail: 'https://i.ytimg.com/vi/0nrvPVnTWlc/hqdefault.jpg' },
     { videoId: 'kPa7bsKwL-c', title: 'Die With A Smile', channelTitle: 'Lady Gaga, Bruno Mars', thumbnail: 'https://i.ytimg.com/vi/kPa7bsKwL-c/hqdefault.jpg' },
     { videoId: 'eVTXPUF4Oz4', title: 'Espresso', channelTitle: 'Sabrina Carpenter', thumbnail: 'https://i.ytimg.com/vi/eVTXPUF4Oz4/hqdefault.jpg' },
     { videoId: 'V9PVRfjEBTI', title: 'Birds of a Feather', channelTitle: 'Billie Eilish', thumbnail: 'https://i.ytimg.com/vi/V9PVRfjEBTI/hqdefault.jpg' },
-    { videoId: 'gRhv0RrhYk8', title: 'Jo Tum Mere Ho', channelTitle: 'Anuv Jain', thumbnail: 'https://i.ytimg.com/vi/gRhv0RrhYk8/hqdefault.jpg' }
+    { videoId: 'ilNt2bikxDI', title: 'Jo Tum Mere Ho', channelTitle: 'Anuv Jain', thumbnail: 'https://i.ytimg.com/vi/ilNt2bikxDI/hqdefault.jpg' }
   ],
   'hindi hits': [
     { videoId: 'ElZfdU54Cp8', title: 'Apna Bana Le', channelTitle: 'Arijit Singh, Sachin-Jigar', thumbnail: 'https://i.ytimg.com/vi/ElZfdU54Cp8/hqdefault.jpg' },
     { videoId: 'BddP6PYo2gs', title: 'Kesariya', channelTitle: 'Arijit Singh, Pritam', thumbnail: 'https://i.ytimg.com/vi/BddP6PYo2gs/hqdefault.jpg' },
-    { videoId: 'VAdGW7QDJUI', title: 'Chaleya', channelTitle: 'Arijit Singh, Anirudh', thumbnail: 'https://i.ytimg.com/vi/VAdGW7QDJUI/hqdefault.jpg' },
+    { videoId: 'VAdGW7QDJiU', title: 'Chaleya', channelTitle: 'Arijit Singh, Anirudh', thumbnail: 'https://i.ytimg.com/vi/VAdGW7QDJiU/hqdefault.jpg' },
     { videoId: 'RLzC55ai0eo', title: 'Heeriye', channelTitle: 'Jasleen Royal, Arijit Singh', thumbnail: 'https://i.ytimg.com/vi/RLzC55ai0eo/hqdefault.jpg' },
     { videoId: 'e-ORhEE9VVg', title: 'O Maahi', channelTitle: 'Arijit Singh, Pritam', thumbnail: 'https://i.ytimg.com/vi/e-ORhEE9VVg/hqdefault.jpg' },
-    { videoId: '8vg_sX_Hh1w', title: 'Pehle Bhi Main', channelTitle: 'Vishal Mishra, Raj Shekhar', thumbnail: 'https://i.ytimg.com/vi/8vg_sX_Hh1w/hqdefault.jpg' }
+    { videoId: 'iAIBF2ngbWY', title: 'Pehle Bhi Main', channelTitle: 'Vishal Mishra, Raj Shekhar', thumbnail: 'https://i.ytimg.com/vi/iAIBF2ngbWY/hqdefault.jpg' }
   ],
   'chill lo-fi': [
-    { videoId: 'k70n_2Z2w-g', title: 'Iraada - Banjaare (Lo-Fi)', channelTitle: 'SBH Editz', thumbnail: 'https://i.ytimg.com/vi/k70n_2Z2w-g/hqdefault.jpg' },
-    { videoId: 'pSAn6p2V644', title: 'Tum Se Tum Tak (Lo-Fi)', channelTitle: 'ta editor', thumbnail: 'https://i.ytimg.com/vi/pSAn6p2V644/hqdefault.jpg' },
-    { videoId: 'JkZ3Z17_i4M', title: 'Nazar', channelTitle: 'oheydox', thumbnail: 'https://i.ytimg.com/vi/JkZ3Z17_i4M/hqdefault.jpg' },
+    { videoId: 'XyVSA4hGXEw', title: 'Iraada - Banjaare (Lo-Fi)', channelTitle: 'SBH Editz', thumbnail: 'https://i.ytimg.com/vi/XyVSA4hGXEw/hqdefault.jpg' },
+    { videoId: 'im9GvHgQEsE', title: 'Tum Se Tum Tak (Lo-Fi)', channelTitle: 'ta editor', thumbnail: 'https://i.ytimg.com/vi/im9GvHgQEsE/hqdefault.jpg' },
+    { videoId: 'PXfQmOaKjSA', title: 'Nazar', channelTitle: 'oheydox', thumbnail: 'https://i.ytimg.com/vi/PXfQmOaKjSA/hqdefault.jpg' },
     { videoId: '6v2L2UGZJAM', title: 'Zikr', channelTitle: 'Niyam', thumbnail: 'https://i.ytimg.com/vi/6v2L2UGZJAM/hqdefault.jpg' },
     { videoId: 'nfs8NYg7yQM', title: 'Kami', channelTitle: 'Niyam', thumbnail: 'https://i.ytimg.com/vi/nfs8NYg7yQM/hqdefault.jpg' },
-    { videoId: 'fHI8X480mxo', title: 'Afsana', channelTitle: 'Niyam', thumbnail: 'https://i.ytimg.com/vi/fHI8X480mxo/hqdefault.jpg' },
+    { videoId: 'psaBpso9BG4', title: 'Afsana', channelTitle: 'Niyam', thumbnail: 'https://i.ytimg.com/vi/psaBpso9BG4/hqdefault.jpg' },
     { videoId: '1w7OgIMMRc4', title: 'Behisaab', channelTitle: 'Niyam', thumbnail: 'https://i.ytimg.com/vi/1w7OgIMMRc4/hqdefault.jpg' }
   ],
   'punjabi': [
     { videoId: 'cl0a3i2wFcc', title: 'Winning Speech', channelTitle: 'Karan Aujla', thumbnail: 'https://i.ytimg.com/vi/cl0a3i2wFcc/hqdefault.jpg' },
     { videoId: 'cWMxCE2HTag', title: 'Softly', channelTitle: 'Karan Aujla, Ikky', thumbnail: 'https://i.ytimg.com/vi/cWMxCE2HTag/hqdefault.jpg' },
-    { videoId: 'D-2q_KqQv-U', title: 'With You', channelTitle: 'AP Dhillon', thumbnail: 'https://i.ytimg.com/vi/D-2q_KqQv-U/hqdefault.jpg' },
+    { videoId: 'mZQH8CPQ-wo', title: 'With You', channelTitle: 'AP Dhillon', thumbnail: 'https://i.ytimg.com/vi/mZQH8CPQ-wo/hqdefault.jpg' },
     { videoId: 'vX2cDW8LUWk', title: 'Born to Shine', channelTitle: 'Diljit Dosanjh', thumbnail: 'https://i.ytimg.com/vi/vX2cDW8LUWk/hqdefault.jpg' },
     { videoId: 'mH_LFkWxpI0', title: 'Lover', channelTitle: 'Diljit Dosanjh', thumbnail: 'https://i.ytimg.com/vi/mH_LFkWxpI0/hqdefault.jpg' },
-    { videoId: 'b_KkU_K2XpA', title: 'One Love', channelTitle: 'Shubh', thumbnail: 'https://i.ytimg.com/vi/b_KkU_K2XpA/hqdefault.jpg' }
+    { videoId: '0pWsCiBvLOk', title: 'One Love', channelTitle: 'Shubh', thumbnail: 'https://i.ytimg.com/vi/0pWsCiBvLOk/hqdefault.jpg' }
   ],
   'romantic': [
     { videoId: 'gvyUuxdRdR4', title: 'Raataan Lambiyan', channelTitle: 'Jubin Nautiyal, Asees Kaur', thumbnail: 'https://i.ytimg.com/vi/gvyUuxdRdR4/hqdefault.jpg' },
-    { videoId: 'kxouC7d0ZpM', title: 'Shayad', channelTitle: 'Arijit Singh, Pritam', thumbnail: 'https://i.ytimg.com/vi/kxouC7d0ZpM/hqdefault.jpg' },
+    { videoId: 'MJyKN-8UncM', title: 'Shayad', channelTitle: 'Arijit Singh, Pritam', thumbnail: 'https://i.ytimg.com/vi/MJyKN-8UncM/hqdefault.jpg' },
     { videoId: 'x6Q7c9RyMzk', title: 'Pal Pal Dil Ke Paas', channelTitle: 'Arijit Singh, Parampara', thumbnail: 'https://i.ytimg.com/vi/x6Q7c9RyMzk/hqdefault.jpg' },
-    { videoId: 'yIRvG_UqE24', title: 'Tere Hawaale', channelTitle: 'Arijit Singh, Shilpa Rao', thumbnail: 'https://i.ytimg.com/vi/yIRvG_UqE24/hqdefault.jpg' },
-    { videoId: 'VuG7GUq390c', title: 'Maan Meri Jaan', channelTitle: 'King', thumbnail: 'https://i.ytimg.com/vi/VuG7GUq390c/hqdefault.jpg' }
+    { videoId: 'KUpwupYj_tY', title: 'Tere Hawaale', channelTitle: 'Arijit Singh, Shilpa Rao', thumbnail: 'https://i.ytimg.com/vi/KUpwupYj_tY/hqdefault.jpg' },
+    { videoId: 'VuG7ge_8I2Y', title: 'Maan Meri Jaan', channelTitle: 'King', thumbnail: 'https://i.ytimg.com/vi/VuG7ge_8I2Y/hqdefault.jpg' }
   ],
   'english pop': [
     { videoId: '4NRXx6U8ABQ', title: 'Blinding Lights', channelTitle: 'The Weeknd', thumbnail: 'https://i.ytimg.com/vi/4NRXx6U8ABQ/hqdefault.jpg' },
@@ -197,9 +197,9 @@ const CURATED_MOODS = {
   ],
   'workout': [
     { videoId: '7wtfhZwyrcc', title: 'Believer', channelTitle: 'Imagine Dragons', thumbnail: 'https://i.ytimg.com/vi/7wtfhZwyrcc/hqdefault.jpg' },
-    { videoId: 'jn8f_G8k3vM', title: "'Till I Collapse", channelTitle: 'Eminem ft. Nate Dogg', thumbnail: 'https://i.ytimg.com/vi/jn8f_G8k3vM/hqdefault.jpg' },
+    { videoId: 'ytQ5CYE1VZw', title: "'Till I Collapse", channelTitle: 'Eminem ft. Nate Dogg', thumbnail: 'https://i.ytimg.com/vi/ytQ5CYE1VZw/hqdefault.jpg' },
     { videoId: '_Yhyp-_hX2s', title: 'Lose Yourself', channelTitle: 'Eminem', thumbnail: 'https://i.ytimg.com/vi/_Yhyp-_hX2s/hqdefault.jpg' },
-    { videoId: 'UTHLKgkMtVw', title: 'Industry Baby', channelTitle: 'Lil Nas X, Jack Harlow', thumbnail: 'https://i.ytimg.com/vi/UTHLKgkMtVw/hqdefault.jpg' },
+    { videoId: 'UTHLKHL_whs', title: 'Industry Baby', channelTitle: 'Lil Nas X, Jack Harlow', thumbnail: 'https://i.ytimg.com/vi/UTHLKHL_whs/hqdefault.jpg' },
     { videoId: 'dxWvtMOGAhw', title: 'Zinda', channelTitle: 'Shankar Mahadevan', thumbnail: 'https://i.ytimg.com/vi/dxWvtMOGAhw/hqdefault.jpg' }
   ]
 };
