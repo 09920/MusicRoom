@@ -1,5 +1,6 @@
 // server/autoModeService.js
 const { searchSongs } = require('./searchService');
+const lastfmService = require('./lastfmService');
 
 // Keywords to strictly filter out long jukeboxes, full album mixes, compilations, and kids rhymes
 const COMPILATION_KEYWORDS = [
@@ -226,6 +227,27 @@ async function pickNextSong(room, apiKey) {
     }
   }
 
+  // Strategy 0: Last.fm Track Similarity Graph
+  if (candidates.length < 3 && seedSong) {
+    try {
+      const lastFmRes = await lastfmService.getSimilarTracks(seedSong);
+      if (lastFmRes.success && Array.isArray(lastFmRes.tracks) && lastFmRes.tracks.length > 0) {
+        for (const t of lastFmRes.tracks.slice(0, 3)) {
+          try {
+            const query = `${t.name} ${t.artist} audio`;
+            const ytResults = await searchSongs(query, apiKey);
+            const best = ytResults.find(s => !historySet.has(s.videoId) && !isCompilation(s.title, s.videoId));
+            if (best) {
+              candidates.push(best);
+            }
+          } catch (_) {}
+        }
+      }
+    } catch (e) {
+      console.warn('[Radio] Strategy 0 (Last.fm) in pickNextSong error:', e.message);
+    }
+  }
+
   // Strategy 1: YouTube "Up Next" / Related Sidebar from Seed Video
   if (candidates.length < 3 && seedSong?.videoId) {
     try {
@@ -360,6 +382,37 @@ async function getRadioTracks(seedSong, apiKey, mood = 'all') {
   const seenIds = new Set([seedSong.videoId]);
 
   const { title, artist } = extractArtistAndTitle(seedSong);
+
+  // Strategy 0: Last.fm Track Similarity Graph
+  if (mood === 'all' || mood === 'familiar' || mood === 'discover') {
+    try {
+      const lastFmRes = await lastfmService.getSimilarTracks(seedSong);
+      if (lastFmRes.success && Array.isArray(lastFmRes.tracks) && lastFmRes.tracks.length > 0) {
+        for (const t of lastFmRes.tracks.slice(0, 5)) {
+          try {
+            const query = `${t.name} ${t.artist} audio`;
+            const ytResults = await searchSongs(query, apiKey);
+            const best = ytResults.find(s => !seenIds.has(s.videoId) && !isCompilation(s.title, s.videoId));
+            if (best) {
+              seenIds.add(best.videoId);
+              tracks.push({
+                videoId: best.videoId,
+                title: cleanTitle(best.title),
+                artist: cleanTitle(t.artist || best.channelTitle),
+                channelTitle: cleanTitle(t.artist || best.channelTitle),
+                thumbnail: best.thumbnail || `https://i.ytimg.com/vi/${best.videoId}/hqdefault.jpg`,
+                duration: 215,
+                matchScore: Math.round((t.match || 0.85) * 100),
+                source: 'lastfm'
+              });
+            }
+          } catch (_) {}
+        }
+      }
+    } catch (e) {
+      console.warn('[Radio] Strategy 0 (Last.fm) error:', e.message);
+    }
+  }
 
   // Strategy 1: Watch page related sidebar (YouTube's actual Up Next recommendations)
   if (mood === 'all' || mood === 'familiar') {

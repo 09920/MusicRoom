@@ -161,9 +161,16 @@ export default function SimilarSongs({
                   </div>
 
                   <div className="flex flex-col min-w-0 flex-1">
-                    <span className="text-xs font-bold text-on-surface truncate group-hover:text-primary transition-colors">
-                      {track.title}
-                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs font-bold text-on-surface truncate group-hover:text-primary transition-colors">
+                        {track.title}
+                      </span>
+                      {track.source === 'lastfm' && (
+                        <span className="px-1.5 py-0.2 rounded-full bg-rose-500/15 text-rose-400 text-[9px] font-bold shrink-0 border border-rose-500/20">
+                          Last.fm {track.matchScore ? `${track.matchScore}%` : 'Vibe'}
+                        </span>
+                      )}
+                    </div>
                     <span className="text-[11px] text-on-surface-variant truncate mt-0.5">
                       {track.artist || track.channelTitle || 'Artist'}
                     </span>
@@ -212,3 +219,4 @@ export default function SimilarSongs({
     </div>
   );
 }
+
