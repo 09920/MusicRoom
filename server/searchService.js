@@ -237,7 +237,13 @@ const TIMEFRAME_BASE = {
     { id: 7, title: 'Winning Speech', artist: 'Karan Aujla', duration: '3:38', streams: '142.3M', videoId: '0DS5jYQeiw0', cover: 'https://i.ytimg.com/vi/0DS5jYQeiw0/hqdefault.jpg' },
     { id: 8, title: 'White Brown Black', artist: 'Karan Aujla, Avvy Sra', duration: '3:05', streams: '168.7M', videoId: 'BtQp2U6hJII', cover: 'https://i.ytimg.com/vi/BtQp2U6hJII/hqdefault.jpg' },
     { id: 9, title: 'With You', artist: 'AP Dhillon', duration: '2:34', streams: '176.9M', videoId: 'mZQH8CPQ-wo', cover: 'https://i.ytimg.com/vi/mZQH8CPQ-wo/hqdefault.jpg' },
-    { id: 10, title: 'Millionaire', artist: 'Yo Yo Honey Singh', duration: '3:21', streams: '284.6M', videoId: 'XO8wew38VM8', cover: 'https://i.ytimg.com/vi/XO8wew38VM8/hqdefault.jpg' }
+    { id: 10, title: 'Millionaire', artist: 'Yo Yo Honey Singh', duration: '3:21', streams: '284.6M', videoId: 'XO8wew38VM8', cover: 'https://i.ytimg.com/vi/XO8wew38VM8/hqdefault.jpg' },
+    { id: 11, title: 'Chaleya', artist: 'Arijit Singh, Anirudh', duration: '3:20', streams: '340.2M', videoId: 'VAdGW7QDJiU', cover: 'https://i.ytimg.com/vi/VAdGW7QDJiU/hqdefault.jpg' },
+    { id: 12, title: 'Satranga', artist: 'Arijit Singh', duration: '4:31', streams: '295.4M', videoId: 'HrnrqYxYrbk', cover: 'https://i.ytimg.com/vi/HrnrqYxYrbk/hqdefault.jpg' },
+    { id: 13, title: 'Taste', artist: 'Sabrina Carpenter', duration: '2:37', streams: '682.1M', videoId: 'KEG7b851Ric', cover: 'https://i.ytimg.com/vi/KEG7b851Ric/hqdefault.jpg' },
+    { id: 14, title: 'Too Sweet', artist: 'Hozier', duration: '4:11', streams: '924.5M', videoId: 'NTpbbQUBbuo', cover: 'https://i.ytimg.com/vi/NTpbbQUBbuo/hqdefault.jpg' },
+    { id: 15, title: 'One Love', artist: 'Shubh', duration: '2:41', streams: '155.8M', videoId: '0pWsCiBvLOk', cover: 'https://i.ytimg.com/vi/0pWsCiBvLOk/hqdefault.jpg' },
+    { id: 16, title: 'Cheques', artist: 'Shubh', duration: '3:03', streams: '310.2M', videoId: '4tywp83zkmk', cover: 'https://i.ytimg.com/vi/4tywp83zkmk/hqdefault.jpg' }
   ],
   'thisweek': [
     { id: 1, title: 'Espresso', artist: 'Sabrina Carpenter', duration: '2:55', streams: '1.64B', videoId: 'eVTXPUF4Oz4', cover: 'https://i.ytimg.com/vi/eVTXPUF4Oz4/hqdefault.jpg' },
@@ -274,7 +280,7 @@ async function getTrendingByTimeframe(rawTimeframe = 'today', apiKey) {
 
   const baseList = TIMEFRAME_BASE[timeframe] || TIMEFRAME_BASE['today'];
 
-  // Calculate day-of-year rotation offset so list naturally rotates daily
+  // Calculate day-of-year rotation offset so list naturally rotates daily at 00:00
   const now = new Date();
   const startOfYear = new Date(now.getFullYear(), 0, 0);
   const diff = now - startOfYear;
@@ -284,39 +290,11 @@ async function getTrendingByTimeframe(rawTimeframe = 'today', apiKey) {
   let finalTracks = [];
 
   if (timeframe === 'today') {
-    // 1. Try to fetch live viral singles from YouTube
-    let liveSingles = [];
-    try {
-      const searchTerms = 'official trending viral music songs 2026';
-      const liveResults = await searchSongs(searchTerms, apiKey);
-      if (liveResults && liveResults.length > 0) {
-        liveSingles = liveResults
-          .filter(r => r.videoId && isCleanMusicSingle(r.title, r.channelTitle))
-          .slice(0, 3)
-          .map(r => ({
-            id: 0,
-            title: r.title,
-            artist: r.channelTitle,
-            duration: '3:30',
-            videoId: r.videoId,
-            cover: r.thumbnail || `https://i.ytimg.com/vi/${r.videoId}/hqdefault.jpg`
-          }));
-      }
-    } catch (_) {}
-
-    // Rotate base pool by day of year so everyday has a fresh combination
+    // Rotate 16-song verified hit pool by day of year so each day has a fresh, certified song combination
     const pool = [...baseList];
     const offset = dayOfYear % pool.length;
     const rotated = [...pool.slice(offset), ...pool.slice(0, offset)];
-
-    // Merge: live singles first, followed by rotated verified tracks without duplicates
-    const combined = [...liveSingles];
-    for (const item of rotated) {
-      if (!combined.some(c => c.videoId === item.videoId)) {
-        combined.push(item);
-      }
-    }
-    finalTracks = combined.slice(0, 6).map((t, idx) => ({ ...t, id: idx + 1 }));
+    finalTracks = rotated.slice(0, 6).map((t, idx) => ({ ...t, id: idx + 1 }));
   } else if (timeframe === 'thisweek') {
     const pool = [...baseList];
     const weekNumber = Math.floor(dayOfYear / 7);
