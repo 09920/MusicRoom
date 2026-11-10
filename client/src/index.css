@@ -235,3 +235,17 @@ input[type="range"]::-webkit-slider-thumb {
   scrollbar-width: none !important;
   -webkit-overflow-scrolling: touch;
 }
+
+@keyframes floatUp {
+  0% {
+    opacity: 1;
+    transform: translateY(20px) scale(0.7);
+  }
+  50% {
+    opacity: 0.95;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-130px) scale(1.35);
+  }
+}

@@ -11,14 +11,14 @@ import ImportPlaylistModal from '../components/ImportPlaylistModal';
 import SessionHistoryModal from '../components/SessionHistoryModal';
 import Toast from '../components/Toast';
 import TapToJoin from '../components/TapToJoin';
-import { Shield, Users, MessageSquare, Copy, LogOut, Music2, History } from 'lucide-react';
+import { Shield, Users, MessageSquare, Copy, LogOut, Radio, ListMusic, Crown, Sparkles, Check } from 'lucide-react';
 
 export default function Room({ initialRoom, currentSocketId, userId, onLeaveRoom }) {
   const [room, setRoom] = useState(initialRoom);
   const [queue, setQueue] = useState(initialRoom?.queue || []);
   const [messages, setMessages] = useState(initialRoom?.messages || []);
   const [sidebarTab, setSidebarTab] = useState('chat');
-  const [mobileTab, setMobileTab] = useState('queue');
+  const [mobileTab, setMobileTab] = useState('player');
   const [unreadChatCount, setUnreadChatCount] = useState(0);
   const [toasts, setToasts] = useState([]);
   const isHost = room?.hostSocketId === currentSocketId;
@@ -29,6 +29,7 @@ export default function Room({ initialRoom, currentSocketId, userId, onLeaveRoom
   const [autoMode, setAutoMode] = useState(initialRoom?.autoMode ?? true);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [hasCopied, setHasCopied] = useState(false);
   const playerRef = useRef(null);
 
   const sidebarTabRef = useRef(sidebarTab);
@@ -72,7 +73,7 @@ export default function Room({ initialRoom, currentSocketId, userId, onLeaveRoom
     }
   }, [room?.id, room?.currentSong?.videoId, room?.playback?.isPlaying, queue, autoMode, room?.playedHistory]);
 
-  // Keep-alive heartbeat: ping server every 4 minutes to prevent Render free-tier dyno from sleeping
+  // Keep-alive heartbeat: ping server every 4 minutes to prevent dyno from sleeping
   useEffect(() => {
     const pingInterval = setInterval(() => {
       fetch('/api/ping').catch(() => {});
@@ -183,7 +184,6 @@ export default function Room({ initialRoom, currentSocketId, userId, onLeaveRoom
     };
 
     const handleGeneralToast = (data) => {
-      // Silently intercept "Room not found" and heal the room automatically without throwing error toast!
       if (data?.message === 'Room not found' || data?.message?.includes('not found')) {
         triggerAutoRecover();
         return;
@@ -220,7 +220,6 @@ export default function Room({ initialRoom, currentSocketId, userId, onLeaveRoom
             setRoom(res.room);
             setQueue(res.room.queue || []);
           } else {
-            // Room missing on server (e.g. after server reboot) -> resurrect instantly!
             triggerAutoRecover();
           }
         });
@@ -315,7 +314,9 @@ export default function Room({ initialRoom, currentSocketId, userId, onLeaveRoom
   const handleCopyInvite = () => {
     const inviteUrl = `${window.location.origin}/?room=${room.id}`;
     navigator.clipboard.writeText(inviteUrl);
+    setHasCopied(true);
     addToast('Room invite link copied to clipboard!', 'success');
+    setTimeout(() => setHasCopied(false), 2000);
   };
 
   const handleTapToJoin = () => {
@@ -334,9 +335,11 @@ export default function Room({ initialRoom, currentSocketId, userId, onLeaveRoom
   };
 
   return (
-    <div className="min-h-screen min-h-[100dvh] bg-black pb-16 font-body relative overflow-x-hidden">
-      {/* Subtle Static Ambient Background (Replaced moving video) */}
-      <div className="fixed inset-0 bg-gradient-to-t from-[#12131c] via-[#0d0e16] to-black opacity-90 pointer-events-none z-0" />
+    <div className="min-h-screen bg-surface text-on-surface pb-28 font-sans selection:bg-primary-container selection:text-on-primary-container relative overflow-x-hidden">
+      {/* Ambient Neon Atmosphere Spotlights */}
+      <div className="absolute -top-12 left-1/2 -translate-x-1/2 w-96 h-48 bg-primary-container/20 blur-[80px] pointer-events-none rounded-full" />
+      <div className="absolute top-48 right-0 w-64 h-64 bg-secondary/15 blur-[70px] pointer-events-none rounded-full" />
+      <div className="absolute bottom-20 left-0 w-60 h-60 bg-tertiary/10 blur-[80px] pointer-events-none rounded-full" />
 
       {needsTapToJoin && room.currentSong && (
         <TapToJoin onJoin={handleTapToJoin} roomName={room?.name} />
@@ -361,6 +364,7 @@ export default function Room({ initialRoom, currentSocketId, userId, onLeaveRoom
 
       <Toast toasts={toasts} onDismiss={(id) => setToasts((prev) => prev.filter((t) => t.id !== id))} />
 
+      {/* Top Navbar */}
       <Navbar
         room={room}
         onLeaveRoom={onLeaveRoom}
@@ -373,217 +377,63 @@ export default function Room({ initialRoom, currentSocketId, userId, onLeaveRoom
         historyCount={room?.playedHistory?.length || 0}
       />
 
-      <main className="max-w-6xl mx-auto px-3 sm:px-6 pt-3 sm:pt-8">
+      <main className="max-w-7xl mx-auto px-3 sm:px-6 pt-3 sm:pt-6 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-          {/* Main Stage (2 Columns) */}
-          <div className="lg:col-span-2 space-y-4 sm:space-y-6">
+          {/* Left Columns (Stage + Search + Queue) */}
+          <div className="lg:col-span-2 space-y-5">
 
-            <Player
-              currentSong={room.currentSong}
-              playback={room.playback}
-              isHost={isHost}
-              canControl={canControl}
-              onPlaybackChange={handlePlaybackChange}
-              onSongEnd={handleSkip}
-              volume={volume}
-              isMuted={isMuted}
-              playerRefOut={playerRef}
-              onOpenImport={() => setIsImportModalOpen(true)}
-            />
+            {/* Mobile View Switcher: On mobile, show whichever tab is chosen; on desktop show everything */}
+            <div className={`space-y-5 ${mobileTab === 'player' ? 'block' : 'hidden lg:block'}`}>
+              <Player
+                currentSong={room.currentSong}
+                playback={room.playback}
+                isHost={isHost}
+                canControl={canControl}
+                onPlaybackChange={handlePlaybackChange}
+                onSongEnd={handleSkip}
+                volume={volume}
+                isMuted={isMuted}
+                playerRefOut={playerRef}
+                onOpenImport={() => setIsImportModalOpen(true)}
+              />
 
-            {/* Song Meta Header */}
-            <div className="liquid-glass rounded-2xl p-4 flex items-center justify-between gap-4">
-              <div className="min-w-0">
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-white/50 flex items-center gap-1.5 font-body">
-                  {room.currentSong ? (
-                    <>
-                      <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping inline-block" />
-                      Now Playing
-                    </>
-                  ) : (
-                    <>
-                      <span className="w-1.5 h-1.5 rounded-full bg-white/40 inline-block" />
-                      Session Idle
-                    </>
-                  )}
-                </span>
-                <h2 className="text-base sm:text-xl font-heading italic text-white truncate mt-0.5">
-                  {room.currentSong?.title || 'No Song Playing'}
-                </h2>
-                <p className="text-xs text-white/50 truncate font-light font-body">
-                  {room.currentSong?.channelTitle || 'Import a playlist to begin'}
-                </p>
-              </div>
+              <Controls
+                playback={room.playback}
+                currentSong={room.currentSong}
+                canControl={canControl}
+                hostMode={room.hostMode}
+                isHost={isHost}
+                onPlayPause={handlePlayPause}
+                onSeek={handleSeek}
+                onSkip={handleSkip}
+                volume={volume}
+                setVolume={setVolume}
+                isMuted={isMuted}
+                setIsMuted={setIsMuted}
+                autoMode={autoMode}
+                onToggleAutoMode={handleToggleAutoMode}
+                playerRef={playerRef}
+              />
 
-              <div className="shrink-0 flex items-center gap-1.5 liquid-glass px-3 py-1.5 rounded-full text-xs">
-                <span className="text-white/40 font-mono text-[10px]">ROOM:</span>
-                <span className="text-white font-mono font-bold">{room.id}</span>
-              </div>
-            </div>
-
-            <Controls
-              playback={room.playback}
-              currentSong={room.currentSong}
-              canControl={canControl}
-              hostMode={room.hostMode}
-              isHost={isHost}
-              onPlayPause={handlePlayPause}
-              onSeek={handleSeek}
-              onSkip={handleSkip}
-              volume={volume}
-              setVolume={setVolume}
-              isMuted={isMuted}
-              setIsMuted={setIsMuted}
-              autoMode={autoMode}
-              onToggleAutoMode={handleToggleAutoMode}
-              playerRef={playerRef}
-            />
-
-            <SongSearch
-              roomId={room?.id}
-              canControl={canControl}
-              onSongPicked={(song, playNow) => {
-                if (!playNow) {
-                  addToast(`Added "${song.title}" to queue`, 'success');
-                }
-              }}
-            />
-
-            {/* Mobile Segmented Navigation: Queue | Chat | Listeners */}
-            <div className="lg:hidden grid grid-cols-3 p-1 liquid-glass rounded-2xl gap-1">
-              <button
-                onClick={() => setMobileTab('queue')}
-                className={`py-2 px-1.5 rounded-xl text-xs font-medium flex items-center justify-center gap-1.5 transition-all active:scale-95 ${
-                  mobileTab === 'queue'
-                    ? 'bg-white text-black shadow-md font-semibold'
-                    : 'text-white/60 hover:text-white'
-                }`}
-              >
-                <Music2 className="w-3.5 h-3.5 shrink-0" />
-                <span className="truncate">Queue ({queue.length})</span>
-              </button>
-
-              <button
-                onClick={() => {
-                  setMobileTab('chat');
-                  setUnreadChatCount(0);
+              <SongSearch
+                roomId={room?.id}
+                canControl={canControl}
+                onSongPicked={(song, playNow) => {
+                  if (!playNow) {
+                    addToast(`Added "${song.title}" to queue`, 'success');
+                  }
                 }}
-                className={`py-2 px-1.5 rounded-xl text-xs font-medium flex items-center justify-center gap-1.5 transition-all active:scale-95 ${
-                  mobileTab === 'chat'
-                    ? 'bg-white text-black shadow-md font-semibold'
-                    : 'text-white/60 hover:text-white'
-                }`}
-              >
-                <MessageSquare className="w-3.5 h-3.5 shrink-0" />
-                <span className="truncate">Chat ({messages.length})</span>
-                {unreadChatCount > 0 && mobileTab !== 'chat' && (
-                  <span className="ml-1 bg-rose-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0">
-                    {unreadChatCount}
-                  </span>
-                )}
-              </button>
-
-              <button
-                onClick={() => setMobileTab('members')}
-                className={`py-2 px-1.5 rounded-xl text-xs font-medium flex items-center justify-center gap-1.5 transition-all active:scale-95 ${
-                  mobileTab === 'members'
-                    ? 'bg-white text-black shadow-md font-semibold'
-                    : 'text-white/60 hover:text-white'
-                }`}
-              >
-                <Users className="w-3.5 h-3.5 shrink-0" />
-                <span className="truncate">Listeners ({room.members?.length || 1})</span>
-              </button>
+              />
             </div>
 
-            {/* Mobile Tab View */}
-            <div className="lg:hidden">
-              {mobileTab === 'queue' && (
-                <QueueList
-                  queue={queue}
-                  canControl={canControl}
-                  autoMode={autoMode}
-                  language={room.mood || 'Hindi'}
-                  onPlayItem={handlePlayQueueItem}
-                  onRemoveItem={handleRemoveQueueItem}
-                  onMoveItem={handleMoveQueueItem}
-                  onOpenImport={() => setIsImportModalOpen(true)}
-                />
-              )}
-
-              {mobileTab === 'chat' && (
-                <ChatBox
-                  roomId={room?.id}
-                  messages={messages}
-                  currentSocketId={currentSocketId}
-                />
-              )}
-
-              {mobileTab === 'members' && (
-                <div className="space-y-4">
-                  <MemberList
-                    members={room.members || []}
-                    currentSocketId={currentSocketId}
-                  />
-
-                  {/* Room Info */}
-                  <div className="liquid-glass rounded-3xl p-5 text-xs space-y-2.5">
-                    <h4 className="font-heading italic text-base text-white flex items-center gap-2">
-                      <Shield className="w-3.5 h-3.5 text-white/70" />
-                      Room Information
-                    </h4>
-                    <div className="flex justify-between py-1 border-b border-white/10 text-white/60 font-body">
-                      <span>Control Mode</span>
-                      <span className="text-white font-medium capitalize">
-                        {room.hostMode === 'friendly' ? '🤝 Friendly (All Control)' : '👑 Single Host Only'}
-                      </span>
-                    </div>
-                    <div className="flex justify-between py-1 border-b border-white/10 text-white/60 font-body">
-                      <span>Language</span>
-                      <span className="text-white font-medium">{room.mood || 'Hindi'}</span>
-                    </div>
-                    <div className="flex justify-between py-1 text-white/60 font-body">
-                      <span>Protection</span>
-                      <span className="text-white font-medium">
-                        {room.hasPin ? '🔒 PIN Protected' : '🌐 Open Link'}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Quick Share & Safe Leave Widgets */}
-                  <div className="liquid-glass-strong rounded-3xl p-5 text-center space-y-3">
-                    <div>
-                      <p className="text-xs text-white/80 mb-2.5 font-medium font-body">
-                        Invite friends to this session
-                      </p>
-                      <button
-                        onClick={handleCopyInvite}
-                        className="w-full py-2.5 px-4 rounded-full bg-white text-black hover:bg-white/90 text-xs font-semibold flex items-center justify-center gap-2 transition-all active:scale-95 shadow-md"
-                      >
-                        <Copy className="w-3.5 h-3.5" />
-                        Copy Shareable Link
-                      </button>
-                    </div>
-
-                    <div className="pt-2 border-t border-white/5">
-                      <button
-                        onClick={onLeaveRoom}
-                        className="w-full py-2 px-4 rounded-full liquid-glass border border-rose-500/25 text-rose-400 hover:bg-rose-500/15 hover:text-rose-300 text-xs font-medium flex items-center justify-center gap-2 transition-all active:scale-95"
-                      >
-                        <LogOut className="w-3.5 h-3.5" />
-                        Leave Session
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Desktop Left Column Queue */}
-            <div className="hidden lg:block">
+            {/* Queue Component (Visible on mobile when queue is selected; always visible on desktop) */}
+            <div className={`${mobileTab === 'queue' ? 'block' : 'hidden lg:block'}`}>
               <QueueList
                 queue={queue}
+                currentSong={room.currentSong}
+                playback={room.playback}
+                roomId={room.id}
                 canControl={canControl}
                 autoMode={autoMode}
                 language={room.mood || 'Hindi'}
@@ -591,30 +441,145 @@ export default function Room({ initialRoom, currentSocketId, userId, onLeaveRoom
                 onRemoveItem={handleRemoveQueueItem}
                 onMoveItem={handleMoveQueueItem}
                 onOpenImport={() => setIsImportModalOpen(true)}
+                onToggleAutoMode={handleToggleAutoMode}
               />
+            </div>
+
+            {/* Mobile-only Chat View */}
+            <div className={`lg:hidden ${mobileTab === 'chat' ? 'block' : 'hidden'}`}>
+              <ChatBox
+                roomId={room?.id}
+                messages={messages}
+                currentSocketId={currentSocketId}
+                currentSong={room.currentSong}
+                hostName={room.hostName || 'Host'}
+              />
+            </div>
+
+            {/* Mobile-only Listeners View */}
+            <div className={`lg:hidden space-y-4 ${mobileTab === 'listeners' ? 'block' : 'hidden'}`}>
+              <MemberList
+                members={room.members || []}
+                currentSocketId={currentSocketId}
+              />
+
+              {/* Room Info */}
+              <div className="p-4 rounded-2xl bg-surface-container-low border border-white/5 text-xs space-y-2.5">
+                <h4 className="font-bold text-sm text-on-surface flex items-center gap-2">
+                  <Shield className="w-4 h-4 text-secondary" />
+                  Room Information
+                </h4>
+                <div className="flex justify-between py-1 border-b border-white/5 text-on-surface-variant">
+                  <span>Control Mode</span>
+                  <span className="text-on-surface font-semibold capitalize">
+                    {room.hostMode === 'friendly' ? '🤝 Collaborative (All Can Control)' : '👑 Single Host Only'}
+                  </span>
+                </div>
+                <div className="flex justify-between py-1 border-b border-white/5 text-on-surface-variant">
+                  <span>Vibe / Mood</span>
+                  <span className="text-on-surface font-semibold">{room.mood || 'Chill'}</span>
+                </div>
+                <div className="flex justify-between py-1 text-on-surface-variant">
+                  <span>Protection</span>
+                  <span className="text-on-surface font-semibold">
+                    {room.hasPin ? '🔒 PIN Protected' : '🌐 Open Public'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Invite & Leave Actions */}
+              <div className="p-4 rounded-2xl bg-surface-container-low border border-white/5 space-y-2.5">
+                <button
+                  onClick={handleCopyInvite}
+                  className="w-full py-2.5 px-4 rounded-full bg-primary text-on-primary hover:bg-primary-container text-xs font-bold flex items-center justify-center gap-2 transition-all active:scale-95 shadow-md"
+                >
+                  {hasCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                  {hasCopied ? 'Link Copied!' : 'Copy Shareable Link'}
+                </button>
+
+                <button
+                  onClick={onLeaveRoom}
+                  className="w-full py-2 px-4 rounded-full bg-surface-container-high border border-rose-500/20 text-rose-400 hover:bg-rose-500/15 text-xs font-medium flex items-center justify-center gap-2 transition-all active:scale-95"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  Leave Room
+                </button>
+              </div>
             </div>
 
           </div>
 
-          {/* Desktop Right Column: Tabbed Chat & Listeners */}
-          <div className="hidden lg:block space-y-4">
+          {/* Desktop Right Sidebar: Real-time Presence, Chat & Listeners */}
+          <div className="hidden lg:flex flex-col space-y-4">
 
-            {/* Sidebar Tabs */}
-            <div className="grid grid-cols-2 p-1 liquid-glass rounded-full">
+            {/* Room Meta & Live Sync Status Header */}
+            <div className="p-3.5 rounded-2xl bg-surface-container-low border border-white/5 flex items-center justify-between">
+              <div className="flex items-center space-x-2 min-w-0">
+                <span className="w-2.5 h-2.5 rounded-full bg-secondary animate-pulse shrink-0"></span>
+                <div className="flex flex-col min-w-0">
+                  <span className="font-bold text-sm text-on-surface truncate">
+                    {room.name || 'Synchronized Room'}
+                  </span>
+                  <span className="text-[11px] text-on-surface-variant font-mono">
+                    ID: <span className="text-secondary">{room.id}</span>
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-surface-container-high text-tertiary border border-tertiary/20 text-[11px] font-bold">
+                <span className="w-1.5 h-1.5 rounded-full bg-tertiary animate-ping"></span>
+                <span>ALL SYNCED</span>
+              </div>
+            </div>
+
+            {/* Horizontal Presence Bar (Scroller with connected users) */}
+            <div className="p-2.5 rounded-2xl bg-surface-container-low border border-white/5 flex items-center gap-2 overflow-x-auto no-scrollbar">
+              {room.members?.map((member, idx) => {
+                const isYou = member.id === currentSocketId;
+                return (
+                  <div key={member.id || idx} className="flex flex-col items-center gap-1 shrink-0 group cursor-pointer">
+                    <div className="relative">
+                      <div
+                        className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs shadow-md ${
+                          member.isHost
+                            ? 'bg-primary text-on-primary ring-2 ring-primary/40'
+                            : 'bg-surface-container-highest text-secondary ring-1 ring-white/10'
+                        }`}
+                      >
+                        {member.name?.charAt(0)?.toUpperCase() || 'U'}
+                      </div>
+                      <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-tertiary border-2 border-surface"></span>
+                      {member.isHost && (
+                        <span className="absolute -top-1 -left-1 px-1 py-0.2 rounded-full bg-on-primary-fixed text-primary-fixed text-[8px] font-bold flex items-center">
+                          HOST
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-[10px] font-medium text-on-surface-variant truncate max-w-[56px] text-center">
+                      {isYou ? 'You' : member.name}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Segmented View Toggle: Chat vs Listeners */}
+            <div className="grid grid-cols-2 p-1 rounded-full bg-surface-container-low border border-white/5">
               <button
                 onClick={() => {
                   setSidebarTab('chat');
                   setUnreadChatCount(0);
                 }}
-                className={`py-2 px-3 rounded-full text-xs font-medium flex items-center justify-center gap-2 transition-all ${sidebarTab === 'chat'
-                    ? 'bg-white text-black shadow-md'
-                    : 'text-white/60 hover:text-white'
-                  }`}
+                className={`flex items-center justify-center gap-2 py-2 px-3 rounded-full text-xs font-bold transition-all duration-200 ${
+                  sidebarTab === 'chat'
+                    ? 'bg-primary-container text-on-primary-container shadow-[0_2px_12px_rgba(160,120,255,0.35)]'
+                    : 'text-on-surface-variant hover:text-on-surface'
+                }`}
               >
                 <MessageSquare className="w-3.5 h-3.5" />
-                <span>Chat ({messages.length})</span>
+                <span>Live Chat</span>
                 {unreadChatCount > 0 && sidebarTab !== 'chat' && (
-                  <span className="ml-1 bg-rose-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                  <span className="px-1.5 py-0.2 rounded-full bg-primary text-on-primary text-[10px]">
                     {unreadChatCount}
                   </span>
                 )}
@@ -622,21 +587,28 @@ export default function Room({ initialRoom, currentSocketId, userId, onLeaveRoom
 
               <button
                 onClick={() => setSidebarTab('members')}
-                className={`py-2 px-3 rounded-full text-xs font-medium flex items-center justify-center gap-2 transition-all ${sidebarTab === 'members'
-                    ? 'bg-white text-black shadow-md'
-                    : 'text-white/60 hover:text-white'
-                  }`}
+                className={`flex items-center justify-center gap-2 py-2 px-3 rounded-full text-xs font-semibold transition-all duration-200 ${
+                  sidebarTab === 'members'
+                    ? 'bg-primary-container text-on-primary-container shadow-[0_2px_12px_rgba(160,120,255,0.35)]'
+                    : 'text-on-surface-variant hover:text-on-surface'
+                }`}
               >
                 <Users className="w-3.5 h-3.5" />
-                <span>Listeners ({room.members?.length || 1})</span>
+                <span>Listeners</span>
+                <span className="px-1.5 py-0.2 rounded-full bg-surface-container-highest text-on-surface-variant text-[10px]">
+                  {room.members?.length || 1}
+                </span>
               </button>
             </div>
 
+            {/* Tabbed Content */}
             {sidebarTab === 'chat' ? (
               <ChatBox
                 roomId={room?.id}
                 messages={messages}
                 currentSocketId={currentSocketId}
+                currentSong={room.currentSong}
+                hostName={room.hostName || 'Host'}
               />
             ) : (
               <MemberList
@@ -646,62 +618,138 @@ export default function Room({ initialRoom, currentSocketId, userId, onLeaveRoom
             )}
 
             {/* Room Info */}
-            <div className="liquid-glass rounded-3xl p-5 text-xs space-y-2.5">
-              <h4 className="font-heading italic text-base text-white flex items-center gap-2">
-                <Shield className="w-3.5 h-3.5 text-white/70" />
+            <div className="p-4 rounded-2xl bg-surface-container-low border border-white/5 text-xs space-y-2.5">
+              <h4 className="font-bold text-sm text-on-surface flex items-center gap-2">
+                <Shield className="w-4 h-4 text-secondary" />
                 Room Information
               </h4>
 
-              <div className="flex justify-between py-1 border-b border-white/10 text-white/60 font-body">
+              <div className="flex justify-between py-1 border-b border-white/5 text-on-surface-variant">
                 <span>Control Mode</span>
-                <span className="text-white font-medium capitalize">
-                  {room.hostMode === 'friendly' ? '🤝 Friendly (All Control)' : '👑 Single Host Only'}
+                <span className="text-on-surface font-semibold capitalize">
+                  {room.hostMode === 'friendly' ? '🤝 Collaborative (All Can Control)' : '👑 Single Host Only'}
                 </span>
               </div>
 
-              <div className="flex justify-between py-1 border-b border-white/10 text-white/60 font-body">
-                <span>Language</span>
-                <span className="text-white font-medium">{room.mood || 'Hindi'}</span>
+              <div className="flex justify-between py-1 border-b border-white/5 text-on-surface-variant">
+                <span>Vibe / Mood</span>
+                <span className="text-on-surface font-semibold">{room.mood || 'Chill'}</span>
               </div>
 
-              <div className="flex justify-between py-1 text-white/60 font-body">
+              <div className="flex justify-between py-1 text-on-surface-variant">
                 <span>Protection</span>
-                <span className="text-white font-medium">
-                  {room.hasPin ? '🔒 PIN Protected' : '🌐 Open Link'}
+                <span className="text-on-surface font-semibold">
+                  {room.hasPin ? '🔒 PIN Protected' : '🌐 Open Public'}
                 </span>
               </div>
             </div>
 
-            {/* Quick Share & Safe Leave Widgets */}
-            <div className="liquid-glass-strong rounded-3xl p-5 text-center space-y-3">
-              <div>
-                <p className="text-xs text-white/80 mb-2.5 font-medium font-body">
-                  Invite friends to this session
-                </p>
-                <button
-                  onClick={handleCopyInvite}
-                  className="w-full py-2.5 px-4 rounded-full bg-white text-black hover:bg-white/90 text-xs font-semibold flex items-center justify-center gap-2 transition-all active:scale-95 shadow-md"
-                >
-                  <Copy className="w-3.5 h-3.5" />
-                  Copy Shareable Link
-                </button>
-              </div>
+            {/* Quick Share & Safe Leave Action Buttons */}
+            <div className="p-4 rounded-2xl bg-surface-container-low border border-white/5 space-y-2.5">
+              <button
+                onClick={handleCopyInvite}
+                className="w-full py-2.5 px-4 rounded-full bg-primary text-on-primary hover:bg-primary-container text-xs font-bold flex items-center justify-center gap-2 transition-all active:scale-95 shadow-md"
+              >
+                {hasCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                {hasCopied ? 'Link Copied!' : 'Copy Shareable Link'}
+              </button>
 
-              <div className="pt-2 border-t border-white/5">
-                <button
-                  onClick={onLeaveRoom}
-                  className="w-full py-2 px-4 rounded-full liquid-glass border border-rose-500/25 text-rose-400 hover:bg-rose-500/15 hover:text-rose-300 text-xs font-medium flex items-center justify-center gap-2 transition-all active:scale-95"
-                >
-                  <LogOut className="w-3.5 h-3.5" />
-                  Leave Session
-                </button>
-              </div>
+              <button
+                onClick={onLeaveRoom}
+                className="w-full py-2 px-4 rounded-full bg-surface-container-high border border-rose-500/20 text-rose-400 hover:bg-rose-500/15 text-xs font-medium flex items-center justify-center gap-2 transition-all active:scale-95"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                Leave Room
+              </button>
             </div>
 
           </div>
 
         </div>
       </main>
+
+      {/* Fixed Mobile Bottom Navigation matching Stitch 7954158057130757842 */}
+      <nav className="lg:hidden fixed bottom-0 w-full z-50 pb-safe bg-surface-container-lowest/90 backdrop-blur-xl border-t border-white/5 shadow-[0_-8px_32px_rgba(0,0,0,0.6)]">
+        <div className="flex justify-around items-center h-16 px-2 max-w-md mx-auto">
+          {/* Lobby button */}
+          <button
+            onClick={onLeaveRoom}
+            className="flex flex-col items-center justify-center gap-1 min-w-[56px] text-on-surface-variant transition-colors hover:text-on-surface"
+          >
+            <LogOut className="w-5 h-5 rotate-180" />
+            <span className="text-[11px] font-medium">Lobby</span>
+          </button>
+
+          {/* Player Tab */}
+          <button
+            onClick={() => setMobileTab('player')}
+            className={`flex flex-col items-center justify-center gap-1 min-w-[56px] transition-all duration-200 ${
+              mobileTab === 'player'
+                ? 'text-secondary drop-shadow-[0_0_8px_rgba(76,215,246,0.6)] font-bold'
+                : 'text-on-surface-variant hover:text-on-surface'
+            }`}
+          >
+            <Radio className="w-5 h-5" />
+            <span className="text-[11px]">Player</span>
+          </button>
+
+          {/* Queue Tab */}
+          <button
+            onClick={() => setMobileTab('queue')}
+            className={`flex flex-col items-center justify-center gap-1 min-w-[56px] transition-all duration-200 ${
+              mobileTab === 'queue'
+                ? 'text-secondary drop-shadow-[0_0_8px_rgba(76,215,246,0.6)] font-bold'
+                : 'text-on-surface-variant hover:text-on-surface'
+            }`}
+          >
+            <div className="relative">
+              <ListMusic className="w-5 h-5" />
+              {queue.length > 0 && (
+                <span className="absolute -top-1 -right-2 bg-primary text-on-primary text-[9px] font-extrabold w-4 h-4 rounded-full flex items-center justify-center">
+                  {queue.length}
+                </span>
+              )}
+            </div>
+            <span className="text-[11px]">Queue</span>
+          </button>
+
+          {/* Chat Tab */}
+          <button
+            onClick={() => {
+              setMobileTab('chat');
+              setUnreadChatCount(0);
+            }}
+            className={`flex flex-col items-center justify-center gap-1 min-w-[56px] transition-all duration-200 ${
+              mobileTab === 'chat'
+                ? 'text-secondary drop-shadow-[0_0_8px_rgba(76,215,246,0.6)] font-bold'
+                : 'text-on-surface-variant hover:text-on-surface'
+            }`}
+          >
+            <div className="relative">
+              <MessageSquare className="w-5 h-5" />
+              {unreadChatCount > 0 && mobileTab !== 'chat' && (
+                <span className="absolute -top-1 -right-2 bg-primary text-on-primary text-[9px] font-extrabold w-4 h-4 rounded-full flex items-center justify-center animate-pulse">
+                  {unreadChatCount}
+                </span>
+              )}
+            </div>
+            <span className="text-[11px]">Chat</span>
+          </button>
+
+          {/* Listeners Tab */}
+          <button
+            onClick={() => setMobileTab('listeners')}
+            className={`flex flex-col items-center justify-center gap-1 min-w-[56px] transition-all duration-200 ${
+              mobileTab === 'listeners'
+                ? 'text-secondary drop-shadow-[0_0_8px_rgba(76,215,246,0.6)] font-bold'
+                : 'text-on-surface-variant hover:text-on-surface'
+            }`}
+          >
+            <Users className="w-5 h-5" />
+            <span className="text-[11px]">Listeners</span>
+          </button>
+        </div>
+      </nav>
     </div>
   );
 }

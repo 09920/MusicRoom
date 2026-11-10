@@ -1,154 +1,103 @@
-import React, { useState, useEffect } from 'react';
-import { Copy, Check, LogOut, Plus, Music2, ArrowUpRight, History, Download } from 'lucide-react';
+import React, { useState } from 'react';
+import { Copy, Check, LogOut, History, Download } from 'lucide-react';
 
 export default function Navbar({ 
   room, 
   onLeaveRoom, 
   onCopyInvite, 
-  onOpenImport, 
   onToggleHistory,
   isHistoryOpen = false,
-  isImportOpen = false,
-  onToggleImport,
   historyCount = 0 
 }) {
   const [copied, setCopied] = useState(false);
-  const [deferredPrompt, setDeferredPrompt] = useState(null);
-
-  useEffect(() => {
-    const handleBeforeInstall = (e) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
-    };
-    window.addEventListener('beforeinstallprompt', handleBeforeInstall);
-    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
-  }, []);
-
-  const handleInstallApp = async () => {
-    if (!deferredPrompt) return;
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    if (outcome === 'accepted') {
-      setDeferredPrompt(null);
-    }
-  };
 
   const handleCopy = () => {
-    onCopyInvite();
+    if (onCopyInvite) onCopyInvite();
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
   return (
-    <header className="sticky top-3 z-50 px-2.5 sm:px-8 max-w-7xl mx-auto w-full">
-      <div className="liquid-glass rounded-full px-3.5 sm:px-6 py-2 sm:py-2.5 flex items-center justify-between gap-2 sm:gap-4 shadow-2xl">
+    <header className="sticky top-0 w-full z-50 pt-safe bg-surface-container-lowest/80 backdrop-blur-xl shadow-[0_4px_24px_rgba(0,0,0,0.4)] border-b border-outline-variant/20 mb-4">
+      <div className="h-16 px-gutter-sm flex items-center justify-between gap-space-sm max-w-7xl mx-auto w-full">
         
         {/* Brand Logo & Info */}
-        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full liquid-glass flex items-center justify-center font-heading italic text-white text-base sm:text-xl shrink-0">
-            m
+        <div className="flex items-center gap-space-sm min-w-0">
+          <div className="w-9 h-9 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-[0_0_12px_rgba(208,188,255,0.3)] shrink-0">
+            <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>
+              speaker_group
+            </span>
           </div>
-          <div className="min-w-0">
-            <div className="flex items-center gap-1.5 sm:gap-2">
-              <span className="font-heading italic text-base sm:text-xl text-white tracking-tight leading-none truncate">
-                MusicRoom
+
+          <div className="flex flex-col min-w-0">
+            <div className="flex items-center gap-space-xs">
+              <span className="font-title-md text-title-md text-on-surface font-bold tracking-tight truncate">
+                SyncVibe
               </span>
-              {room && (
-                <span className="hidden sm:inline-block text-[11px] font-medium px-2 py-0.5 rounded-full liquid-glass text-white/80">
-                  {room.mood || 'Hindi'}
-                </span>
-              )}
+              <span className="font-label-sm text-label-sm px-1.5 py-0.5 rounded-full bg-secondary/10 text-secondary border border-secondary/20 flex items-center gap-1 shadow-[0_0_8px_rgba(76,215,246,0.3)]">
+                <span className="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse" />
+                SYNCED
+              </span>
             </div>
-            {room && (
-              <p className="text-[10px] sm:text-[11px] text-white/50 truncate max-w-[100px] sm:max-w-xs font-light font-body">
-                {room.name}
-              </p>
-            )}
+            <span className="font-label-sm text-label-sm text-on-surface-variant truncate">
+              {room?.name || 'Live Room'}
+            </span>
           </div>
         </div>
 
-        {/* Right Actions: Compact on mobile, expanded on desktop */}
-        {room ? (
-          <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
-            {/* Install PWA Prompt */}
-            {deferredPrompt && (
-              <button
-                onClick={handleInstallApp}
-                className="w-9 h-9 sm:w-auto px-0 sm:px-3 py-0 sm:py-1.5 rounded-full bg-purple-600/30 text-purple-200 border border-purple-500/40 text-xs font-medium flex items-center justify-center gap-1.5 transition-all active:scale-95 shrink-0"
-                title="Install MusicRoom App on this device"
-              >
-                <Download className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
-                <span className="hidden sm:inline">Install App</span>
-              </button>
-            )}
-
-            {/* History Pill: 1-Tap Toggle Open / Close */}
-            {onToggleHistory && (
-              <button
-                onClick={onToggleHistory}
-                className={`w-9 h-9 sm:w-auto px-0 sm:px-3 py-0 sm:py-1.5 rounded-full text-xs font-medium transition-all active:scale-95 flex items-center justify-center gap-1.5 shrink-0 ${
-                  isHistoryOpen
-                    ? 'bg-purple-600/30 text-purple-200 border border-purple-500/50 shadow-md shadow-purple-500/20'
-                    : 'liquid-glass text-white/90 hover:text-white'
-                }`}
-                title={isHistoryOpen ? "Close session history" : "View all songs played in this session"}
-                aria-label="Session History"
-              >
-                <History className={`w-4 h-4 sm:w-3.5 sm:h-3.5 ${isHistoryOpen ? 'text-purple-300' : 'text-purple-400'}`} />
-                <span className="hidden sm:inline">History {historyCount > 0 ? `(${historyCount})` : ''}</span>
-              </button>
-            )}
-
-            {/* Import Playlist: Primary Pill */}
-            <button
-              onClick={onToggleImport || onOpenImport}
-              className={`w-9 h-9 sm:w-auto px-0 sm:px-3.5 py-0 sm:py-1.5 rounded-full text-xs font-semibold flex items-center justify-center gap-1.5 transition-all active:scale-95 shadow-md shadow-white/10 shrink-0 ${
-                isImportOpen
-                  ? 'bg-zinc-800 text-white border border-white/30'
-                  : 'bg-white text-black hover:bg-white/90'
-              }`}
-              title="Import YouTube or Spotify Playlist"
-              aria-label="Import Playlist"
-            >
-              <Plus className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
-              <span className="hidden sm:inline">Import Playlist</span>
-            </button>
-
-            {/* Invite Friends: Liquid glass pill */}
+        {/* Room Status & Actions */}
+        <div className="flex items-center gap-2 sm:gap-space-sm shrink-0">
+          
+          {/* Room ID Copy Pill */}
+          {room?.id && (
             <button
               onClick={handleCopy}
-              className="w-9 h-9 sm:w-auto px-0 sm:px-3.5 py-0 sm:py-1.5 rounded-full liquid-glass text-xs font-medium text-white/90 hover:text-white transition-all active:scale-95 flex items-center justify-center gap-1.5 shrink-0"
-              title="Copy shareable invite link"
-              aria-label="Invite Friends"
+              className="flex items-center gap-1.5 bg-surface-container-high/80 hover:bg-surface-container-highest px-2.5 py-1.5 rounded-full text-xs transition-colors border border-outline-variant/20 active:scale-95"
+              title="Copy Room Link"
             >
+              <span className="material-symbols-outlined text-[15px] text-primary">tag</span>
+              <span className="font-label-sm text-label-sm text-on-surface font-mono font-semibold tracking-wider">
+                {room.id.slice(0, 9)}
+              </span>
               {copied ? (
-                <>
-                  <Check className="w-4 h-4 sm:w-3.5 sm:h-3.5 text-emerald-400" />
-                  <span className="hidden sm:inline text-emerald-400 font-semibold">Copied!</span>
-                </>
+                <Check className="w-3.5 h-3.5 text-tertiary" />
               ) : (
-                <>
-                  <Copy className="w-4 h-4 sm:w-3.5 sm:h-3.5 text-white/80" />
-                  <span className="hidden sm:inline">Invite</span>
-                </>
+                <Copy className="w-3.5 h-3.5 text-on-surface-variant hover:text-secondary" />
               )}
             </button>
+          )}
 
-            {/* Leave Room: Prominent & safe exit button */}
+          {/* Real-time drift badge */}
+          <div className="hidden sm:flex items-center gap-1 px-2.5 py-1 rounded-full bg-tertiary-container/20 text-tertiary shadow-[0_0_10px_rgba(78,222,163,0.25)] border border-tertiary/20">
+            <span className="w-1.5 h-1.5 rounded-full bg-tertiary animate-ping" />
+            <span className="font-label-sm text-label-sm uppercase tracking-wide">12ms drift</span>
+          </div>
+
+          {/* Session History */}
+          {onToggleHistory && (
             <button
-              onClick={onLeaveRoom}
-              className="w-9 h-9 rounded-full liquid-glass border border-rose-500/30 flex items-center justify-center text-rose-400 hover:bg-rose-500/20 hover:text-rose-300 transition-colors active:scale-95 shrink-0"
-              title="Exit Room"
-              aria-label="Exit Room"
+              onClick={onToggleHistory}
+              className={`p-2 rounded-full text-xs font-medium transition-all active:scale-95 flex items-center justify-center border border-outline-variant/20 ${
+                isHistoryOpen
+                  ? 'bg-primary-container/20 text-primary border-primary/40'
+                  : 'bg-surface-container-high/60 text-on-surface-variant hover:text-on-surface'
+              }`}
+              title="Session History"
             >
-              <LogOut className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
+              <History className="w-4 h-4" />
             </button>
-          </div>
-        ) : (
-          <div className="text-xs text-white/60 font-body">
-            Listen in sync with friends
-          </div>
-        )}
+          )}
+
+          {/* Leave Session Button */}
+          <button
+            onClick={onLeaveRoom}
+            className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-error-container/20 text-error hover:bg-error-container/30 transition-all font-label-sm text-label-sm border border-error/25 active:scale-95"
+          >
+            <span className="material-symbols-outlined text-[15px]">logout</span>
+            <span className="hidden sm:inline">Leave</span>
+          </button>
+
+        </div>
 
       </div>
     </header>

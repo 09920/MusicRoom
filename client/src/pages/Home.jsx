@@ -1,24 +1,50 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  ArrowUpRight, 
-  KeyRound, 
-  ShieldCheck, 
-  Zap, 
-  Radio, 
-  Music, 
-  Layers, 
-  Sparkles,
-  Wifi,
-  Headphones,
-  ListMusic
-} from 'lucide-react';
 import { socket } from '../socket';
-import BlurText from '../components/BlurText';
 
-const LANGUAGES = [
-  { id: 'Hindi', label: '🇮🇳 Hindi' },
-  { id: 'English', label: '🌐 English' },
-  { id: 'Other Languages', label: '🌍 Other Languages' }
+const VIBE_PRESETS = [
+  { id: 'Chill', label: 'Chill 🌙' },
+  { id: 'Party', label: 'Party 🔥' },
+  { id: 'Study', label: 'Study 📚' },
+  { id: 'Workout', label: 'Workout ⚡' },
+  { id: 'Lo-Fi', label: 'Lo-Fi ☕' },
+  { id: 'Hindi', label: 'Hindi 🇮🇳' },
+  { id: 'English', label: 'English 🌐' }
+];
+
+const PUBLIC_ROOM_PRESETS = [
+  {
+    id: 'lofi-beats-live',
+    name: 'Late Night Lo-Fi Beats',
+    code: '#fa0b-378f',
+    tag: 'LO-FI',
+    host: 'Alex',
+    listeners: 8,
+    track: 'Lofi Girl – beats to relax/study to',
+    image: 'https://images.unsplash.com/photo-1518609878373-06d740f60d8b?w=400&q=80',
+    color: 'tertiary'
+  },
+  {
+    id: 'synthwave-odyssey',
+    name: 'Neon Synthwave Odyssey',
+    code: '#9e1c-55b2',
+    tag: 'SYNTH',
+    host: 'KavinskyVibe',
+    listeners: 19,
+    track: 'The Midnight – Sunset (Official Audio)',
+    image: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=400&q=80',
+    color: 'primary'
+  },
+  {
+    id: 'bollywood-indie-vibes',
+    name: 'Bollywood & Indie Vibes',
+    code: '#c28e-89a1',
+    tag: 'BOLLYWOOD',
+    host: 'Dev',
+    listeners: 14,
+    track: 'Arijit Singh – Kesariya (Acoustic)',
+    image: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400&q=80',
+    color: 'secondary'
+  }
 ];
 
 export default function Home({ onRoomJoined, initialRoomId, userId }) {
@@ -33,8 +59,8 @@ export default function Home({ onRoomJoined, initialRoomId, userId }) {
       name: '',
       hostName: savedName,
       pin: '',
-      hostMode: 'friendly',
-      mood: 'Hindi'
+      hostMode: 'friendly', // 'friendly' | 'single'
+      mood: 'Chill'
     };
   });
 
@@ -50,8 +76,12 @@ export default function Home({ onRoomJoined, initialRoomId, userId }) {
     };
   });
 
+  const [hasPinProtection, setHasPinProtection] = useState(false);
+  const [pinDigits, setPinDigits] = useState(['', '', '', '']);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [ping, setPing] = useState(12);
+
   const [recentSession, setRecentSession] = useState(() => {
     try {
       const raw = localStorage.getItem('musicroom_recent_session');
@@ -72,47 +102,25 @@ export default function Home({ onRoomJoined, initialRoomId, userId }) {
     }
   }, [initialRoomId]);
 
-  const handleQuickRejoin = (roomId) => {
-    setJoinData(prev => ({ ...prev, roomId }));
-    setTab('join');
-    const savedName = localStorage.getItem('musicroom_user_name') || joinData.name;
-    if (savedName && savedName.trim()) {
-      setLoading(true);
-      setError('');
-      socket.emit('room:join', {
-        roomId,
-        name: savedName.trim(),
-        pin: '',
-        userId
-      }, (res) => {
-        setLoading(false);
-        if (res?.success && res.room) {
-          try {
-            localStorage.setItem('musicroom_recent_session', JSON.stringify({
-              roomId: res.room.id,
-              name: res.room.name,
-              mood: res.room.mood,
-              timestamp: Date.now()
-            }));
-          } catch {}
-          onRoomJoined(res.room, res.yourSocketId || socket.id);
-        } else if (res?.needPin) {
-          setError('PIN required. Please enter room PIN below to rejoin.');
-        } else {
-          setError(res?.error || 'Could not rejoin room. It may have expired.');
-          setRecentSession(null);
-          try { localStorage.removeItem('musicroom_recent_session'); } catch {}
-        }
+  // Track live socket ping latency
+  useEffect(() => {
+    const pingInterval = setInterval(() => {
+      const start = Date.now();
+      socket.volatile.emit('ping_sync', () => {
+        setPing(Math.max(8, Date.now() - start));
       });
-    }
-  };
+    }, 10000);
+    return () => clearInterval(pingInterval);
+  }, []);
 
   const handleCreate = (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     if (!createData.hostName.trim()) {
-      setError('Please enter your name');
+      setError('Please enter your nickname');
       return;
     }
+
+    const fullPin = hasPinProtection ? pinDigits.join('') : '';
 
     try {
       localStorage.setItem('musicroom_user_name', createData.hostName.trim());
@@ -121,7 +129,11 @@ export default function Home({ onRoomJoined, initialRoomId, userId }) {
     setLoading(true);
     setError('');
 
-    socket.emit('room:create', { ...createData, userId }, (res) => {
+    socket.emit('room:create', {
+      ...createData,
+      pin: fullPin,
+      userId
+    }, (res) => {
       setLoading(false);
       if (res?.success && res.room) {
         try {
@@ -129,6 +141,7 @@ export default function Home({ onRoomJoined, initialRoomId, userId }) {
             roomId: res.room.id,
             name: res.room.name,
             mood: res.room.mood,
+            hostName: createData.hostName.trim(),
             timestamp: Date.now()
           }));
         } catch {}
@@ -140,36 +153,34 @@ export default function Home({ onRoomJoined, initialRoomId, userId }) {
   };
 
   const handleJoin = (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     if (!joinData.roomId.trim()) {
       setError('Please enter a room code or link');
       return;
     }
     if (!joinData.name.trim()) {
-      setError('Please enter your name');
+      setError('Please enter your nickname');
       return;
+    }
+
+    let parsedRoomId = joinData.roomId.trim();
+    if (parsedRoomId.includes('room=')) {
+      parsedRoomId = parsedRoomId.split('room=')[1].split('&')[0];
+    } else if (parsedRoomId.includes('/room/')) {
+      parsedRoomId = parsedRoomId.split('/room/')[1].split('/')[0];
     }
 
     try {
       localStorage.setItem('musicroom_user_name', joinData.name.trim());
     } catch {}
 
-    let cleanRoomId = joinData.roomId.trim();
-    if (cleanRoomId.includes('/')) {
-      const parts = cleanRoomId.split('/');
-      cleanRoomId = parts[parts.length - 1];
-    }
-    if (cleanRoomId.includes('=')) {
-      cleanRoomId = cleanRoomId.split('=').pop();
-    }
-
     setLoading(true);
     setError('');
 
     socket.emit('room:join', {
-      roomId: cleanRoomId,
+      roomId: parsedRoomId,
       name: joinData.name.trim(),
-      pin: joinData.pin,
+      pin: joinData.pin.trim(),
       userId
     }, (res) => {
       setLoading(false);
@@ -179,431 +190,594 @@ export default function Home({ onRoomJoined, initialRoomId, userId }) {
             roomId: res.room.id,
             name: res.room.name,
             mood: res.room.mood,
+            hostName: res.room.hostName || 'Host',
             timestamp: Date.now()
           }));
         } catch {}
-        onRoomJoined(res.room, res.yourSocketId);
+        onRoomJoined(res.room, res.socketId);
       } else {
-        setError(res?.error || 'Failed to join room. Check code or PIN.');
+        setError(res?.error || 'Failed to join room. Verify the code or PIN.');
       }
     });
   };
 
-  return (
-    <div className="relative bg-black text-white selection:bg-white selection:text-black overflow-hidden font-body">
-      
-      {/* ======================================================== */}
-      {/* SECTION 1: HERO PORTAL (Looping Golden Orb Video)        */}
-      {/* ======================================================== */}
-      <section className="relative min-h-screen w-full flex flex-col justify-between overflow-hidden bg-black z-10 pt-20 sm:pt-24 pb-12">
-        
-        {/* Background Ambient Glow (Replaced moving video) */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#12131c] via-[#0d0e16] to-black z-0 pointer-events-none" />
+  const handleQuickRejoin = (roomId, defaultRoomName = 'Music Room') => {
+    const savedName = localStorage.getItem('musicroom_user_name') || createData.hostName || 'Alex';
+    setLoading(true);
+    setError('');
 
-        {/* Hero Content Layer */}
-        <div className="relative z-10 flex-1 flex flex-col items-center justify-center text-center px-4 max-w-4xl mx-auto my-auto w-full">
+    socket.emit('room:join', {
+      roomId,
+      name: savedName,
+      pin: '',
+      userId
+    }, (res) => {
+      setLoading(false);
+      if (res?.success && res.room) {
+        onRoomJoined(res.room, res.socketId);
+      } else {
+        // If room expired, auto-create a room with same name
+        socket.emit('room:create', {
+          name: defaultRoomName,
+          hostName: savedName,
+          pin: '',
+          hostMode: 'friendly',
+          mood: 'Chill',
+          userId
+        }, (createRes) => {
+          if (createRes?.success && createRes.room) {
+            onRoomJoined(createRes.room, createRes.room.hostSocketId);
+          } else {
+            setError('Could not join or recreate room. Try creating a new one.');
+          }
+        });
+      }
+    });
+  };
+
+  const handlePinChange = (index, value) => {
+    if (!/^\d*$/.test(value)) return;
+    const nextDigits = [...pinDigits];
+    nextDigits[index] = value.slice(-1);
+    setPinDigits(nextDigits);
+
+    // Auto focus next input
+    if (value && index < 3) {
+      const nextInput = document.getElementById(`pin-digit-${index + 1}`);
+      if (nextInput) nextInput.focus();
+    }
+  };
+
+  return (
+    <div className="bg-surface text-on-surface flex flex-col min-h-screen selection:bg-primary-container selection:text-on-primary-container font-sans antialiased">
+      
+      {/* Fixed Header (Stitch Obsidian Pulse) */}
+      <header className="fixed top-0 w-full z-50 pt-safe bg-surface-container-lowest/80 backdrop-blur-xl shadow-[0_4px_24px_rgba(0,0,0,0.4)] border-b border-outline-variant/20">
+        <div className="h-16 px-gutter-sm flex items-center justify-between gap-space-sm max-w-4xl mx-auto w-full">
           
-          {/* Animated Badge Chip */}
-          <div className="liquid-glass rounded-full p-1 pr-3.5 flex items-center gap-2.5 mb-6 shadow-2xl animate-in fade-in slide-in-from-bottom-2 duration-500">
-            <span className="bg-white text-black px-3 py-1 text-xs font-semibold rounded-full">
-              New
-            </span>
-            <span className="text-xs sm:text-sm text-white/90 font-medium">
-              Synchronized Music Rooms • No Signups Needed
-            </span>
+          <div className="flex items-center gap-space-sm min-w-0">
+            {/* MusicRoom Logo Glyph */}
+            <div className="w-9 h-9 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-[0_0_12px_rgba(208,188,255,0.3)] shrink-0">
+              <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>
+                speaker_group
+              </span>
+            </div>
+            
+            <div className="flex flex-col min-w-0">
+              <div className="flex items-center gap-space-xs">
+                <span className="font-title-md text-title-md text-on-surface font-bold tracking-tight truncate">
+                  SyncVibe
+                </span>
+                <span className="font-label-sm text-label-sm px-1.5 py-0.5 rounded-full bg-secondary/10 text-secondary border border-secondary/20 flex items-center gap-1 shadow-[0_0_8px_rgba(76,215,246,0.3)]">
+                  <span className="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse" />
+                  SYNCED
+                </span>
+              </div>
+              <span className="font-label-sm text-label-sm text-on-surface-variant truncate">
+                Lobby
+              </span>
+            </div>
           </div>
 
-          {/* Headline with Word-by-Word Blur Animation */}
-          <BlurText
-            text="Listen Together Across The Universe"
-            className="text-5xl sm:text-7xl lg:text-[5.5rem] font-heading italic text-white leading-[0.85] max-w-2xl justify-center tracking-[-3px] sm:tracking-[-4px]"
-          />
+          <div className="flex items-center gap-space-sm shrink-0">
+            {/* Real-time latency pulse */}
+            <div className="h-9 px-space-sm rounded-full bg-surface-container-high/60 backdrop-blur-md flex items-center gap-1.5 text-secondary shadow-[0_0_12px_rgba(76,215,246,0.15)] border border-secondary/20">
+              <span className="material-symbols-outlined text-[18px]">graphic_eq</span>
+              <span className="font-label-sm text-label-sm text-on-surface font-semibold">{ping}ms</span>
+            </div>
 
-          {/* Subheading */}
-          <p className="mt-6 text-sm sm:text-base text-white/80 max-w-2xl font-body font-light leading-snug animate-in fade-in slide-in-from-bottom-3 duration-700">
-            Discover shared listening in ways once unimaginable. Create a private room in 1-click, send the link to friends, and hear every beat at the exact same millisecond.
-          </p>
+            <div className="w-8 h-8 rounded-full bg-surface-container-high ring-2 ring-primary/40 flex items-center justify-center text-primary text-xs font-bold shadow-[0_0_12px_rgba(208,188,255,0.25)]">
+              {(createData.hostName || 'U').charAt(0).toUpperCase()}
+            </div>
+          </div>
 
-          {/* Main Liquid-Glass Session Card */}
-          <div className="w-full max-w-md liquid-glass-strong rounded-[2rem] p-6 sm:p-7 shadow-2xl mt-8 text-left relative animate-in fade-in slide-in-from-bottom-4 duration-700">
-            {/* Quick Rejoin Banner */}
-            {recentSession && (
-              <div className="mb-5 p-3.5 rounded-2xl liquid-glass border border-white/10 flex items-center justify-between gap-3 bg-white/[0.03]">
-                <div className="min-w-0">
-                  <span className="text-[10px] text-white/50 uppercase tracking-wider font-semibold font-body flex items-center gap-1">
-                    <Sparkles className="w-2.5 h-2.5 text-purple-400" />
-                    Recent Session
-                  </span>
-                  <p className="font-heading italic text-sm text-white truncate leading-tight mt-0.5">
-                    {recentSession.name || 'Last Room'}
-                  </p>
-                  <p className="text-[10px] text-white/40 font-mono truncate">
-                    ID: {recentSession.roomId}
-                  </p>
+        </div>
+      </header>
+
+      {/* Main Content Area */}
+      <main className="flex flex-col relative w-full pt-20 pb-20 bg-surface min-h-screen">
+        <div className="flex flex-col w-full px-gutter-sm space-y-space-lg max-w-lg mx-auto">
+          
+          {/* Error Banner */}
+          {error && (
+            <div className="p-space-sm rounded-xl bg-error-container/40 border border-error/30 text-on-error-container text-xs flex items-center gap-2 animate-in fade-in">
+              <span className="material-symbols-outlined text-[18px] text-error">error</span>
+              <span>{error}</span>
+            </div>
+          )}
+
+          {/* Ambient Audio Pulse Backing */}
+          <div className="relative w-full rounded-2xl p-space-md bg-surface-container-low shadow-xl overflow-hidden border border-outline-variant/15">
+            <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full bg-primary-container/20 blur-3xl pointer-events-none" />
+            <div className="absolute -bottom-8 -left-8 w-40 h-40 rounded-full bg-secondary/15 blur-2xl pointer-events-none" />
+
+            <div className="relative z-10 flex flex-col space-y-space-sm">
+              <div className="flex items-center justify-between">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-container-highest text-secondary font-label-sm text-label-sm tracking-wide border border-secondary/20">
+                  <span className="w-1.5 h-1.5 rounded-full bg-secondary animate-ping" />
+                  REAL-TIME ENGINE
+                </span>
+                <div className="flex items-center gap-1 text-tertiary font-label-sm text-label-sm bg-surface-container-high px-2 py-0.5 rounded-full border border-tertiary/20">
+                  <span className="material-symbols-outlined text-[14px]">bolt</span>
+                  <span>Zero Drift</span>
                 </div>
+              </div>
+
+              <div className="flex flex-col space-y-1">
+                <h2 className="font-headline-lg-mobile text-headline-lg-mobile text-on-surface font-extrabold tracking-tight">
+                  Listen Together in Perfect Sync
+                </h2>
+                <p className="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+                  Experience ultra-low latency audio sync powered by YouTube stream anchors, drift auto-correction, and bandwidth optimization.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2 pt-1 flex-wrap">
+                <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-surface-container font-label-sm text-label-sm text-on-surface-variant border border-outline-variant/20">
+                  <span className="material-symbols-outlined text-[14px] text-primary">speed</span>
+                  <span>&lt;15ms Latency</span>
+                </div>
+                <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-surface-container font-label-sm text-label-sm text-on-surface-variant border border-outline-variant/20">
+                  <span className="material-symbols-outlined text-[14px] text-secondary">data_saver_on</span>
+                  <span>Audio-Only Mode</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Rejoin Recent Rooms */}
+          {recentSession && (
+            <div className="flex flex-col space-y-space-sm">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-secondary text-[20px]">history</span>
+                  <h3 className="font-title-md text-title-md text-on-surface font-bold">Quick Rejoin</h3>
+                </div>
+                <span className="font-label-sm text-label-sm text-on-surface-variant uppercase">Recent Session</span>
+              </div>
+
+              <div className="flex items-center justify-between p-space-md rounded-2xl bg-surface-container shadow-md border border-outline-variant/15 transition-all duration-200">
+                <div className="flex items-center gap-space-sm min-w-0">
+                  <div className="relative w-12 h-12 rounded-xl overflow-hidden bg-surface-container-high shrink-0 border border-outline-variant/20">
+                    <img
+                      className="w-full h-full object-cover"
+                      src="https://images.unsplash.com/photo-1518609878373-06d740f60d8b?w=400&q=80"
+                      alt=""
+                    />
+                    <div className="absolute inset-0 bg-primary/20 mix-blend-overlay" />
+                    <div className="absolute bottom-1 right-1 flex items-center justify-center w-4 h-4 rounded-full bg-surface-container-lowest/80 text-secondary">
+                      <span className="material-symbols-outlined text-[10px]">equalizer</span>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col min-w-0">
+                    <span className="font-title-md text-title-md text-on-surface font-bold truncate">
+                      {recentSession.name || 'Last Room'}
+                    </span>
+                    <div className="flex items-center gap-2 text-on-surface-variant font-label-sm text-label-sm">
+                      <span className="text-primary font-mono font-medium">#{recentSession.roomId}</span>
+                      <span>•</span>
+                      <span className="flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-tertiary" />
+                        Host: @{recentSession.hostName || 'Host'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
                 <button
                   type="button"
-                  onClick={() => handleQuickRejoin(recentSession.roomId)}
-                  className="px-3.5 py-1.5 rounded-full bg-white text-black hover:bg-white/90 text-xs font-semibold flex items-center gap-1 transition-all active:scale-95 shadow-md shrink-0"
+                  onClick={() => handleQuickRejoin(recentSession.roomId, recentSession.name)}
+                  disabled={loading}
+                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-primary-container text-on-primary-container font-label-md text-label-md font-bold shadow-[0_0_16px_rgba(160,120,255,0.4)] shrink-0 active:scale-95 transition-transform"
                 >
-                  <Zap className="w-3 h-3 fill-black" />
                   <span>Rejoin</span>
+                  <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
                 </button>
               </div>
-            )}
+            </div>
+          )}
 
-            {/* Tab Switcher */}
-            <div className="grid grid-cols-2 p-1 liquid-glass rounded-full mb-5">
+          {/* Interactive Action Tabs (Create / Join) */}
+          <div className="flex flex-col space-y-space-md p-space-md rounded-2xl bg-surface-container shadow-xl border border-outline-variant/15">
+            
+            {/* Segment Switcher */}
+            <div className="flex items-center p-1 rounded-full bg-surface-container-lowest border border-outline-variant/20">
               <button
                 type="button"
+                id="tabBtnCreate"
                 onClick={() => { setTab('create'); setError(''); }}
-                className={`py-2 text-xs sm:text-sm font-medium rounded-full transition-all ${
+                className={`flex-1 py-2 rounded-full text-center font-label-md text-label-md font-bold transition-all duration-200 ${
                   tab === 'create'
-                    ? 'bg-white text-black shadow-md'
-                    : 'text-white/70 hover:text-white'
+                    ? 'bg-primary text-on-primary shadow-sm'
+                    : 'text-on-surface-variant hover:text-on-surface'
                 }`}
               >
                 Create Room
               </button>
               <button
                 type="button"
+                id="tabBtnJoin"
                 onClick={() => { setTab('join'); setError(''); }}
-                className={`py-2 text-xs sm:text-sm font-medium rounded-full transition-all ${
+                className={`flex-1 py-2 rounded-full text-center font-label-md text-label-md font-bold transition-all duration-200 ${
                   tab === 'join'
-                    ? 'bg-white text-black shadow-md'
-                    : 'text-white/70 hover:text-white'
+                    ? 'bg-secondary text-on-secondary shadow-sm'
+                    : 'text-on-surface-variant hover:text-on-surface'
                 }`}
               >
-                Join Room
+                Join by Code
               </button>
             </div>
 
-            {error && (
-              <div className="mb-4 p-3 rounded-2xl bg-rose-950/60 border border-rose-800/40 text-rose-300 text-xs font-medium">
-                {error}
-              </div>
-            )}
-
-            {/* Create Room Form */}
+            {/* Create Room View */}
             {tab === 'create' ? (
-              <form onSubmit={handleCreate} className="space-y-3.5">
-                <div>
-                  <label className="block text-xs font-medium text-white/80 mb-1 font-body">
-                    Your Nickname <span className="text-white/40">*</span>
+              <form onSubmit={handleCreate} className="flex flex-col space-y-space-md" id="createRoomPanel">
+                
+                {/* Nickname */}
+                <div className="space-y-space-xs">
+                  <label className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">
+                    Your Nickname *
                   </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Alex"
-                    value={createData.hostName}
-                    onChange={(e) => setCreateData({ ...createData, hostName: e.target.value })}
-                    required
-                    className="w-full px-4 py-2.5 rounded-full liquid-glass text-white placeholder-white/30 text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-white/40 transition-all"
-                  />
+                  <div className="flex items-center px-space-md py-2.5 rounded-full bg-surface-container-lowest border border-outline-variant/25 focus-within:border-primary transition-colors">
+                    <span className="material-symbols-outlined text-on-surface-variant text-[18px] mr-2">badge</span>
+                    <input
+                      className="w-full bg-transparent text-on-surface font-body-md text-body-md focus:outline-none placeholder:text-outline"
+                      placeholder="e.g. Alex"
+                      type="text"
+                      value={createData.hostName}
+                      onChange={(e) => setCreateData({ ...createData, hostName: e.target.value })}
+                      required
+                    />
+                  </div>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-medium text-white/80 mb-1 font-body">
+                {/* Room Name */}
+                <div className="space-y-space-xs">
+                  <label className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">
                     Room Name (Optional)
                   </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Midnight Sessions"
-                    value={createData.name}
-                    onChange={(e) => setCreateData({ ...createData, name: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-full liquid-glass text-white placeholder-white/30 text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-white/40 transition-all"
-                  />
+                  <div className="flex items-center px-space-md py-2.5 rounded-full bg-surface-container-lowest border border-outline-variant/25 focus-within:border-primary transition-colors">
+                    <span className="material-symbols-outlined text-on-surface-variant text-[18px] mr-2">speaker_group</span>
+                    <input
+                      className="w-full bg-transparent text-on-surface font-body-md text-body-md focus:outline-none placeholder:text-outline"
+                      placeholder="e.g. Midnight Beats"
+                      type="text"
+                      value={createData.name}
+                      onChange={(e) => setCreateData({ ...createData, name: e.target.value })}
+                    />
+                  </div>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-medium text-white/80 mb-1 font-body">
-                    Language Vibe
+                {/* Vibe Preset */}
+                <div className="space-y-space-xs">
+                  <label className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">
+                    Vibe Preset
                   </label>
-                  <select
-                    value={createData.mood}
-                    onChange={(e) => setCreateData({ ...createData, mood: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-full liquid-glass text-white text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-white/40 transition-all cursor-pointer bg-black/95"
-                  >
-                    {LANGUAGES.map(lang => (
-                      <option key={lang.id} value={lang.id} className="bg-black text-white">{lang.label}</option>
-                    ))}
-                  </select>
+                  <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+                    {VIBE_PRESETS.map((preset) => {
+                      const isActive = createData.mood === preset.id;
+                      return (
+                        <button
+                          key={preset.id}
+                          type="button"
+                          onClick={() => setCreateData({ ...createData, mood: preset.id })}
+                          className={`mood-pill px-3 py-1.5 rounded-full font-label-md text-label-md shrink-0 transition-all active:scale-95 ${
+                            isActive
+                              ? 'bg-primary-container text-on-primary-container font-bold shadow-[0_0_12px_rgba(160,120,255,0.3)]'
+                              : 'bg-surface-container-lowest text-on-surface-variant hover:text-on-surface border border-outline-variant/20 font-semibold'
+                          }`}
+                        >
+                          {preset.label}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
 
-                {/* Host Mode Selection */}
-                <div>
-                  <label className="block text-xs font-medium text-white/80 mb-1 font-body">
-                    Control Permissions
-                  </label>
-                  <div className="grid grid-cols-2 gap-2">
+                {/* Playback Permissions Policy */}
+                <div className="flex flex-col p-space-sm rounded-xl bg-surface-container-lowest space-y-2 border border-outline-variant/20">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="material-symbols-outlined text-secondary text-[20px]">tune</span>
+                      <span className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">
+                        Playback Permissions
+                      </span>
+                    </div>
+                    <span className={`font-label-sm text-label-sm font-semibold ${createData.hostMode === 'friendly' ? 'text-secondary' : 'text-primary'}`}>
+                      {createData.hostMode === 'friendly' ? 'Collaborative' : 'Host-Only DJ'}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 p-1 rounded-xl bg-surface-container-high/60">
                     <button
                       type="button"
                       onClick={() => setCreateData({ ...createData, hostMode: 'friendly' })}
-                      className={`p-2.5 rounded-2xl text-left transition-all ${
+                      className={`flex flex-col items-start p-2.5 rounded-lg text-left transition-all ${
                         createData.hostMode === 'friendly'
-                          ? 'liquid-glass bg-white/10 ring-1 ring-white/50 text-white'
-                          : 'liquid-glass text-white/60 hover:text-white'
+                          ? 'bg-surface-container text-secondary ring-1 ring-secondary/40 shadow-sm'
+                          : 'text-on-surface-variant hover:text-on-surface'
                       }`}
                     >
-                      <p className="text-xs font-semibold flex items-center gap-1.5">
-                        <Zap className="w-3.5 h-3.5 text-white" />
-                        Friendly
-                      </p>
-                      <p className="text-[10px] text-white/50 mt-0.5 leading-tight font-body">Anyone can control</p>
+                      <div className="flex items-center gap-1.5 font-label-md text-label-md font-bold">
+                        <span className="material-symbols-outlined text-[18px]">groups</span>
+                        <span>Friendly Mode</span>
+                      </div>
+                      <span className="text-[10px] text-on-surface-variant mt-0.5 leading-tight">
+                        All listeners can queue & skip
+                      </span>
                     </button>
 
                     <button
                       type="button"
                       onClick={() => setCreateData({ ...createData, hostMode: 'single' })}
-                      className={`p-2.5 rounded-2xl text-left transition-all ${
+                      className={`flex flex-col items-start p-2.5 rounded-lg text-left transition-all ${
                         createData.hostMode === 'single'
-                          ? 'liquid-glass bg-white/10 ring-1 ring-white/50 text-white'
-                          : 'liquid-glass text-white/60 hover:text-white'
+                          ? 'bg-primary-container/20 text-primary ring-1 ring-primary/40 shadow-sm'
+                          : 'text-on-surface-variant hover:text-on-surface'
                       }`}
                     >
-                      <p className="text-xs font-semibold flex items-center gap-1.5">
-                        <ShieldCheck className="w-3.5 h-3.5 text-white" />
-                        Host Only
-                      </p>
-                      <p className="text-[10px] text-white/50 mt-0.5 leading-tight font-body">Only host controls</p>
+                      <div className="flex items-center gap-1.5 font-label-md text-label-md font-bold">
+                        <span className="material-symbols-outlined text-[18px]">admin_panel_settings</span>
+                        <span>Host-Only DJ</span>
+                      </div>
+                      <span className="text-[10px] text-on-surface-variant mt-0.5 leading-tight">
+                        Strict host & DJ privileges
+                      </span>
                     </button>
                   </div>
+
+                  <p className="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1.5 pt-0.5">
+                    <span className="material-symbols-outlined text-[14px] text-secondary">info</span>
+                    {createData.hostMode === 'friendly'
+                      ? 'Anyone can add, reorder, and skip tracks together in real-time.'
+                      : 'Strict DJ room: only host and verified co-hosts can alter playback or queue.'}
+                  </p>
                 </div>
 
-                {/* Optional Room PIN */}
-                <div>
-                  <label className="block text-xs font-medium text-white/80 mb-1 font-body">
-                    Room PIN (Optional)
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="password"
-                      maxLength={6}
-                      placeholder="Leave empty for open link"
-                      value={createData.pin}
-                      onChange={(e) => setCreateData({ ...createData, pin: e.target.value })}
-                      className="w-full px-4 py-2.5 pl-9 rounded-full liquid-glass text-white placeholder-white/30 text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-white/40 transition-all"
-                    />
-                    <KeyRound className="w-4 h-4 text-white/40 absolute left-3 top-3" />
+                {/* Room PIN Code Protection Toggle */}
+                <div className="flex flex-col p-space-sm rounded-xl bg-surface-container-lowest space-y-2 border border-outline-variant/20">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className="material-symbols-outlined text-primary text-[22px]">lock</span>
+                      <div className="flex flex-col">
+                        <span className="font-title-md text-title-md text-on-surface font-semibold text-sm">
+                          PIN Code Protection
+                        </span>
+                        <span className="font-label-sm text-label-sm text-on-surface-variant">
+                          Require 4-digit passkey to join
+                        </span>
+                      </div>
+                    </div>
+
+                    <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                      <input
+                        type="checkbox"
+                        checked={hasPinProtection}
+                        onChange={(e) => setHasPinProtection(e.target.checked)}
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-surface-container-highest rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-primary-container after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-on-surface after:rounded-full after:h-5 after:w-5 after:transition-all" />
+                    </label>
                   </div>
+
+                  {hasPinProtection && (
+                    <div className="pt-2 flex items-center justify-between animate-in fade-in">
+                      <span className="font-label-sm text-label-sm text-on-surface-variant">
+                        Set 4-Digit Passcode
+                      </span>
+                      <div className="flex gap-2">
+                        {[0, 1, 2, 3].map((idx) => (
+                          <input
+                            key={idx}
+                            id={`pin-digit-${idx}`}
+                            type="password"
+                            maxLength={1}
+                            placeholder="•"
+                            value={pinDigits[idx]}
+                            onChange={(e) => handlePinChange(idx, e.target.value)}
+                            className="w-9 h-10 text-center rounded-lg bg-surface-container-high text-on-surface font-bold text-lg focus:outline-none focus:ring-1 focus:ring-primary border border-outline-variant/30"
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
+                {/* Create Room Action Button */}
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full mt-2 py-3 rounded-full bg-white text-black hover:bg-white/90 font-medium text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shadow-lg active:scale-95 disabled:opacity-50"
+                  className="w-full py-3.5 rounded-full bg-primary font-headline-md text-headline-md text-on-primary font-bold shadow-[0_0_24px_rgba(208,188,255,0.4)] hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                 >
-                  {loading ? 'Creating Room...' : 'Start Session'}
-                  <ArrowUpRight className="w-4 h-4" />
+                  <span className="material-symbols-outlined text-[20px]">add_circle</span>
+                  <span>{loading ? 'Creating Room...' : 'Start Session'}</span>
                 </button>
+
               </form>
             ) : (
-              /* Join Room Form */
-              <form onSubmit={handleJoin} className="space-y-3.5">
-                <div>
-                  <label className="block text-xs font-medium text-white/80 mb-1 font-body">
-                    Room Link or Code <span className="text-white/40">*</span>
+              /* Join Room by Code Panel */
+              <form onSubmit={handleJoin} className="flex flex-col space-y-space-md" id="joinRoomPanel">
+                
+                <div className="space-y-space-xs">
+                  <label className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">
+                    Room Code or Invite Link
                   </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. a8f3-91cd-77b2"
-                    value={joinData.roomId}
-                    onChange={(e) => setJoinData({ ...joinData, roomId: e.target.value })}
-                    required
-                    className="w-full px-4 py-2.5 rounded-full liquid-glass text-white placeholder-white/30 text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-white/40 transition-all"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-white/80 mb-1 font-body">
-                    Your Nickname <span className="text-white/40">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Maya"
-                    value={joinData.name}
-                    onChange={(e) => setJoinData({ ...joinData, name: e.target.value })}
-                    required
-                    className="w-full px-4 py-2.5 rounded-full liquid-glass text-white placeholder-white/30 text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-white/40 transition-all"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-white/80 mb-1 font-body">
-                    Room PIN (if protected)
-                  </label>
-                  <div className="relative">
+                  <div className="flex items-center px-space-md py-3 rounded-2xl bg-surface-container-lowest border border-outline-variant/25 focus-within:border-secondary transition-colors">
+                    <span className="material-symbols-outlined text-secondary text-[22px] mr-2">link</span>
                     <input
+                      className="w-full bg-transparent text-on-surface font-body-md text-body-md font-mono focus:outline-none placeholder:text-outline"
+                      placeholder="e.g. 78ba-449e or paste full URL"
+                      type="text"
+                      value={joinData.roomId}
+                      onChange={(e) => setJoinData({ ...joinData, roomId: e.target.value })}
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* Auto Detection Badge */}
+                {joinData.roomId && (
+                  <div className="flex items-center gap-2 p-space-sm rounded-xl bg-secondary-container/15 text-secondary border border-secondary/20">
+                    <span className="material-symbols-outlined text-[18px]">verified</span>
+                    <div className="flex flex-col min-w-0">
+                      <span className="font-label-md text-label-md font-bold">Room Target Loaded</span>
+                      <span className="font-label-sm text-label-sm text-on-surface-variant truncate font-mono">
+                        Code: {joinData.roomId}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                <div className="space-y-space-xs">
+                  <label className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">
+                    Your Display Alias
+                  </label>
+                  <div className="flex items-center px-space-md py-2.5 rounded-full bg-surface-container-lowest border border-outline-variant/25 focus-within:border-secondary transition-colors">
+                    <span className="material-symbols-outlined text-on-surface-variant text-[18px] mr-2">person</span>
+                    <input
+                      className="w-full bg-transparent text-on-surface font-body-md text-body-md focus:outline-none placeholder:text-outline"
+                      placeholder="Enter your name"
+                      type="text"
+                      value={joinData.name}
+                      onChange={(e) => setJoinData({ ...joinData, name: e.target.value })}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-space-xs">
+                  <label className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">
+                    Room Passcode (If Protected)
+                  </label>
+                  <div className="flex items-center px-space-md py-2.5 rounded-full bg-surface-container-lowest border border-outline-variant/25 focus-within:border-secondary transition-colors">
+                    <span className="material-symbols-outlined text-on-surface-variant text-[18px] mr-2">lock</span>
+                    <input
+                      className="w-full bg-transparent text-on-surface font-body-md text-body-md focus:outline-none placeholder:text-outline"
+                      placeholder="Leave empty if open room"
                       type="password"
-                      placeholder="Enter PIN if host set one"
+                      maxLength={6}
                       value={joinData.pin}
                       onChange={(e) => setJoinData({ ...joinData, pin: e.target.value })}
-                      className="w-full px-4 py-2.5 pl-9 rounded-full liquid-glass text-white placeholder-white/30 text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-white/40 transition-all"
                     />
-                    <KeyRound className="w-4 h-4 text-white/40 absolute left-3 top-3" />
                   </div>
                 </div>
 
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full mt-2 py-3 rounded-full bg-white text-black hover:bg-white/90 font-medium text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shadow-lg active:scale-95 disabled:opacity-50"
+                  className="w-full py-3.5 rounded-full bg-secondary font-headline-md text-headline-md text-on-secondary font-bold shadow-[0_0_24px_rgba(76,215,246,0.35)] hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                 >
-                  {loading ? 'Joining Room...' : 'Enter Session'}
-                  <ArrowUpRight className="w-4 h-4" />
+                  <span className="material-symbols-outlined text-[20px]">login</span>
+                  <span>{loading ? 'Joining Room...' : 'Enter Session'}</span>
                 </button>
+
               </form>
             )}
+
           </div>
 
-          {/* Stats Row */}
-          <div className="flex items-stretch gap-4 mt-8 animate-in fade-in duration-700">
-            <div className="liquid-glass p-5 w-[180px] sm:w-[220px] rounded-[1.25rem] text-left flex flex-col justify-between shadow-2xl">
-              <Wifi className="w-6 h-6 text-white/70" />
-              <div className="mt-4">
-                <p className="font-heading italic text-3xl sm:text-4xl text-white tracking-[-1px] leading-none">
-                  0s Drift
-                </p>
-                <p className="text-xs text-white/60 font-body font-light mt-1.5">
-                  Live WebSocket Pulse
-                </p>
+          {/* Live Public Rooms Discovery */}
+          <div className="flex flex-col space-y-space-sm">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-tertiary text-[20px]">podcasts</span>
+                <h3 className="font-title-md text-title-md text-on-surface font-bold">Featured Music Rooms</h3>
               </div>
+              <span className="flex items-center gap-1 font-label-sm text-label-sm text-tertiary bg-surface-container-high px-2 py-0.5 rounded-full border border-tertiary/20">
+                <span className="w-1.5 h-1.5 rounded-full bg-tertiary animate-pulse" />
+                Active
+              </span>
             </div>
 
-            <div className="liquid-glass p-5 w-[180px] sm:w-[220px] rounded-[1.25rem] text-left flex flex-col justify-between shadow-2xl">
-              <Headphones className="w-6 h-6 text-white/70" />
-              <div className="mt-4">
-                <p className="font-heading italic text-3xl sm:text-4xl text-white tracking-[-1px] leading-none">
-                  100% Free
-                </p>
-                <p className="text-xs text-white/60 font-body font-light mt-1.5">
-                  No Subscriptions Needed
-                </p>
-              </div>
-            </div>
-          </div>
+            {/* Presets Cards */}
+            <div className="grid grid-cols-1 gap-space-sm">
+              {PUBLIC_ROOM_PRESETS.map((room) => (
+                <div
+                  key={room.id}
+                  className="flex flex-col p-space-md rounded-2xl bg-surface-container shadow-md space-y-space-sm border border-outline-variant/15"
+                >
+                  <div className="flex items-start justify-between gap-space-sm">
+                    <div className="flex items-center gap-space-sm min-w-0">
+                      <div className="w-12 h-12 rounded-xl bg-surface-container-high overflow-hidden shrink-0 relative border border-outline-variant/20">
+                        <img
+                          src={room.image}
+                          alt={room.name}
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute bottom-1 left-1 w-2.5 h-2.5 rounded-full bg-tertiary ring-2 ring-surface" />
+                      </div>
+                      <div className="flex flex-col min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-title-md text-title-md text-on-surface font-bold truncate">
+                            {room.name}
+                          </span>
+                          <span className="px-1.5 py-0.2 rounded-full bg-primary-container/30 text-primary-fixed-dim font-label-sm text-label-sm font-semibold">
+                            {room.tag}
+                          </span>
+                        </div>
+                        <span className="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1 truncate mt-0.5">
+                          <span className="material-symbols-outlined text-[13px] text-secondary">music_note</span>
+                          {room.track}
+                        </span>
+                      </div>
+                    </div>
 
-        </div>
+                    <button
+                      type="button"
+                      onClick={() => handleQuickRejoin(room.id, room.name)}
+                      disabled={loading}
+                      className="px-3.5 py-1.5 rounded-full bg-primary text-on-primary font-label-md text-label-md font-bold shrink-0 active:scale-95 shadow-[0_0_12px_rgba(208,188,255,0.3)] transition-all"
+                    >
+                      Join
+                    </button>
+                  </div>
 
-        {/* Partners / Ecosystem Row */}
-        <div className="relative z-10 flex flex-col items-center gap-3 pt-6 animate-in fade-in duration-700">
-          <div className="liquid-glass rounded-full px-3.5 py-1 text-xs font-medium text-white shadow-xl">
-            Powered by modern streaming & real-time protocols
-          </div>
-          <div className="flex items-center gap-8 md:gap-14 font-heading italic text-white/80 text-xl md:text-2xl tracking-tight">
-            <span>YouTube</span>
-            <span>·</span>
-            <span>Spotify</span>
-            <span>·</span>
-            <span>Socket.IO</span>
-            <span>·</span>
-            <span>Brave</span>
-          </div>
-        </div>
+                  {/* Real-time Listeners Stack */}
+                  <div className="flex items-center justify-between pt-1 bg-surface-container-lowest/40 p-2 rounded-xl border border-outline-variant/10">
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-end gap-0.5 h-3">
+                        <span className="w-1 bg-secondary rounded-full h-full animate-bounce" />
+                        <span className="w-1 bg-secondary rounded-full h-2" />
+                        <span className="w-1 bg-secondary rounded-full h-3 animate-pulse" />
+                        <span className="w-1 bg-secondary rounded-full h-1.5" />
+                      </div>
+                      <span className="font-label-sm text-label-sm text-on-surface-variant">
+                        DJ: @{room.host}
+                      </span>
+                    </div>
 
-      </section>
-
-      {/* ======================================================== */}
-      {/* SECTION 2: CAPABILITIES (Looping Crystal Asteroid Video) */}
-      {/* ======================================================== */}
-      <section className="relative min-h-screen w-full flex flex-col bg-black overflow-hidden z-10">
-        
-        {/* Ambient Dark Gradient (Replaced moving video) */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#12131c] via-[#0d0e16] to-black z-0 pointer-events-none" />
-
-        <div className="relative z-10 px-6 sm:px-12 lg:px-20 pt-28 pb-16 flex flex-col min-h-screen max-w-7xl mx-auto w-full">
-          
-          {/* Section 2 Header */}
-          <div className="mb-auto">
-            <p className="text-sm font-body text-white/80 mb-4 tracking-wide">
-              // Capabilities
-            </p>
-            <h2 className="font-heading italic text-white text-6xl md:text-7xl lg:text-[6rem] leading-[0.9] tracking-[-3px]">
-              Listening<br />evolved
-            </h2>
-          </div>
-
-          {/* Three Liquid-Glass Capability Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-14">
-            
-            {/* Card 1: Instant Sync */}
-            <div className="liquid-glass rounded-[1.5rem] p-6 min-h-[340px] flex flex-col justify-between shadow-2xl">
-              <div className="flex items-start justify-between gap-4">
-                <div className="w-11 h-11 rounded-[0.75rem] liquid-glass flex items-center justify-center text-white shrink-0">
-                  <Zap className="w-5 h-5" />
-                </div>
-                <div className="flex flex-wrap justify-end gap-1.5 max-w-[70%]">
-                  {['Sub-Second Sync', 'Late Joiners', 'Drift Correction', 'Mobile Ready'].map((tag) => (
-                    <span key={tag} className="liquid-glass rounded-full px-3 py-1 text-[11px] text-white/90 font-body whitespace-nowrap">
-                      {tag}
+                    <span className="font-label-sm text-label-sm text-tertiary font-bold tracking-tight">
+                      {room.listeners} Vibing
                     </span>
-                  ))}
+                  </div>
                 </div>
-              </div>
-
-              <div className="mt-8">
-                <h3 className="font-heading italic text-white text-3xl md:text-4xl tracking-[-1px] leading-none">
-                  Instant Sync
-                </h3>
-                <p className="mt-3 text-sm text-white/80 font-body font-light leading-snug max-w-[32ch]">
-                  Late joiners immediately jump to the exact current second of the playing track. Continuous heartbeats keep all browsers matched.
-                </p>
-              </div>
-            </div>
-
-            {/* Card 2: Auto Mode (Radio) */}
-            <div className="liquid-glass rounded-[1.5rem] p-6 min-h-[340px] flex flex-col justify-between shadow-2xl">
-              <div className="flex items-start justify-between gap-4">
-                <div className="w-11 h-11 rounded-[0.75rem] liquid-glass flex items-center justify-center text-white shrink-0">
-                  <Radio className="w-5 h-5" />
-                </div>
-                <div className="flex flex-wrap justify-end gap-1.5 max-w-[70%]">
-                  {['Language Lock', '50-Song Memory', 'Non-Stop', 'Zero Quota Waste'].map((tag) => (
-                    <span key={tag} className="liquid-glass rounded-full px-3 py-1 text-[11px] text-white/90 font-body whitespace-nowrap">
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              <div className="mt-8">
-                <h3 className="font-heading italic text-white text-3xl md:text-4xl tracking-[-1px] leading-none">
-                  Auto Mode (Radio)
-                </h3>
-                <p className="mt-3 text-sm text-white/80 font-body font-light leading-snug max-w-[32ch]">
-                  Never suffer awkward silence. When the queue finishes, the server automatically picks matching tracks without repeating the last 50 songs.
-                </p>
-              </div>
-            </div>
-
-            {/* Card 3: Playlist Import */}
-            <div className="liquid-glass rounded-[1.5rem] p-6 min-h-[340px] flex flex-col justify-between shadow-2xl">
-              <div className="flex items-start justify-between gap-4">
-                <div className="w-11 h-11 rounded-[0.75rem] liquid-glass flex items-center justify-center text-white shrink-0">
-                  <ListMusic className="w-5 h-5" />
-                </div>
-                <div className="flex flex-wrap justify-end gap-1.5 max-w-[70%]">
-                  {['YouTube Playlists', 'Spotify Import', '1-Click Queues', 'In-Room Search'].map((tag) => (
-                    <span key={tag} className="liquid-glass rounded-full px-3 py-1 text-[11px] text-white/90 font-body whitespace-nowrap">
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              <div className="mt-8">
-                <h3 className="font-heading italic text-white text-3xl md:text-4xl tracking-[-1px] leading-none">
-                  Import Anything
-                </h3>
-                <p className="mt-3 text-sm text-white/80 font-body font-light leading-snug max-w-[32ch]">
-                  Paste any public or unlisted YouTube or Spotify link to instantly load 50+ songs directly into the shared room queue.
-                </p>
-              </div>
+              ))}
             </div>
 
           </div>
 
         </div>
-      </section>
+      </main>
 
     </div>
   );

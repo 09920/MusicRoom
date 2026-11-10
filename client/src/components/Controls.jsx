@@ -7,8 +7,9 @@ import {
   RotateCw, 
   Volume2, 
   VolumeX, 
-  Radio, 
-  Lock 
+  Lock,
+  Heart,
+  Share2
 } from 'lucide-react';
 
 function formatTime(seconds) {
@@ -38,8 +39,9 @@ export default function Controls({
   const [currentProgress, setCurrentProgress] = useState(playback?.currentTime || 0);
   const [duration, setDuration] = useState(currentSong?.duration || 200);
   const [isScrubbing, setIsScrubbing] = useState(false);
-  const [showRemaining, setShowRemaining] = useState(false);
   const [isPlayingState, setIsPlayingState] = useState(Boolean(playback?.isPlaying));
+  const [likeCount, setLikeCount] = useState(328);
+  const [hasLiked, setHasLiked] = useState(false);
 
   useEffect(() => {
     setIsPlayingState(Boolean(playback?.isPlaying));
@@ -76,23 +78,86 @@ export default function Controls({
     }
   };
 
-  const handleSeekDelta = (delta) => {
-    if (!canControl) return;
-    const newTime = Math.max(0, Math.min(duration, currentProgress + delta));
-    onSeek(newTime);
+  const handleToggleLike = () => {
+    setHasLiked(prev => !prev);
+    setLikeCount(prev => hasLiked ? prev - 1 : prev + 1);
   };
 
+  const handleShare = () => {
+    navigator.clipboard?.writeText(window.location.href);
+  };
+
+  const progressPercent = duration > 0 ? Math.min(100, Math.max(0, (currentProgress / duration) * 100)) : 0;
+
   return (
-    <div className="liquid-glass-strong rounded-3xl p-4 sm:p-6 shadow-2xl">
+    <div className="flex flex-col space-y-3 w-full">
+      
+      {/* Strict DJ Mode Warning */}
       {!canControl && (
-        <div className="mb-4 flex items-center justify-center gap-2 py-1 px-3 rounded-full liquid-glass text-white/70 text-xs font-body">
-          <Lock className="w-3.5 h-3.5 text-white/50" />
-          <span>Only host can control playback in Single Host mode.</span>
+        <div className="flex items-center justify-center gap-2 py-1.5 px-3 rounded-full bg-surface-container-high/80 text-on-surface-variant text-xs border border-outline-variant/20">
+          <Lock className="w-3.5 h-3.5 text-primary" />
+          <span>Host-Only DJ Mode active. Only host can alter playback.</span>
         </div>
       )}
 
-      <div className="space-y-1.5 mb-5">
-        <div className="relative group py-1">
+      {/* Track Meta, DJ Attribution & Reaction Section (Stitch 2_player.html) */}
+      <div className="flex items-start justify-between gap-space-sm bg-surface-container/60 backdrop-blur-xl p-space-md rounded-2xl shadow-md border border-outline-variant/15">
+        <div className="flex flex-col min-w-0 pr-1">
+          <div className="flex items-center gap-1.5 mb-0.5">
+            <span className="font-headline-lg-mobile text-headline-lg-mobile font-bold text-on-surface truncate tracking-tight">
+              {currentSong?.title || "No Song Selected"}
+            </span>
+            <span className="px-1.5 py-0.5 rounded-full bg-primary/20 text-primary font-label-sm text-[10px] font-bold border border-primary/25 shrink-0">
+              1080p
+            </span>
+          </div>
+
+          <p className="font-body-md text-body-md text-on-surface-variant truncate">
+            {currentSong?.channelTitle || currentSong?.artist || "Import a playlist to begin"}
+          </p>
+
+          <div className="flex items-center gap-2 mt-2">
+            <div className="flex items-center gap-1 bg-surface-container-high px-2.5 py-0.5 rounded-full border border-outline-variant/20">
+              <span className="material-symbols-outlined text-[14px] text-primary">verified_user</span>
+              <span className="font-label-sm text-label-sm text-on-surface font-medium">
+                Added by <strong className="text-secondary font-semibold">@{currentSong?.addedBy || 'DJ'}</strong>
+              </span>
+              <span className="px-1 py-0.2 rounded-full bg-primary-container text-on-primary-container font-label-sm text-[9px] uppercase tracking-wider font-extrabold ml-1">
+                DJ
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Social Reaction Buttons */}
+        <div className="flex items-center gap-2 shrink-0 pt-1">
+          <button
+            onClick={handleToggleLike}
+            className={`flex flex-col items-center justify-center w-11 h-11 rounded-full border transition-all active:scale-90 shadow-md ${
+              hasLiked
+                ? 'bg-rose-500/20 text-rose-400 border-rose-500/30'
+                : 'bg-surface-container-high/90 text-on-surface hover:text-rose-400 border-outline-variant/20'
+            }`}
+          >
+            <Heart className={`w-4 h-4 transition-transform duration-200 ${hasLiked ? 'fill-rose-400 scale-110' : ''}`} />
+            <span className="font-label-sm text-[10px] font-bold leading-none mt-0.5">
+              {likeCount}
+            </span>
+          </button>
+
+          <button
+            onClick={handleShare}
+            className="w-10 h-10 rounded-full bg-surface-container-high/90 text-on-surface-variant hover:text-primary active:scale-90 flex items-center justify-center transition-all shadow-md border border-outline-variant/20"
+            title="Share Room Link"
+          >
+            <Share2 className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
+      {/* Synchronized Audio Scrubber & Progress (Stitch 2_player.html) */}
+      <div className="bg-surface-container/70 backdrop-blur-xl p-space-md rounded-2xl shadow-md flex flex-col space-y-2 border border-outline-variant/15">
+        <div className="relative w-full flex items-center py-1">
           <input
             type="range"
             min="0"
@@ -103,66 +168,133 @@ export default function Controls({
             onMouseUp={handleScrubberCommit}
             onTouchEnd={handleScrubberCommit}
             disabled={!canControl || !currentSong}
-            className="w-full h-1.5 sm:h-1 bg-white/20 rounded-full appearance-none cursor-pointer group-hover:h-2 transition-all accent-white disabled:opacity-40"
+            className="w-full h-1.5 bg-surface-container-highest rounded-full appearance-none cursor-pointer accent-primary disabled:opacity-40"
+            style={{
+              background: `linear-gradient(to right, #d0bcff 0%, #4cd7f6 ${progressPercent}%, #343439 ${progressPercent}%, #343439 100%)`
+            }}
           />
         </div>
-        <div 
-          className="flex justify-between text-[11px] text-white/50 font-mono px-1 cursor-pointer hover:text-white transition-colors"
-          onClick={() => setShowRemaining(!showRemaining)}
-        >
-          <span>{formatTime(currentProgress)}</span>
-          <span>{showRemaining ? `-${formatTime(duration - currentProgress)}` : formatTime(duration)}</span>
+
+        {/* Timestamp Row */}
+        <div className="flex items-center justify-between font-label-md text-label-md text-on-surface-variant">
+          <span className="font-semibold text-secondary">
+            {formatTime(currentProgress)}
+          </span>
+
+          <div className="flex items-center gap-1 font-label-sm text-label-sm text-tertiary">
+            <span className="material-symbols-outlined text-[13px]">sync_saved_locally</span>
+            <span>Clock locked</span>
+          </div>
+
+          <span>{formatTime(duration)}</span>
         </div>
       </div>
 
-      <div className="flex flex-col-reverse xs:flex-row items-center justify-between gap-4 sm:gap-6">
-        <div className="flex items-center gap-3 w-full xs:w-auto justify-between xs:justify-start">
-          <div className="flex items-center gap-2">
+      {/* Playback Control Cockpit (Stitch 2_player.html) */}
+      <div className="bg-surface-container-high/80 backdrop-blur-2xl p-space-md rounded-2xl shadow-xl flex flex-col space-y-space-md border border-outline-variant/15">
+        
+        {/* Main Transport Row */}
+        <div className="flex items-center justify-between px-space-xs">
+          
+          {/* Quick Rewind */}
+          <button
+            onClick={() => {
+              if (canControl && onSeek) onSeek(Math.max(0, currentProgress - 10));
+            }}
+            disabled={!canControl || !currentSong}
+            className="w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors active:scale-90 disabled:opacity-30"
+            title="Rewind 10s"
+          >
+            <RotateCcw className="w-5 h-5" />
+          </button>
+
+          {/* Previous */}
+          <button
+            onClick={() => {
+              if (canControl && onSeek) onSeek(0);
+            }}
+            disabled={!canControl || !currentSong}
+            className="w-11 h-11 rounded-full bg-surface-container/80 flex items-center justify-center text-on-surface hover:text-primary transition-all active:scale-90 shadow-sm border border-outline-variant/20 disabled:opacity-30"
+          >
+            <span className="material-symbols-outlined text-[24px]">skip_previous</span>
+          </button>
+
+          {/* Dominant Glowing Violet Play/Pause Button with Pulsing Ripple Aura */}
+          <div className="relative flex items-center justify-center">
+            <div className="absolute -inset-2 rounded-full bg-primary/20 blur-md animate-pulse" />
             <button
-              onClick={() => setIsMuted(!isMuted)}
-              className="w-9 h-9 rounded-full liquid-glass flex items-center justify-center text-white/70 hover:text-white transition-all active:scale-95"
+              onClick={onPlayPause}
+              disabled={!canControl || !currentSong}
+              className="relative w-16 h-16 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center shadow-[0_0_28px_rgba(160,120,255,0.65)] hover:shadow-[0_0_36px_rgba(160,120,255,0.85)] active:scale-95 transition-all transform disabled:opacity-30"
+              title={isPlayingState ? "Pause Stream" : "Play Stream"}
             >
-              {isMuted || volume === 0 ? <VolumeX className="w-4 h-4 text-rose-400" /> : <Volume2 className="w-4 h-4" />}
+              {isPlayingState ? (
+                <Pause className="w-8 h-8 fill-on-primary-container" />
+              ) : (
+                <Play className="w-8 h-8 fill-on-primary-container ml-1" />
+              )}
             </button>
-            <input
-              type="range"
-              min="0" max="100"
-              value={isMuted ? 0 : volume}
-              onChange={(e) => { setVolume(parseInt(e.target.value)); if (isMuted) setIsMuted(false); }}
-              className="w-16 sm:w-20 h-1.5 bg-white/20 rounded-full appearance-none cursor-pointer accent-white"
-            />
           </div>
+
+          {/* Next */}
+          <button
+            onClick={onSkip}
+            disabled={!canControl || !currentSong}
+            className="w-11 h-11 rounded-full bg-surface-container/80 flex items-center justify-center text-on-surface hover:text-primary transition-all active:scale-90 shadow-sm border border-outline-variant/20 disabled:opacity-30"
+            title="Skip to Next Track"
+          >
+            <span className="material-symbols-outlined text-[24px]">skip_next</span>
+          </button>
+
+          {/* Auto-Play Radio Mode Active Indicator */}
           <button
             onClick={() => onToggleAutoMode?.()}
             disabled={!canControl}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all active:scale-95 ${
-              autoMode ? 'bg-white text-black font-semibold' : 'liquid-glass text-white/60'
+            className={`w-10 h-10 rounded-full flex items-center justify-center relative transition-colors active:scale-90 ${
+              autoMode ? 'text-secondary shadow-[0_0_8px_rgba(76,215,246,0.3)]' : 'text-on-surface-variant hover:text-on-surface'
             }`}
+            title={autoMode ? "YouTube Infinite Radio ON" : "Turn Infinite Radio ON"}
           >
-            <Radio className={`w-3.5 h-3.5 ${autoMode ? 'animate-pulse' : ''}`} />
-            <span>Radio</span>
+            <span className="material-symbols-outlined text-[22px]">all_inclusive</span>
+            {autoMode && (
+              <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-secondary shadow-[0_0_6px_#4cd7f6] animate-pulse" />
+            )}
           </button>
+
         </div>
 
-        <div className="flex items-center gap-3 sm:gap-4 justify-center">
-          <button onClick={() => handleSeekDelta(-10)} disabled={!canControl || !currentSong} className="w-10 h-10 rounded-full liquid-glass flex items-center justify-center text-white/70 hover:text-white active:scale-95 disabled:opacity-30">
-            <RotateCcw className="w-4 h-4" />
-          </button>
+        {/* Volume & Equalizer Slider Bar */}
+        <div className="flex items-center gap-space-sm pt-1 px-1">
           <button
-            onClick={onPlayPause}
-            disabled={!canControl || !currentSong}
-            className="w-14 h-14 rounded-full bg-white text-black hover:bg-white/90 flex items-center justify-center shadow-xl active:scale-90 disabled:opacity-30"
+            onClick={() => setIsMuted(!isMuted)}
+            className="text-on-surface-variant hover:text-on-surface active:scale-90 transition-colors"
           >
-            {isPlayingState ? <Pause className="w-6 h-6 fill-black" /> : <Play className="w-6 h-6 fill-black ml-0.5" />}
+            {isMuted || volume === 0 ? (
+              <VolumeX className="w-5 h-5 text-error" />
+            ) : (
+              <Volume2 className="w-5 h-5" />
+            )}
           </button>
-          <button onClick={() => handleSeekDelta(10)} disabled={!canControl || !currentSong} className="w-10 h-10 rounded-full liquid-glass flex items-center justify-center text-white/70 hover:text-white active:scale-95 disabled:opacity-30">
-            <RotateCw className="w-4 h-4" />
-          </button>
-          <button onClick={onSkip} disabled={!canControl || !currentSong} className="w-10 h-10 rounded-full liquid-glass flex items-center justify-center text-white/70 hover:text-white active:scale-95 disabled:opacity-30">
-            <SkipForward className="w-4.5 h-4.5" />
-          </button>
+
+          <input
+            type="range"
+            min="0"
+            max="100"
+            value={isMuted ? 0 : volume}
+            onChange={(e) => {
+              setVolume(parseInt(e.target.value));
+              if (isMuted) setIsMuted(false);
+            }}
+            className="w-full h-1.5 bg-surface-container-highest rounded-full appearance-none cursor-pointer accent-primary"
+          />
+
+          <span className="font-label-sm text-label-sm text-on-surface-variant font-bold w-9 text-right font-mono">
+            {isMuted ? '0%' : `${volume}%`}
+          </span>
         </div>
+
       </div>
+
     </div>
   );
 }
