@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { usePlayer } from '../context/PlayerContext';
 
 function formatTime(sec) {
@@ -348,6 +348,11 @@ export function DesktopPlayerBar() {
 
   const [isShuffle, setIsShuffle] = useState(false);
   const [isRepeat, setIsRepeat] = useState(false);
+  const [isVolumeDragging, setIsVolumeDragging] = useState(false);
+  const [isScrubbing, setIsScrubbing] = useState(false);
+  const [scrubProgress, setScrubProgress] = useState(null);
+  const volumeTrackRef = useRef(null);
+  const scrubberTrackRef = useRef(null);
 
   // Safe active song fallback to prevent empty player bar
   const activeSong = currentSong || {
@@ -360,8 +365,9 @@ export function DesktopPlayerBar() {
 
   const liked = isLiked(activeSong.videoId);
   const totalDuration = playback.duration > 0 ? playback.duration : (activeSong.duration || 202);
+  const currentDisplayTime = isScrubbing && scrubProgress !== null ? scrubProgress : playback.currentTime;
   const progressPercent = totalDuration > 0
-    ? Math.min(100, Math.max(0, (playback.currentTime / totalDuration) * 100))
+    ? Math.min(100, Math.max(0, (currentDisplayTime / totalDuration) * 100))
     : 0;
 
   const handlePlayAction = () => {
@@ -369,6 +375,75 @@ export function DesktopPlayerBar() {
       playSong(activeSong, true);
     } else {
       togglePlayPause();
+    }
+  };
+
+  // Hold & drag to adjust volume
+  const updateVolumeFromEvent = (e) => {
+    if (!volumeTrackRef.current) return;
+    const rect = volumeTrackRef.current.getBoundingClientRect();
+    const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    const newVol = Math.round(ratio * 100);
+    setVolume(newVol);
+    if (isMuted && newVol > 0) setIsMuted(false);
+  };
+
+  const handleVolumePointerDown = (e) => {
+    e.preventDefault();
+    setIsVolumeDragging(true);
+    e.currentTarget.setPointerCapture(e.pointerId);
+    updateVolumeFromEvent(e);
+  };
+
+  const handleVolumePointerMove = (e) => {
+    if (isVolumeDragging) {
+      updateVolumeFromEvent(e);
+    }
+  };
+
+  const handleVolumePointerUp = (e) => {
+    if (isVolumeDragging) {
+      setIsVolumeDragging(false);
+      try {
+        e.currentTarget.releasePointerCapture(e.pointerId);
+      } catch (_) {}
+    }
+  };
+
+  // Hold & drag to scrub song progress
+  const updateScrubFromEvent = (e, commit = false) => {
+    if (!scrubberTrackRef.current || totalDuration <= 0) return;
+    const rect = scrubberTrackRef.current.getBoundingClientRect();
+    const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    const targetTime = ratio * totalDuration;
+    if (commit) {
+      seekTo(targetTime);
+      setScrubProgress(null);
+    } else {
+      setScrubProgress(targetTime);
+    }
+  };
+
+  const handleScrubPointerDown = (e) => {
+    e.preventDefault();
+    setIsScrubbing(true);
+    e.currentTarget.setPointerCapture(e.pointerId);
+    updateScrubFromEvent(e, false);
+  };
+
+  const handleScrubPointerMove = (e) => {
+    if (isScrubbing) {
+      updateScrubFromEvent(e, false);
+    }
+  };
+
+  const handleScrubPointerUp = (e) => {
+    if (isScrubbing) {
+      updateScrubFromEvent(e, true);
+      setIsScrubbing(false);
+      try {
+        e.currentTarget.releasePointerCapture(e.pointerId);
+      } catch (_) {}
     }
   };
 
@@ -477,27 +552,34 @@ export function DesktopPlayerBar() {
         </div>
 
         {/* Scrubber Row */}
-        <div className="w-full flex items-center gap-space-sm">
+        <div className="w-full flex items-center gap-space-sm select-none">
           <span className="text-label-sm font-metric-mono text-outline min-w-[34px] text-right">
-            {formatTime(playback.currentTime)}
+            {formatTime(currentDisplayTime)}
           </span>
           <div
-            onClick={(e) => {
-              const rect = e.currentTarget.getBoundingClientRect();
-              const clickX = e.clientX - rect.left;
-              const ratio = Math.max(0, Math.min(1, clickX / rect.width));
-              seekTo(ratio * totalDuration);
-            }}
-            className="relative flex-1 h-1.5 bg-surface-container-high rounded-full overflow-hidden cursor-pointer group py-1"
+            ref={scrubberTrackRef}
+            onPointerDown={handleScrubPointerDown}
+            onPointerMove={handleScrubPointerMove}
+            onPointerUp={handleScrubPointerUp}
+            onPointerCancel={handleScrubPointerUp}
+            className="relative flex-1 h-6 flex items-center cursor-pointer group py-1 touch-none"
+            title="Click & drag to scrub"
           >
-            <div className="absolute top-1/2 -translate-y-1/2 left-0 right-0 h-1 bg-surface-container-high rounded-full">
+            <div className="w-full h-1.5 bg-surface-container-high rounded-full overflow-hidden relative">
               <div
-                className="h-full bg-primary rounded-full relative group-hover:bg-primary-container transition-all"
+                className={`h-full rounded-full transition-[background-color] ${
+                  isScrubbing ? 'bg-primary-container' : 'bg-primary group-hover:bg-primary-container'
+                }`}
                 style={{ width: `${progressPercent}%` }}
-              >
-                <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-white opacity-0 group-hover:opacity-100 shadow transition-opacity" />
-              </div>
+              />
             </div>
+            {/* Scrubber Knob */}
+            <div
+              className={`absolute top-1/2 -translate-y-1/2 w-3.5 h-3.5 rounded-full bg-white shadow-md pointer-events-none transition-transform duration-75 ${
+                isScrubbing ? 'scale-125' : 'group-hover:scale-100 scale-0'
+              }`}
+              style={{ left: `calc(${progressPercent}% - 7px)` }}
+            />
           </div>
           <span className="text-label-sm font-metric-mono text-outline min-w-[34px]">
             {formatTime(totalDuration)}
@@ -525,33 +607,46 @@ export function DesktopPlayerBar() {
           <span className="material-symbols-outlined text-title-md">mic</span>
         </button>
 
-        {/* Volume Control */}
-        <div className="flex items-center gap-1.5 text-on-surface-variant">
+        {/* Volume Control: Click & Drag to Adjust */}
+        <div className="flex items-center gap-1.5 text-on-surface-variant select-none">
           <button
             type="button"
             onClick={() => setIsMuted(!isMuted)}
-            className="hover:text-on-surface transition-colors"
+            className="hover:text-on-surface transition-colors p-1"
             title={isMuted ? "Unmute" : "Mute"}
           >
             <span className="material-symbols-outlined text-title-md">
               {isMuted || volume === 0 ? 'volume_off' : volume > 50 ? 'volume_up' : 'volume_down'}
             </span>
           </button>
+          
           <div
-            onClick={(e) => {
-              const rect = e.currentTarget.getBoundingClientRect();
-              const clickX = e.clientX - rect.left;
-              const ratio = Math.max(0, Math.min(1, clickX / rect.width));
-              setVolume(Math.round(ratio * 100));
-            }}
-            className="w-20 h-1.5 bg-surface-container-high rounded-full overflow-hidden cursor-pointer relative py-1"
+            ref={volumeTrackRef}
+            onPointerDown={handleVolumePointerDown}
+            onPointerMove={handleVolumePointerMove}
+            onPointerUp={handleVolumePointerUp}
+            onPointerCancel={handleVolumePointerUp}
+            className="w-24 h-6 flex items-center cursor-pointer relative py-1 touch-none group"
+            title={`Volume: ${isMuted ? 0 : volume}% (Click & drag to change)`}
           >
-            <div className="absolute top-1/2 -translate-y-1/2 left-0 right-0 h-1 bg-surface-container-high rounded-full">
+            {/* Background Track */}
+            <div className="w-full h-1.5 bg-surface-container-high rounded-full overflow-hidden relative">
+              {/* Fill Track */}
               <div
-                className="h-full bg-on-surface-variant rounded-full"
+                className={`h-full rounded-full transition-[background-color] ${
+                  isVolumeDragging ? 'bg-primary' : 'bg-on-surface-variant group-hover:bg-primary'
+                }`}
                 style={{ width: `${isMuted ? 0 : volume}%` }}
               />
             </div>
+
+            {/* Draggable Knob */}
+            <div
+              className={`absolute top-1/2 -translate-y-1/2 w-3.5 h-3.5 rounded-full bg-white shadow-md pointer-events-none transition-transform duration-75 ${
+                isVolumeDragging ? 'scale-125' : 'group-hover:scale-100 scale-0'
+              }`}
+              style={{ left: `calc(${isMuted ? 0 : volume}% - 7px)` }}
+            />
           </div>
         </div>
 

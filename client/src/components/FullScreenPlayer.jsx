@@ -33,8 +33,82 @@ export default function FullScreenPlayer() {
 
   const [activeTab, setActiveTab] = useState('lyrics'); // 'lyrics' | 'queue'
   const [autoScroll, setAutoScroll] = useState(true);
+  const [isVolumeDragging, setIsVolumeDragging] = useState(false);
+  const [isScrubbing, setIsScrubbing] = useState(false);
+  const [scrubProgress, setScrubProgress] = useState(null);
+  const volumeTrackRef = useRef(null);
+  const scrubberTrackRef = useRef(null);
   const lyricsContainerRef = useRef(null);
   const activeLyricRef = useRef(null);
+
+  // Hold & drag to adjust volume
+  const updateVolumeFromEvent = (e) => {
+    if (!volumeTrackRef.current) return;
+    const rect = volumeTrackRef.current.getBoundingClientRect();
+    const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    const newVol = Math.round(ratio * 100);
+    setVolume(newVol);
+    if (isMuted && newVol > 0) setIsMuted(false);
+  };
+
+  const handleVolumePointerDown = (e) => {
+    e.preventDefault();
+    setIsVolumeDragging(true);
+    e.currentTarget.setPointerCapture(e.pointerId);
+    updateVolumeFromEvent(e);
+  };
+
+  const handleVolumePointerMove = (e) => {
+    if (isVolumeDragging) {
+      updateVolumeFromEvent(e);
+    }
+  };
+
+  const handleVolumePointerUp = (e) => {
+    if (isVolumeDragging) {
+      setIsVolumeDragging(false);
+      try {
+        e.currentTarget.releasePointerCapture(e.pointerId);
+      } catch (_) {}
+    }
+  };
+
+  // Hold & drag to scrub progress
+  const updateScrubFromEvent = (e, commit = false) => {
+    if (!scrubberTrackRef.current || !playback.duration) return;
+    const rect = scrubberTrackRef.current.getBoundingClientRect();
+    const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    const targetTime = ratio * playback.duration;
+    if (commit) {
+      seekTo(targetTime);
+      setScrubProgress(null);
+    } else {
+      setScrubProgress(targetTime);
+    }
+  };
+
+  const handleScrubPointerDown = (e) => {
+    e.preventDefault();
+    setIsScrubbing(true);
+    e.currentTarget.setPointerCapture(e.pointerId);
+    updateScrubFromEvent(e, false);
+  };
+
+  const handleScrubPointerMove = (e) => {
+    if (isScrubbing) {
+      updateScrubFromEvent(e, false);
+    }
+  };
+
+  const handleScrubPointerUp = (e) => {
+    if (isScrubbing) {
+      updateScrubFromEvent(e, true);
+      setIsScrubbing(false);
+      try {
+        e.currentTarget.releasePointerCapture(e.pointerId);
+      } catch (_) {}
+    }
+  };
 
   // Auto-fetch lyrics when song changes
   useEffect(() => {
@@ -56,8 +130,9 @@ export default function FullScreenPlayer() {
   if (!isFullScreen || !currentSong) return null;
 
   const liked = isLiked(currentSong.videoId);
-  const progressPercent = playback.duration > 0
-    ? Math.min(100, Math.max(0, (playback.currentTime / playback.duration) * 100))
+  const currentDisplayTime = isScrubbing && scrubProgress !== null ? scrubProgress : playback.currentTime;
+  const currentProgressPercent = playback.duration > 0
+    ? Math.min(100, Math.max(0, (currentDisplayTime / playback.duration) * 100))
     : 0;
 
   // Find active line in synced lyrics
@@ -181,24 +256,34 @@ export default function FullScreenPlayer() {
               </div>
 
               {/* Scrubber & Timing */}
-              <div className="flex flex-col gap-1.5 pt-space-xs">
+              <div className="flex flex-col gap-1.5 pt-space-xs select-none">
                 <div 
-                  onClick={(e) => {
-                    const rect = e.currentTarget.getBoundingClientRect();
-                    const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-                    seekTo(ratio * playback.duration);
-                  }}
-                  className="relative w-full h-2 bg-surface-container-highest rounded-full overflow-hidden cursor-pointer group py-1"
+                  ref={scrubberTrackRef}
+                  onPointerDown={handleScrubPointerDown}
+                  onPointerMove={handleScrubPointerMove}
+                  onPointerUp={handleScrubPointerUp}
+                  onPointerCancel={handleScrubPointerUp}
+                  className="relative w-full h-6 flex items-center cursor-pointer group py-1 touch-none"
+                  title="Click & drag to scrub"
                 >
-                  <div className="absolute top-1/2 -translate-y-1/2 left-0 right-0 h-1.5 bg-surface-container-highest rounded-full">
+                  <div className="w-full h-1.5 bg-surface-container-highest rounded-full overflow-hidden relative">
                     <div 
-                      className="h-full bg-primary rounded-full transition-all duration-150" 
-                      style={{ width: `${progressPercent}%` }} 
+                      className={`h-full rounded-full transition-[background-color] ${
+                        isScrubbing ? 'bg-primary-container' : 'bg-primary group-hover:bg-primary-container'
+                      }`}
+                      style={{ width: `${currentProgressPercent}%` }} 
                     />
                   </div>
+                  {/* Scrubber Knob */}
+                  <div
+                    className={`absolute top-1/2 -translate-y-1/2 w-3.5 h-3.5 rounded-full bg-white shadow-md pointer-events-none transition-transform duration-75 ${
+                      isScrubbing ? 'scale-125' : 'group-hover:scale-100 scale-0'
+                    }`}
+                    style={{ left: `calc(${currentProgressPercent}% - 7px)` }}
+                  />
                 </div>
                 <div className="flex justify-between items-center text-metric-mono font-metric-mono text-outline">
-                  <span>{formatTime(playback.currentTime)}</span>
+                  <span>{formatTime(currentDisplayTime)}</span>
                   <span>{formatTime(playback.duration)}</span>
                 </div>
               </div>
@@ -248,7 +333,7 @@ export default function FullScreenPlayer() {
               </div>
 
               {/* Volume & Audio Output */}
-              <div className="flex items-center justify-between pt-space-sm bg-surface-container/50 px-space-md py-space-sm rounded-lg border border-surface-container-high/40">
+              <div className="flex items-center justify-between pt-space-sm bg-surface-container/50 px-space-md py-space-sm rounded-lg border border-surface-container-high/40 select-none">
                 <div className="flex items-center gap-space-xs text-on-surface-variant min-w-0">
                   <span className="material-symbols-outlined text-title-sm text-secondary">speaker</span>
                   <span className="text-body-sm font-body truncate text-on-surface">Studio Lossless Audio</span>
@@ -257,23 +342,36 @@ export default function FullScreenPlayer() {
                   <button
                     type="button"
                     onClick={() => setIsMuted(!isMuted)}
-                    className="text-outline hover:text-on-surface transition-colors"
+                    className="text-outline hover:text-on-surface transition-colors p-1"
+                    title={isMuted ? "Unmute" : "Mute"}
                   >
                     <span className="material-symbols-outlined text-title-sm">
-                      {isMuted || volume === 0 ? 'volume_off' : 'volume_up'}
+                      {isMuted || volume === 0 ? 'volume_off' : volume > 50 ? 'volume_up' : 'volume_down'}
                     </span>
                   </button>
                   <div 
-                    onClick={(e) => {
-                      const rect = e.currentTarget.getBoundingClientRect();
-                      const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-                      setVolume(Math.round(ratio * 100));
-                    }}
-                    className="relative flex-1 h-1.5 bg-surface-container-highest rounded-full cursor-pointer"
+                    ref={volumeTrackRef}
+                    onPointerDown={handleVolumePointerDown}
+                    onPointerMove={handleVolumePointerMove}
+                    onPointerUp={handleVolumePointerUp}
+                    onPointerCancel={handleVolumePointerUp}
+                    className="relative flex-1 h-6 flex items-center cursor-pointer group py-1 touch-none"
+                    title={`Volume: ${isMuted ? 0 : volume}% (Click & drag)`}
                   >
-                    <div 
-                      className="h-full bg-on-surface-variant rounded-full" 
-                      style={{ width: `${isMuted ? 0 : volume}%` }} 
+                    <div className="w-full h-1.5 bg-surface-container-highest rounded-full overflow-hidden relative">
+                      <div 
+                        className={`h-full rounded-full transition-[background-color] ${
+                          isVolumeDragging ? 'bg-primary' : 'bg-on-surface-variant group-hover:bg-primary'
+                        }`}
+                        style={{ width: `${isMuted ? 0 : volume}%` }} 
+                      />
+                    </div>
+                    {/* Volume Knob */}
+                    <div
+                      className={`absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-white shadow-md pointer-events-none transition-transform duration-75 ${
+                        isVolumeDragging ? 'scale-125' : 'group-hover:scale-100 scale-0'
+                      }`}
+                      style={{ left: `calc(${isMuted ? 0 : volume}% - 6px)` }}
                     />
                   </div>
                 </div>
