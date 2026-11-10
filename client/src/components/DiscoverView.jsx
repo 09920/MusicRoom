@@ -26,57 +26,35 @@ export default function DiscoverView({ onOpenAiTheme }) {
 
   const [trendingFilter, setTrendingFilter] = useState('Today'); // 'Today' | 'This Week' | 'All Time'
 
-  // Trending tracks for table
-  const trendingTracks = [
-    {
-      id: 1,
-      title: 'Die With A Smile',
-      artist: 'Lady Gaga, Bruno Mars',
-      duration: '4:11',
-      videoId: 'kPa7bsKwL-c',
-      cover: 'https://i.ytimg.com/vi/kPa7bsKwL-c/hqdefault.jpg'
-    },
-    {
-      id: 2,
-      title: 'Tauba Tauba',
-      artist: 'Karan Aujla',
-      duration: '3:24',
-      videoId: 'LK7-_dgAVQE',
-      cover: 'https://i.ytimg.com/vi/LK7-_dgAVQE/hqdefault.jpg'
-    },
-    {
-      id: 3,
-      title: 'Espresso',
-      artist: 'Sabrina Carpenter',
-      duration: '2:55',
-      videoId: 'eVTXPUF4Oz4',
-      cover: 'https://i.ytimg.com/vi/eVTXPUF4Oz4/hqdefault.jpg'
-    },
-    {
-      id: 4,
-      title: 'Big Dawgs',
-      artist: 'Hanumankind, Kalmi',
-      duration: '3:56',
-      videoId: 'hOHKltAiKXQ',
-      cover: 'https://i.ytimg.com/vi/hOHKltAiKXQ/hqdefault.jpg'
-    },
-    {
-      id: 5,
-      title: 'Neon Horizon',
-      artist: 'The Midnight • Timecop1983',
-      duration: '4:15',
-      videoId: 'MV_3Dpw-BRY',
-      cover: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCHlMcD6WRSsBh4X5St7J_4oZzQsS234DF0-EH2eT252GWtcOFyk6iDo8E-NgcXM_MogmCdT5p5a6PDzIkyLVjitY5lwpiH9o4-LHRKg8aUB9QNAzhPXzvhHe0UiSrkpBYteOpwdTnMdo3l1VUtTScLu6sDfSOmCgtMZj-yigVUQfCd86VSV3ovTaIvwVYTKfuSrRw4Gccp5njoD61BLr89S5yJbyCc84iBFA4hw8U'
-    },
-    {
-      id: 6,
-      title: 'Jo Tum Mere Ho',
-      artist: 'Anuv Jain',
-      duration: '4:05',
-      videoId: 'ilNt2bikxDI',
-      cover: 'https://i.ytimg.com/vi/ilNt2bikxDI/hqdefault.jpg'
-    }
-  ];
+  // Trending tracks segmented by timeframe
+  const TRENDING_BY_FILTER = {
+    'Today': [
+      { id: 1, title: 'Die With A Smile', artist: 'Lady Gaga, Bruno Mars', duration: '4:11', videoId: 'kPa7bsKwL-c', cover: 'https://i.ytimg.com/vi/kPa7bsKwL-c/hqdefault.jpg' },
+      { id: 2, title: 'Tauba Tauba', artist: 'Karan Aujla', duration: '3:24', videoId: 'LK7-_dgAVQE', cover: 'https://i.ytimg.com/vi/LK7-_dgAVQE/hqdefault.jpg' },
+      { id: 3, title: 'Big Dawgs', artist: 'Hanumankind, Kalmi', duration: '3:56', videoId: 'hOHKltAiKXQ', cover: 'https://i.ytimg.com/vi/hOHKltAiKXQ/hqdefault.jpg' },
+      { id: 4, title: 'Aayi Nai', artist: 'Pawan Singh, Simran Choudhary', duration: '2:58', videoId: '0nrvPVnTWlc', cover: 'https://i.ytimg.com/vi/0nrvPVnTWlc/hqdefault.jpg' },
+      { id: 5, title: 'Jo Tum Mere Ho', artist: 'Anuv Jain', duration: '4:05', videoId: 'ilNt2bikxDI', cover: 'https://i.ytimg.com/vi/ilNt2bikxDI/hqdefault.jpg' },
+      { id: 6, title: 'Softly', artist: 'Karan Aujla, Ikky', duration: '2:36', videoId: 'cWMxCE2HTag', cover: 'https://i.ytimg.com/vi/cWMxCE2HTag/hqdefault.jpg' }
+    ],
+    'This Week': [
+      { id: 1, title: 'Espresso', artist: 'Sabrina Carpenter', duration: '2:55', videoId: 'eVTXPUF4Oz4', cover: 'https://i.ytimg.com/vi/eVTXPUF4Oz4/hqdefault.jpg' },
+      { id: 2, title: 'Birds of a Feather', artist: 'Billie Eilish', duration: '3:18', videoId: 'V9PVRfjEBTI', cover: 'https://i.ytimg.com/vi/V9PVRfjEBTI/hqdefault.jpg' },
+      { id: 3, title: 'Millionaire', artist: 'Yo Yo Honey Singh', duration: '3:21', videoId: 'XO8wew38VM8', cover: 'https://i.ytimg.com/vi/XO8wew38VM8/hqdefault.jpg' },
+      { id: 4, title: 'Taste', artist: 'Sabrina Carpenter', duration: '2:37', videoId: 'KEG7b851Ric', cover: 'https://i.ytimg.com/vi/KEG7b851Ric/hqdefault.jpg' },
+      { id: 5, title: 'Winning Speech', artist: 'Karan Aujla', duration: '3:38', videoId: '0DS5jYQeiw0', cover: 'https://i.ytimg.com/vi/0DS5jYQeiw0/hqdefault.jpg' },
+      { id: 6, title: 'Too Sweet', artist: 'Hozier', duration: '4:11', videoId: 'NTpbbQUBbuo', cover: 'https://i.ytimg.com/vi/NTpbbQUBbuo/hqdefault.jpg' }
+    ],
+    'All Time': [
+      { id: 1, title: 'Blinding Lights', artist: 'The Weeknd', duration: '3:20', videoId: '4NRXx6U8ABQ', cover: 'https://i.ytimg.com/vi/4NRXx6U8ABQ/hqdefault.jpg' },
+      { id: 2, title: 'Starboy', artist: 'The Weeknd ft. Daft Punk', duration: '3:50', videoId: '34Na4j8AVgA', cover: 'https://i.ytimg.com/vi/34Na4j8AVgA/hqdefault.jpg' },
+      { id: 3, title: 'Tum Hi Ho', artist: 'Arijit Singh', duration: '4:22', videoId: 'IJq0yyWug1k', cover: 'https://i.ytimg.com/vi/IJq0yyWug1k/hqdefault.jpg' },
+      { id: 4, title: 'Kesariya', artist: 'Arijit Singh, Pritam', duration: '4:28', videoId: 'BddP6PYo2gs', cover: 'https://i.ytimg.com/vi/BddP6PYo2gs/hqdefault.jpg' },
+      { id: 5, title: 'As It Was', artist: 'Harry Styles', duration: '2:47', videoId: 'H5v3kku4y6Q', cover: 'https://i.ytimg.com/vi/H5v3kku4y6Q/hqdefault.jpg' },
+      { id: 6, title: 'Cruel Summer', artist: 'Taylor Swift', duration: '2:58', videoId: 'ic8j13piAhQ', cover: 'https://i.ytimg.com/vi/ic8j13piAhQ/hqdefault.jpg' }
+    ]
+  };
+
+  const trendingTracks = TRENDING_BY_FILTER[trendingFilter] || TRENDING_BY_FILTER['Today'];
 
   const handlePlayTrack = (track) => {
     playSong({
