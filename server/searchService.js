@@ -214,6 +214,128 @@ const MOOD_SEARCH_MAP = {
   'workout': 'high energy workout gym songs motivation'
 };
 
+function isCleanMusicSingle(title = '', channel = '') {
+  const t = (title + ' ' + channel).toLowerCase();
+  const exclude = [
+    'trailer', 'teaser', 'gameplay', 'walkthrough', 'episode',
+    'full movie', 'highlights', 'review', 'vlog', 'unboxing',
+    'podcast', 'live stream', 'cricket', 'football', 'interview',
+    'mashup', 'jukebox', 'non stop', 'non-stop', 'collection', 'best of', 'all songs', '1 hour',
+    'playlist', 'party mix', 'songs 2026', 'trending songs', 'reels songs', 'top 10', 'top 20', 'top 50', 'top 100', 'new songs'
+  ];
+  return !exclude.some(w => t.includes(w));
+}
+
+const TIMEFRAME_BASE = {
+  'today': [
+    { id: 1, title: 'Die With A Smile', artist: 'Lady Gaga, Bruno Mars', duration: '4:11', videoId: 'kPa7bsKwL-c', cover: 'https://i.ytimg.com/vi/kPa7bsKwL-c/hqdefault.jpg' },
+    { id: 2, title: 'Tauba Tauba', artist: 'Karan Aujla', duration: '3:24', videoId: 'LK7-_dgAVQE', cover: 'https://i.ytimg.com/vi/LK7-_dgAVQE/hqdefault.jpg' },
+    { id: 3, title: 'Big Dawgs', artist: 'Hanumankind, Kalmi', duration: '3:56', videoId: 'hOHKltAiKXQ', cover: 'https://i.ytimg.com/vi/hOHKltAiKXQ/hqdefault.jpg' },
+    { id: 4, title: 'Aayi Nai', artist: 'Pawan Singh, Simran Choudhary', duration: '2:58', videoId: '0nrvPVnTWlc', cover: 'https://i.ytimg.com/vi/0nrvPVnTWlc/hqdefault.jpg' },
+    { id: 5, title: 'Jo Tum Mere Ho', artist: 'Anuv Jain', duration: '4:05', videoId: 'ilNt2bikxDI', cover: 'https://i.ytimg.com/vi/ilNt2bikxDI/hqdefault.jpg' },
+    { id: 6, title: 'Softly', artist: 'Karan Aujla, Ikky', duration: '2:36', videoId: 'cWMxCE2HTag', cover: 'https://i.ytimg.com/vi/cWMxCE2HTag/hqdefault.jpg' },
+    { id: 7, title: 'Winning Speech', artist: 'Karan Aujla', duration: '3:38', videoId: '0DS5jYQeiw0', cover: 'https://i.ytimg.com/vi/0DS5jYQeiw0/hqdefault.jpg' },
+    { id: 8, title: 'White Brown Black', artist: 'Karan Aujla, Avvy Sra', duration: '3:05', videoId: 'BtQp2U6hJII', cover: 'https://i.ytimg.com/vi/BtQp2U6hJII/hqdefault.jpg' },
+    { id: 9, title: 'With You', artist: 'AP Dhillon', duration: '2:34', videoId: 'mZQH8CPQ-wo', cover: 'https://i.ytimg.com/vi/mZQH8CPQ-wo/hqdefault.jpg' },
+    { id: 10, title: 'Millionaire', artist: 'Yo Yo Honey Singh', duration: '3:21', videoId: 'XO8wew38VM8', cover: 'https://i.ytimg.com/vi/XO8wew38VM8/hqdefault.jpg' }
+  ],
+  'thisweek': [
+    { id: 1, title: 'Espresso', artist: 'Sabrina Carpenter', duration: '2:55', videoId: 'eVTXPUF4Oz4', cover: 'https://i.ytimg.com/vi/eVTXPUF4Oz4/hqdefault.jpg' },
+    { id: 2, title: 'Birds of a Feather', artist: 'Billie Eilish', duration: '3:18', videoId: 'V9PVRfjEBTI', cover: 'https://i.ytimg.com/vi/V9PVRfjEBTI/hqdefault.jpg' },
+    { id: 3, title: 'Millionaire', artist: 'Yo Yo Honey Singh', duration: '3:21', videoId: 'XO8wew38VM8', cover: 'https://i.ytimg.com/vi/XO8wew38VM8/hqdefault.jpg' },
+    { id: 4, title: 'Taste', artist: 'Sabrina Carpenter', duration: '2:37', videoId: 'KEG7b851Ric', cover: 'https://i.ytimg.com/vi/KEG7b851Ric/hqdefault.jpg' },
+    { id: 5, title: 'Winning Speech', artist: 'Karan Aujla', duration: '3:38', videoId: '0DS5jYQeiw0', cover: 'https://i.ytimg.com/vi/0DS5jYQeiw0/hqdefault.jpg' },
+    { id: 6, title: 'Too Sweet', artist: 'Hozier', duration: '4:11', videoId: 'NTpbbQUBbuo', cover: 'https://i.ytimg.com/vi/NTpbbQUBbuo/hqdefault.jpg' },
+    { id: 7, title: 'I Had Some Help', artist: 'Post Malone ft. Morgan Wallen', duration: '2:58', videoId: '4QIZE708gJ4', cover: 'https://i.ytimg.com/vi/4QIZE708gJ4/hqdefault.jpg' },
+    { id: 8, title: 'Snooze', artist: 'SZA', duration: '3:21', videoId: 'LDY_XyxBu8A', cover: 'https://i.ytimg.com/vi/LDY_XyxBu8A/hqdefault.jpg' }
+  ],
+  'alltime': [
+    { id: 1, title: 'Blinding Lights', artist: 'The Weeknd', duration: '3:20', videoId: '4NRXx6U8ABQ', cover: 'https://i.ytimg.com/vi/4NRXx6U8ABQ/hqdefault.jpg' },
+    { id: 2, title: 'Starboy', artist: 'The Weeknd ft. Daft Punk', duration: '3:50', videoId: '34Na4j8AVgA', cover: 'https://i.ytimg.com/vi/34Na4j8AVgA/hqdefault.jpg' },
+    { id: 3, title: 'Tum Hi Ho', artist: 'Arijit Singh', duration: '4:22', videoId: 'IJq0yyWug1k', cover: 'https://i.ytimg.com/vi/IJq0yyWug1k/hqdefault.jpg' },
+    { id: 4, title: 'Kesariya', artist: 'Arijit Singh, Pritam', duration: '4:28', videoId: 'BddP6PYo2gs', cover: 'https://i.ytimg.com/vi/BddP6PYo2gs/hqdefault.jpg' },
+    { id: 5, title: 'As It Was', artist: 'Harry Styles', duration: '2:47', videoId: 'H5v3kku4y6Q', cover: 'https://i.ytimg.com/vi/H5v3kku4y6Q/hqdefault.jpg' },
+    { id: 6, title: 'Cruel Summer', artist: 'Taylor Swift', duration: '2:58', videoId: 'ic8j13piAhQ', cover: 'https://i.ytimg.com/vi/ic8j13piAhQ/hqdefault.jpg' }
+  ]
+};
+
+async function getTrendingByTimeframe(rawTimeframe = 'today', apiKey) {
+  const norm = (rawTimeframe || 'today').toLowerCase().replace(/\s+/g, '');
+  const timeframe = (norm === 'all' || norm === 'alltime') ? 'alltime' : (norm === 'week' || norm === 'thisweek') ? 'thisweek' : 'today';
+  
+  // Date string for daily auto-rotation
+  const dateKey = new Date().toISOString().slice(0, 10);
+  const cacheKey = `trending_${timeframe}_${dateKey}`;
+
+  const cached = searchCache.get(cacheKey);
+  if (cached && (Date.now() - cached.timestamp < CACHE_TTL_MS)) {
+    return cached.results;
+  }
+
+  const baseList = TIMEFRAME_BASE[timeframe] || TIMEFRAME_BASE['today'];
+
+  // Calculate day-of-year rotation offset so list naturally rotates daily
+  const now = new Date();
+  const startOfYear = new Date(now.getFullYear(), 0, 0);
+  const diff = now - startOfYear;
+  const oneDay = 1000 * 60 * 60 * 24;
+  const dayOfYear = Math.floor(diff / oneDay);
+
+  let finalTracks = [];
+
+  if (timeframe === 'today') {
+    // 1. Try to fetch live viral singles from YouTube
+    let liveSingles = [];
+    try {
+      const searchTerms = 'official trending viral music songs 2026';
+      const liveResults = await searchSongs(searchTerms, apiKey);
+      if (liveResults && liveResults.length > 0) {
+        liveSingles = liveResults
+          .filter(r => r.videoId && isCleanMusicSingle(r.title, r.channelTitle))
+          .slice(0, 3)
+          .map(r => ({
+            id: 0,
+            title: r.title,
+            artist: r.channelTitle,
+            duration: '3:30',
+            videoId: r.videoId,
+            cover: r.thumbnail || `https://i.ytimg.com/vi/${r.videoId}/hqdefault.jpg`
+          }));
+      }
+    } catch (_) {}
+
+    // Rotate base pool by day of year so everyday has a fresh combination
+    const pool = [...baseList];
+    const offset = dayOfYear % pool.length;
+    const rotated = [...pool.slice(offset), ...pool.slice(0, offset)];
+
+    // Merge: live singles first, followed by rotated verified tracks without duplicates
+    const combined = [...liveSingles];
+    for (const item of rotated) {
+      if (!combined.some(c => c.videoId === item.videoId)) {
+        combined.push(item);
+      }
+    }
+    finalTracks = combined.slice(0, 6).map((t, idx) => ({ ...t, id: idx + 1 }));
+  } else if (timeframe === 'thisweek') {
+    const pool = [...baseList];
+    const weekNumber = Math.floor(dayOfYear / 7);
+    const offset = weekNumber % pool.length;
+    const rotated = [...pool.slice(offset), ...pool.slice(0, offset)];
+    finalTracks = rotated.slice(0, 6).map((t, idx) => ({ ...t, id: idx + 1 }));
+  } else {
+    // All time
+    finalTracks = baseList.slice(0, 6).map((t, idx) => ({ ...t, id: idx + 1 }));
+  }
+
+  searchCache.set(cacheKey, {
+    results: finalTracks,
+    timestamp: Date.now()
+  });
+
+  return finalTracks;
+}
+
 async function getTrendingSongs(mood = 'trending', apiKey) {
   const key = (mood || 'trending').toLowerCase().trim();
   const curated = CURATED_MOODS[key] || CURATED_MOODS['trending'];
@@ -246,5 +368,6 @@ async function getTrendingSongs(mood = 'trending', apiKey) {
 
 module.exports = {
   searchSongs,
-  getTrendingSongs
+  getTrendingSongs,
+  getTrendingByTimeframe
 };

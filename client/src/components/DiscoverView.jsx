@@ -26,7 +26,7 @@ export default function DiscoverView({ onOpenAiTheme }) {
 
   const [trendingFilter, setTrendingFilter] = useState('Today'); // 'Today' | 'This Week' | 'All Time'
 
-  // Trending tracks segmented by timeframe
+  // Trending tracks fallback segmented by timeframe
   const TRENDING_BY_FILTER = {
     'Today': [
       { id: 1, title: 'Die With A Smile', artist: 'Lady Gaga, Bruno Mars', duration: '4:11', videoId: 'kPa7bsKwL-c', cover: 'https://i.ytimg.com/vi/kPa7bsKwL-c/hqdefault.jpg' },
@@ -54,7 +54,39 @@ export default function DiscoverView({ onOpenAiTheme }) {
     ]
   };
 
-  const trendingTracks = TRENDING_BY_FILTER[trendingFilter] || TRENDING_BY_FILTER['Today'];
+  const [trendingTracks, setTrendingTracks] = useState(() => {
+    return TRENDING_BY_FILTER['Today'];
+  });
+  const [isFetchingTrending, setIsFetchingTrending] = useState(false);
+
+  // Fetch live daily rotating trending tracks from backend with automated 24h refresh
+  React.useEffect(() => {
+    let active = true;
+    const loadTrending = async () => {
+      setIsFetchingTrending(true);
+      try {
+        const filterKey = trendingFilter.toLowerCase().replace(/\s+/g, '');
+        const res = await fetch(`/api/trending?filter=${filterKey}`);
+        if (res.ok) {
+          const json = await res.json();
+          if (active && json.songs && Array.isArray(json.songs) && json.songs.length > 0) {
+            setTrendingTracks(json.songs);
+            return;
+          }
+        }
+      } catch (err) {
+        console.warn('Live trending fetch failed, keeping fallback:', err);
+      } finally {
+        if (active) setIsFetchingTrending(false);
+      }
+      if (active) {
+        setTrendingTracks(TRENDING_BY_FILTER[trendingFilter] || TRENDING_BY_FILTER['Today']);
+      }
+    };
+
+    loadTrending();
+    return () => { active = false; };
+  }, [trendingFilter]);
 
   const handlePlayTrack = (track) => {
     playSong({

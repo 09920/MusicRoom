@@ -72,8 +72,14 @@ app.get('/api/ping', (req, res) => {
 // Trending music endpoint for Discover feed
 app.get('/api/trending', async (req, res) => {
   try {
-    const mood = req.query.mood || 'trending';
-    const songs = await searchService.getTrendingSongs(mood, process.env.YOUTUBE_API_KEY);
+    const timeframe = req.query.filter || req.query.timeframe;
+    let songs;
+    if (timeframe) {
+      songs = await searchService.getTrendingByTimeframe(timeframe, process.env.YOUTUBE_API_KEY);
+    } else {
+      const mood = req.query.mood || 'trending';
+      songs = await searchService.getTrendingSongs(mood, process.env.YOUTUBE_API_KEY);
+    }
     res.json({ success: true, songs });
   } catch (err) {
     console.error('API trending error:', err);
