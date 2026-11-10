@@ -33,6 +33,7 @@ export function PlayerProvider({ children }) {
   const [playlistModalMode, setPlaylistModalMode] = useState(null); // 'create' | 'add_to_playlist'
   const [songToAddToPlaylist, setSongToAddToPlaylist] = useState(null);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Playback State
   const [currentSong, setCurrentSong] = useState(() => {
@@ -710,6 +711,8 @@ export function PlayerProvider({ children }) {
     openAddToPlaylistModal,
     isImportModalOpen,
     setIsImportModalOpen,
+    searchQuery,
+    setSearchQuery,
 
     // Playback
     currentSong,

@@ -13,7 +13,7 @@ export function MobileTopBar() {
   return (
     <header className="sticky top-0 z-30 px-4 py-3 bg-surface/90 backdrop-blur-xl border-b border-surface-container-high flex items-center justify-between select-none">
       {/* Brand */}
-      <div 
+      <div
         onClick={() => setActiveTab('discover')}
         className="flex items-center gap-2 cursor-pointer active:scale-95 transition-transform"
       >
@@ -32,11 +32,10 @@ export function MobileTopBar() {
         <button
           type="button"
           onClick={() => setActiveTab('search')}
-          className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${
-            activeTab === 'search'
+          className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${activeTab === 'search'
               ? 'text-primary bg-surface-container-high'
               : 'text-on-surface-variant hover:text-on-surface'
-          }`}
+            }`}
           title="Search"
         >
           <span className="material-symbols-outlined text-title-md">search</span>
@@ -45,11 +44,10 @@ export function MobileTopBar() {
         <button
           type="button"
           onClick={() => setIsPartyModalOpen(true)}
-          className={`px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all active:scale-95 border ${
-            activeRoom
+          className={`px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all active:scale-95 border ${activeRoom
               ? 'bg-secondary/20 text-secondary border-secondary/40 shadow-glow-emerald'
               : 'bg-surface-container-high text-on-surface border-surface-container-highest'
-          }`}
+            }`}
         >
           {activeRoom ? (
             <>
@@ -87,14 +85,13 @@ export function MobileBottomTabBar() {
             key={tab.id}
             type="button"
             onClick={() => setActiveTab(tab.id)}
-            className={`flex flex-col items-center justify-center gap-0.5 py-1 px-3 rounded-lg transition-colors ${
-              isActive
+            className={`flex flex-col items-center justify-center gap-0.5 py-1 px-3 rounded-lg transition-colors ${isActive
                 ? 'text-primary font-bold'
                 : 'text-outline hover:text-on-surface'
-            }`}
+              }`}
           >
-            <span 
-              className="material-symbols-outlined text-title-md" 
+            <span
+              className="material-symbols-outlined text-title-md"
               style={{ fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0" }}
             >
               {tab.icon}

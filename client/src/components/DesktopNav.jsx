@@ -226,29 +226,43 @@ export function DesktopLeftSidebar() {
 
 export function DesktopTopHeader() {
   const {
+    activeTab,
     setActiveTab,
     setIsPartyModalOpen,
     activeRoom,
-    roomMembers
+    roomMembers,
+    searchQuery,
+    setSearchQuery
   } = usePlayer();
 
   return (
     <header className="fixed top-0 left-64 right-0 h-16 bg-surface/85 backdrop-blur-xl z-30 flex items-center justify-between px-gutter border-b border-surface-container-high/60 shadow-[0_1px_8px_rgba(0,0,0,0.04)]">
-      {/* Quick Search Trigger */}
+      {/* Live Interactive Search Input */}
       <div className="flex items-center gap-space-md max-w-md w-full">
-        <button
-          type="button"
-          onClick={() => setActiveTab('search')}
-          className="w-full flex items-center justify-between bg-surface-container-low hover:bg-surface-container px-space-md py-2 rounded-full text-on-surface-variant transition-colors border border-surface-container-high/50"
+        <form 
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (activeTab !== 'search') setActiveTab('search');
+          }}
+          className="relative w-full flex items-center"
         >
-          <div className="flex items-center gap-space-sm">
-            <span className="material-symbols-outlined text-title-md text-outline">search</span>
-            <span className="font-body text-body-sm text-outline">Search tracks, playlists, artists...</span>
-          </div>
-          <kbd className="px-space-xs py-0.5 rounded bg-surface-container-high text-outline text-label-sm font-label-sm uppercase font-mono">
+          <span className="material-symbols-outlined text-title-md text-outline absolute left-3.5 pointer-events-none">
+            search
+          </span>
+          <input
+            type="text"
+            value={searchQuery || ''}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              if (activeTab !== 'search') setActiveTab('search');
+            }}
+            placeholder="Search tracks, playlists, artists..."
+            className="w-full bg-surface-container-low hover:bg-surface-container focus:bg-surface-container pl-10 pr-16 py-2 rounded-full text-on-surface placeholder:text-outline font-body text-body-sm transition-colors border border-surface-container-high/50 focus:outline-none focus:ring-1 focus:ring-primary"
+          />
+          <kbd className="absolute right-3 px-space-xs py-0.5 rounded bg-surface-container-high text-outline text-label-sm font-label-sm uppercase font-mono pointer-events-none">
             Ctrl+K
           </kbd>
-        </button>
+        </form>
       </div>
 
       {/* Navigation Shortcuts & User Status */}
@@ -332,18 +346,35 @@ export function DesktopPlayerBar() {
     setIsMuted,
     setIsFullScreen,
     isQueueOpen,
-    setIsQueueOpen
+    setIsQueueOpen,
+    playSong
   } = usePlayer();
 
   const [isShuffle, setIsShuffle] = useState(false);
   const [isRepeat, setIsRepeat] = useState(false);
 
-  if (!currentSong) return null;
+  // Safe active song fallback to prevent empty player bar
+  const activeSong = currentSong || {
+    videoId: 'XO8wew38VM8',
+    title: 'Millionaire',
+    channelTitle: 'Yo Yo Honey Singh',
+    thumbnail: 'https://i.ytimg.com/vi/XO8wew38VM8/hqdefault.jpg',
+    duration: 202
+  };
 
-  const liked = isLiked(currentSong.videoId);
-  const progressPercent = playback.duration > 0
-    ? Math.min(100, Math.max(0, (playback.currentTime / playback.duration) * 100))
+  const liked = isLiked(activeSong.videoId);
+  const totalDuration = playback.duration > 0 ? playback.duration : (activeSong.duration || 202);
+  const progressPercent = totalDuration > 0
+    ? Math.min(100, Math.max(0, (playback.currentTime / totalDuration) * 100))
     : 0;
+
+  const handlePlayAction = () => {
+    if (!currentSong) {
+      playSong(activeSong, true);
+    } else {
+      togglePlayPause();
+    }
+  };
 
   return (
     <footer className="fixed bottom-0 left-0 right-0 h-20 bg-surface-container-lowest/95 backdrop-blur-2xl z-50 px-gutter border-t border-surface-container-high/80 flex items-center justify-between shadow-[0_-4px_20px_rgba(0,0,0,0.4)] select-none">
@@ -356,8 +387,8 @@ export function DesktopPlayerBar() {
           title="Open Lyrics & Now Playing Studio"
         >
           <img
-            src={currentSong.thumbnail || `https://i.ytimg.com/vi/${currentSong.videoId}/hqdefault.jpg`}
-            alt={currentSong.title}
+            src={activeSong.thumbnail || `https://i.ytimg.com/vi/${activeSong.videoId}/hqdefault.jpg`}
+            alt={activeSong.title}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform"
           />
           <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
@@ -369,18 +400,18 @@ export function DesktopPlayerBar() {
           <span 
             onClick={() => setIsFullScreen(true)}
             className="truncate text-body-sm font-semibold text-on-surface cursor-pointer hover:text-primary transition-colors leading-tight"
-            title={currentSong.title}
+            title={activeSong.title}
           >
-            {currentSong.title}
+            {activeSong.title}
           </span>
           <span className="truncate text-label-sm text-on-surface-variant font-medium mt-0.5">
-            {currentSong.channelTitle || 'Artist'}
+            {activeSong.channelTitle || activeSong.artist || 'Artist'}
           </span>
         </div>
 
         <button
           type="button"
-          onClick={() => toggleLike(currentSong)}
+          onClick={() => toggleLike(activeSong)}
           className={`p-1 transition-colors ${
             liked ? 'text-primary' : 'text-on-surface-variant hover:text-primary'
           }`}
@@ -419,7 +450,7 @@ export function DesktopPlayerBar() {
 
           <button
             type="button"
-            onClick={togglePlayPause}
+            onClick={handlePlayAction}
             className="w-10 h-10 rounded-full bg-primary hover:bg-primary-container text-on-primary flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-md"
             title={playback.isPlaying ? "Pause" : "Play"}
           >
@@ -460,7 +491,7 @@ export function DesktopPlayerBar() {
               const rect = e.currentTarget.getBoundingClientRect();
               const clickX = e.clientX - rect.left;
               const ratio = Math.max(0, Math.min(1, clickX / rect.width));
-              seekTo(ratio * playback.duration);
+              seekTo(ratio * totalDuration);
             }}
             className="relative flex-1 h-1.5 bg-surface-container-high rounded-full overflow-hidden cursor-pointer group py-1"
           >
@@ -474,7 +505,7 @@ export function DesktopPlayerBar() {
             </div>
           </div>
           <span className="text-label-sm font-metric-mono text-outline min-w-[34px]">
-            {formatTime(playback.duration)}
+            {formatTime(totalDuration)}
           </span>
         </div>
       </div>

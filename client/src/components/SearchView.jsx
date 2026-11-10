@@ -9,14 +9,28 @@ export default function SearchView() {
     togglePlayPause,
     addToQueue,
     isLiked,
-    toggleLike
+    toggleLike,
+    searchQuery,
+    setSearchQuery
   } = usePlayer();
 
-  const [query, setQuery] = useState('Kavinsky');
+  const [query, setQuery] = useState(searchQuery || 'Kavinsky');
   const [activeFilter, setActiveFilter] = useState('all');
   const [searchResults, setSearchResults] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const searchTimeoutRef = useRef(null);
+
+  // Sync external header search query with local search view query
+  useEffect(() => {
+    if (searchQuery && searchQuery !== query) {
+      setQuery(searchQuery);
+    }
+  }, [searchQuery]);
+
+  const handleQueryChange = (val) => {
+    setQuery(val);
+    if (setSearchQuery) setSearchQuery(val);
+  };
 
   // Curated fallback songs for Kavinsky / synthwave default view
   const defaultSongs = [
@@ -74,19 +88,21 @@ export default function SearchView() {
         const res = await fetch(`/api/search?q=${encodeURIComponent(query.trim())}`);
         if (res.ok) {
           const data = await res.json();
-          const items = Array.isArray(data) ? data : data.items || [];
-          if (items.length > 0) {
+          const items = Array.isArray(data) ? data : (data.results || data.items || []);
+          if (items && items.length > 0) {
             setSearchResults(
               items.map((item) => ({
                 videoId: item.videoId || item.id?.videoId || item.id,
                 title: item.title,
                 artist: item.channelTitle || item.artist || 'Artist',
                 album: 'Single / Stream',
-                duration: item.durationFormatted || '3:45',
+                duration: item.durationFormatted || (item.duration ? `${Math.floor(item.duration / 60)}:${item.duration % 60 < 10 ? '0' : ''}${item.duration % 60}` : '3:45'),
                 plays: 'Popular',
                 thumbnail: item.thumbnail || `https://i.ytimg.com/vi/${item.videoId}/hqdefault.jpg`
               }))
             );
+          } else {
+            setSearchResults([]);
           }
         }
       } catch (err) {
@@ -135,7 +151,7 @@ export default function SearchView() {
             <input
               type="text"
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={(e) => handleQueryChange(e.target.value)}
               placeholder="Search songs, artists, albums, or podcasts..."
               className="w-full pl-12 pr-28 py-3.5 bg-surface-container rounded-xl text-on-surface font-body text-body-lg placeholder:text-outline focus:outline-none focus:bg-surface-container-high transition-colors shadow-sm border border-surface-container-high/40"
             />
@@ -143,7 +159,7 @@ export default function SearchView() {
               {query && (
                 <button
                   type="button"
-                  onClick={() => setQuery('')}
+                  onClick={() => handleQueryChange('')}
                   className="p-1 text-outline hover:text-on-surface rounded-full transition-colors"
                   title="Clear search"
                 >
@@ -190,7 +206,7 @@ export default function SearchView() {
               <button
                 key={tag}
                 type="button"
-                onClick={() => setQuery(tag)}
+                onClick={() => handleQueryChange(tag)}
                 className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-surface-container text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors text-body-sm"
               >
                 <span>{tag}</span>
