@@ -377,9 +377,9 @@ function detectGenre(song) {
  * Get a batch of recommended tracks for continuous Endless Radio playback
  */
 async function getRadioTracks(seedSong, apiKey, mood = 'all') {
-  if (!seedSong || !seedSong.videoId) return [];
+  if (!seedSong || (!seedSong.videoId && !seedSong.title)) return [];
   const tracks = [];
-  const seenIds = new Set([seedSong.videoId]);
+  const seenIds = new Set(seedSong.videoId ? [seedSong.videoId] : []);
 
   const { title, artist } = extractArtistAndTitle(seedSong);
 
