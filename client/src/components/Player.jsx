@@ -25,6 +25,8 @@ export default function Player({
   const [showSyncBadge, setShowSyncBadge] = useState(false);
   const [syncDrift, setSyncDrift] = useState(0);
   const isRemoteActionRef = useRef(false);
+  const skipSegmentsRef = useRef([]);
+  const [skippedNotice, setSkippedNotice] = useState('');
   const [isAudioOnly, setIsAudioOnly] = useState(() => {
     try {
       return localStorage.getItem('musicroom_audio_only') === 'true';
@@ -45,6 +47,18 @@ export default function Player({
 
   useEffect(() => {
     setIsEnding(false);
+    skipSegmentsRef.current = [];
+
+    if (!currentSong?.videoId) return;
+
+    fetch(`/api/sponsorblock?videoId=${currentSong.videoId}`)
+      .then(r => r.json())
+      .then(data => {
+        if (data.success && Array.isArray(data.segments)) {
+          skipSegmentsRef.current = data.segments;
+        }
+      })
+      .catch(() => {});
   }, [currentSong?.videoId]);
 
   // Monitor near-end to trigger advance BEFORE YouTube renders native end-screen recommendations
@@ -86,6 +100,19 @@ export default function Player({
               currentTime: cur,
               ...(dur > 0 ? { duration: dur } : {})
             });
+          }
+
+          // Auto-skip non-music dialogue / skits using SponsorBlock
+          if (canControl && skipSegmentsRef.current.length > 0 && cur >= 0) {
+            for (const seg of skipSegmentsRef.current) {
+              if (cur >= seg.start && cur < seg.end - 0.5) {
+                p.seekTo(seg.end, true);
+                const skippedSecs = Math.round(seg.end - seg.start);
+                setSkippedNotice(`⚡ Skipped ${skippedSecs}s non-music skit (SponsorBlock)`);
+                setTimeout(() => setSkippedNotice(''), 3000);
+                break;
+              }
+            }
           }
         } catch (_) { }
       }
@@ -496,6 +523,14 @@ export default function Player({
             <span className="material-symbols-outlined text-[16px]">fullscreen</span>
           </button>
         </div>
+
+        {/* SponsorBlock Auto-Skip Toast Notification */}
+        {skippedNotice && (
+          <div className="absolute top-12 left-1/2 -translate-x-1/2 z-30 px-3 py-1 rounded-full bg-secondary/95 text-surface text-xs font-bold shadow-xl backdrop-blur-md animate-in fade-in slide-in-from-top-2 flex items-center gap-1.5 border border-secondary">
+            <Zap className="w-3.5 h-3.5 fill-current" />
+            <span>{skippedNotice}</span>
+          </div>
+        )}
 
         {/* Transition Shield: Covers video when track completes */}
         <div

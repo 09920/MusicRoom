@@ -7,11 +7,13 @@ import MemberList from '../components/MemberList';
 import QueueList from '../components/QueueList';
 import SongSearch from '../components/SongSearch';
 import ChatBox from '../components/ChatBox';
+import SyncedLyrics from '../components/SyncedLyrics';
+import SimilarSongs from '../components/SimilarSongs';
 import ImportPlaylistModal from '../components/ImportPlaylistModal';
 import SessionHistoryModal from '../components/SessionHistoryModal';
 import Toast from '../components/Toast';
 import TapToJoin from '../components/TapToJoin';
-import { Shield, Users, MessageSquare, Copy, LogOut, Radio, ListMusic, Crown, Sparkles, Check } from 'lucide-react';
+import { Shield, Users, MessageSquare, Copy, LogOut, Radio, ListMusic, Crown, Sparkles, Check, Mic2 } from 'lucide-react';
 
 export default function Room({ initialRoom, currentSocketId, userId, onLeaveRoom }) {
   const [room, setRoom] = useState(initialRoom);
@@ -19,6 +21,7 @@ export default function Room({ initialRoom, currentSocketId, userId, onLeaveRoom
   const [messages, setMessages] = useState(initialRoom?.messages || []);
   const [sidebarTab, setSidebarTab] = useState('chat');
   const [mobileTab, setMobileTab] = useState('player');
+  const [activeMediaTab, setActiveMediaTab] = useState('queue'); // 'queue' | 'lyrics' | 'similar'
   const [unreadChatCount, setUnreadChatCount] = useState(0);
   const [toasts, setToasts] = useState([]);
   const isHost = room?.hostSocketId === currentSocketId;
@@ -328,6 +331,24 @@ export default function Room({ initialRoom, currentSocketId, userId, onLeaveRoom
     socket.emit('queue:play_item', { roomId: room.id, queueId });
   };
 
+  const handlePlayNow = (song) => {
+    if (!canControl) return;
+    if (typeof window !== 'undefined' && window.musicroom_player) {
+      try {
+        window.musicroom_player.unMute();
+        if (typeof window.musicroom_player.loadVideoById === 'function') {
+          window.musicroom_player.loadVideoById({
+            videoId: song.videoId,
+            startSeconds: 0
+          });
+        }
+        window.musicroom_player.playVideo();
+      } catch (_) {}
+    }
+    socket.emit('song:pick', { roomId: room.id, song, playNow: true });
+    addToast(`Streaming "${song.title}"`, 'success');
+  };
+
   const handleRemoveQueueItem = (queueId) => {
     if (!canControl) return;
     socket.emit('queue:remove_item', { roomId: room.id, queueId });
@@ -454,22 +475,96 @@ export default function Room({ initialRoom, currentSocketId, userId, onLeaveRoom
               />
             </div>
 
-            {/* Queue Component (Visible on mobile when queue is selected; always visible on desktop) */}
-            <div className={`${mobileTab === 'queue' ? 'block' : 'hidden lg:block'}`}>
-              <QueueList
-                queue={queue}
-                currentSong={room.currentSong}
-                playback={room.playback}
-                roomId={room.id}
-                canControl={canControl}
-                autoMode={autoMode}
-                language={room.mood || 'Hindi'}
-                onPlayItem={handlePlayQueueItem}
-                onRemoveItem={handleRemoveQueueItem}
-                onMoveItem={handleMoveQueueItem}
-                onOpenImport={() => setIsImportModalOpen(true)}
-                onToggleAutoMode={handleToggleAutoMode}
-              />
+            {/* Multi-Panel: Up Next (Queue) | Synced Lyrics | Similar Songs */}
+            <div className={`${mobileTab === 'queue' ? 'block' : 'hidden lg:block'} space-y-4`}>
+              <div className="grid grid-cols-3 p-1 rounded-2xl bg-surface-container-low border border-white/5">
+                <button
+                  type="button"
+                  onClick={() => setActiveMediaTab('queue')}
+                  className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-bold transition-all duration-200 ${
+                    activeMediaTab === 'queue'
+                      ? 'bg-primary-container text-on-primary-container shadow-[0_2px_12px_rgba(160,120,255,0.35)]'
+                      : 'text-on-surface-variant hover:text-on-surface'
+                  }`}
+                >
+                  <ListMusic className="w-3.5 h-3.5" />
+                  <span>Up Next</span>
+                  {queue.length > 0 && (
+                    <span className="px-1.5 py-0.2 rounded-full bg-primary/20 text-primary-fixed text-[10px]">
+                      {queue.length}
+                    </span>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveMediaTab('lyrics')}
+                  className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-bold transition-all duration-200 ${
+                    activeMediaTab === 'lyrics'
+                      ? 'bg-primary-container text-on-primary-container shadow-[0_2px_12px_rgba(160,120,255,0.35)]'
+                      : 'text-on-surface-variant hover:text-on-surface'
+                  }`}
+                >
+                  <Mic2 className="w-3.5 h-3.5 text-secondary" />
+                  <span>Lyrics</span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse" />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveMediaTab('similar')}
+                  className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-bold transition-all duration-200 ${
+                    activeMediaTab === 'similar'
+                      ? 'bg-primary-container text-on-primary-container shadow-[0_2px_12px_rgba(160,120,255,0.35)]'
+                      : 'text-on-surface-variant hover:text-on-surface'
+                  }`}
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-primary" />
+                  <span>Similar</span>
+                </button>
+              </div>
+
+              {/* Tab 1: Queue / Up Next */}
+              {activeMediaTab === 'queue' && (
+                <QueueList
+                  queue={queue}
+                  currentSong={room.currentSong}
+                  playback={room.playback}
+                  roomId={room.id}
+                  canControl={canControl}
+                  autoMode={autoMode}
+                  language={room.mood || 'Hindi'}
+                  onPlayItem={handlePlayQueueItem}
+                  onRemoveItem={handleRemoveQueueItem}
+                  onMoveItem={handleMoveQueueItem}
+                  onOpenImport={() => setIsImportModalOpen(true)}
+                  onToggleAutoMode={handleToggleAutoMode}
+                />
+              )}
+
+              {/* Tab 2: Synced Lyrics */}
+              {activeMediaTab === 'lyrics' && (
+                <SyncedLyrics
+                  currentSong={room.currentSong}
+                  playback={room.playback}
+                  canControl={canControl}
+                  onSeek={handleSeek}
+                />
+              )}
+
+              {/* Tab 3: Similar Songs */}
+              {activeMediaTab === 'similar' && (
+                <SimilarSongs
+                  currentSong={room.currentSong}
+                  roomId={room.id}
+                  canControl={canControl}
+                  onAddSong={(song) => {
+                    socket.emit('song:pick', { roomId: room.id, song, playNow: false });
+                    addToast(`Added "${song.title}" to queue`, 'success');
+                  }}
+                  onPlayNow={handlePlayNow}
+                />
+              )}
             </div>
 
             {/* Mobile-only Chat View */}

@@ -10,6 +10,7 @@ const playlistParser = require('./playlistParser');
 const searchService = require('./searchService');
 const autoModeService = require('./autoModeService');
 const lyricsService = require('./lyricsService');
+const sponsorBlockService = require('./sponsorBlockService');
 
 const app = express();
 const server = http.createServer(app);
@@ -124,6 +125,17 @@ app.get('/api/radio', async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ success: false, tracks: [], mixTitle: 'Radio Mix' });
+  }
+});
+
+// REST API: SponsorBlock skip segments (non-music intro/outro skits)
+app.get('/api/sponsorblock', async (req, res) => {
+  try {
+    const { videoId } = req.query;
+    const segments = await sponsorBlockService.getSkipSegments(videoId);
+    res.json({ success: true, segments });
+  } catch (err) {
+    res.json({ success: true, segments: [] });
   }
 });
 
