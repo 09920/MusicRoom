@@ -8,6 +8,8 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+      - key: NPM_CONFIG_PRODUCTION
+        value: "false"
       - key: LASTFM_API_KEY
         value: e14b130a5ba346c5dc1bc1c0a909f178
       - key: YOUTUBE_API_KEY
