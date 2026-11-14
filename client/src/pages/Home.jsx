@@ -264,9 +264,9 @@ export default function Home({ onRoomJoined, initialRoomId, userId }) {
           
           {/* Error Banner */}
           {error && (
-            <div className="p-space-sm rounded-xl bg-error-container/40 border border-error/30 text-on-error-container text-xs flex items-center gap-2 animate-in fade-in">
-              <span className="material-symbols-outlined text-[18px] text-error">error</span>
-              <span>{error}</span>
+            <div className="p-3.5 rounded-2xl bg-error-container/40 border border-error/30 text-on-error-container text-xs flex items-center gap-2.5 animate-in fade-in">
+              <span className="material-symbols-outlined text-[18px] text-error shrink-0">error</span>
+              <span className="flex-1 leading-snug">{error}</span>
             </div>
           )}
 
@@ -459,75 +459,81 @@ export default function Home({ onRoomJoined, initialRoomId, userId }) {
                 </div>
 
                 {/* Playback Permissions Policy */}
-                <div className="flex flex-col p-space-sm rounded-xl bg-surface-container-lowest space-y-2 border border-outline-variant/20">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="material-symbols-outlined text-secondary text-[20px]">tune</span>
+                <div className="flex flex-col p-4 rounded-2xl bg-surface-container-lowest space-y-3 border border-outline-variant/20">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="material-symbols-outlined text-secondary text-[20px] shrink-0">tune</span>
                       <span className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">
                         Playback Permissions
                       </span>
                     </div>
-                    <span className={`font-label-sm text-label-sm font-semibold ${createData.hostMode === 'friendly' ? 'text-secondary' : 'text-primary'}`}>
+                    <span className={`font-label-sm text-label-sm font-semibold shrink-0 px-2.5 py-0.5 rounded-full ${
+                      createData.hostMode === 'friendly'
+                        ? 'bg-secondary/15 text-secondary border border-secondary/25'
+                        : 'bg-primary/15 text-primary border border-primary/25'
+                    }`}>
                       {createData.hostMode === 'friendly' ? 'Collaborative' : 'Host-Only DJ'}
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2 p-1 rounded-xl bg-surface-container-high/60">
+                  <div className="grid grid-cols-2 gap-2 p-1.5 rounded-xl bg-surface-container-high/60">
                     <button
                       type="button"
                       onClick={() => setCreateData({ ...createData, hostMode: 'friendly' })}
-                      className={`flex flex-col items-start p-2.5 rounded-lg text-left transition-all ${
+                      className={`flex flex-col items-start p-3 rounded-lg text-left transition-all ${
                         createData.hostMode === 'friendly'
                           ? 'bg-surface-container text-secondary ring-1 ring-secondary/40 shadow-sm'
                           : 'text-on-surface-variant hover:text-on-surface'
                       }`}
                     >
                       <div className="flex items-center gap-1.5 font-label-md text-label-md font-bold">
-                        <span className="material-symbols-outlined text-[18px]">groups</span>
+                        <span className="material-symbols-outlined text-[18px] shrink-0">groups</span>
                         <span>Friendly Mode</span>
                       </div>
-                      <span className="text-[10px] text-on-surface-variant mt-0.5 leading-tight">
-                        All listeners can queue & skip
+                      <span className="text-[11px] text-on-surface-variant mt-0.5 leading-snug">
+                        All listeners can queue &amp; skip
                       </span>
                     </button>
 
                     <button
                       type="button"
                       onClick={() => setCreateData({ ...createData, hostMode: 'single' })}
-                      className={`flex flex-col items-start p-2.5 rounded-lg text-left transition-all ${
+                      className={`flex flex-col items-start p-3 rounded-lg text-left transition-all ${
                         createData.hostMode === 'single'
                           ? 'bg-primary-container/20 text-primary ring-1 ring-primary/40 shadow-sm'
                           : 'text-on-surface-variant hover:text-on-surface'
                       }`}
                     >
                       <div className="flex items-center gap-1.5 font-label-md text-label-md font-bold">
-                        <span className="material-symbols-outlined text-[18px]">admin_panel_settings</span>
+                        <span className="material-symbols-outlined text-[18px] shrink-0">admin_panel_settings</span>
                         <span>Host-Only DJ</span>
                       </div>
-                      <span className="text-[10px] text-on-surface-variant mt-0.5 leading-tight">
-                        Strict host & DJ privileges
+                      <span className="text-[11px] text-on-surface-variant mt-0.5 leading-snug">
+                        Strict host &amp; DJ privileges
                       </span>
                     </button>
                   </div>
 
-                  <p className="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1.5 pt-0.5">
-                    <span className="material-symbols-outlined text-[14px] text-secondary">info</span>
-                    {createData.hostMode === 'friendly'
-                      ? 'Anyone can add, reorder, and skip tracks together in real-time.'
-                      : 'Strict DJ room: only host and verified co-hosts can alter playback or queue.'}
-                  </p>
+                  <div className="flex items-start gap-2 pt-0.5 px-0.5">
+                    <span className="material-symbols-outlined text-[15px] text-secondary shrink-0 mt-0.5">info</span>
+                    <p className="font-label-sm text-label-sm text-on-surface-variant leading-relaxed">
+                      {createData.hostMode === 'friendly'
+                        ? 'Anyone can add, reorder, and skip tracks together in real-time.'
+                        : 'Strict DJ room: only host and verified co-hosts can alter playback or queue.'}
+                    </p>
+                  </div>
                 </div>
 
                 {/* Room PIN Code Protection Toggle */}
-                <div className="flex flex-col p-space-sm rounded-xl bg-surface-container-lowest space-y-2 border border-outline-variant/20">
-                  <div className="flex items-center justify-between">
+                <div className="flex flex-col p-4 rounded-2xl bg-surface-container-lowest space-y-3 border border-outline-variant/20">
+                  <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2.5 min-w-0">
-                      <span className="material-symbols-outlined text-primary text-[22px]">lock</span>
-                      <div className="flex flex-col">
-                        <span className="font-title-md text-title-md text-on-surface font-semibold text-sm">
+                      <span className="material-symbols-outlined text-primary text-[22px] shrink-0">lock</span>
+                      <div className="flex flex-col min-w-0">
+                        <span className="font-title-md text-title-md text-on-surface font-semibold text-sm truncate">
                           PIN Code Protection
                         </span>
-                        <span className="font-label-sm text-label-sm text-on-surface-variant">
+                        <span className="font-label-sm text-label-sm text-on-surface-variant truncate">
                           Require 4-digit passkey to join
                         </span>
                       </div>
@@ -545,11 +551,11 @@ export default function Home({ onRoomJoined, initialRoomId, userId }) {
                   </div>
 
                   {hasPinProtection && (
-                    <div className="pt-2 flex items-center justify-between animate-in fade-in">
+                    <div className="pt-2 flex items-center justify-between gap-2 animate-in fade-in">
                       <span className="font-label-sm text-label-sm text-on-surface-variant">
                         Set 4-Digit Passcode
                       </span>
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 shrink-0">
                         {[0, 1, 2, 3].map((idx) => (
                           <input
                             key={idx}
@@ -601,8 +607,8 @@ export default function Home({ onRoomJoined, initialRoomId, userId }) {
 
                 {/* Auto Detection Badge */}
                 {joinData.roomId && (
-                  <div className="flex items-center gap-2 p-space-sm rounded-xl bg-secondary-container/15 text-secondary border border-secondary/20">
-                    <span className="material-symbols-outlined text-[18px]">verified</span>
+                  <div className="flex items-center gap-2.5 p-3.5 rounded-2xl bg-secondary-container/15 text-secondary border border-secondary/20">
+                    <span className="material-symbols-outlined text-[20px] shrink-0">verified</span>
                     <div className="flex flex-col min-w-0">
                       <span className="font-label-md text-label-md font-bold">Room Target Loaded</span>
                       <span className="font-label-sm text-label-sm text-on-surface-variant truncate font-mono">
