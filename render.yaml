@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: musicroom
+    runtime: node
+    plan: free
+    buildCommand: npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: LASTFM_API_KEY
+        value: e14b130a5ba346c5dc1bc1c0a909f178
+      - key: YOUTUBE_API_KEY
+        sync: false
